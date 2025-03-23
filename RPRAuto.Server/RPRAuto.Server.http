@@ -1,0 +1,6 @@
+@RPRAuto.Server_HostAddress = http://localhost:5023
+
+GET {{RPRAuto.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
