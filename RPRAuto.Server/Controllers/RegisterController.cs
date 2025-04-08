@@ -8,12 +8,12 @@ namespace RPRAuto.Server.Controllers
     [Route("register")]
     public class RegisterController : ControllerBase
     {
-        private readonly IMongoCollection<IUser> _usersCollection;
+        private readonly IMongoCollection<User> _usersCollection;
 
         public RegisterController(IMongoClient mongoClient)
         {
             var database = mongoClient.GetDatabase("RPR");
-            _usersCollection = database.GetCollection<IUser>("Users");
+            _usersCollection = database.GetCollection<User>("Users");
         }
 
         [HttpPost]
@@ -44,12 +44,27 @@ namespace RPRAuto.Server.Controllers
                 PhoneNumber = registerRequest.PhoneNumber,
                 Address = registerRequest.Address,
                 City = registerRequest.City,
-                Country = registerRequest.Country
+                Country = registerRequest.Country,
+                UserId = await GetNextUserId(),
+                role = registerRequest.Role,
+                listings = new List<int>(),
+                bids = new List<int>(),
+                reviews = new Dictionary<int, string>()
             };
 
             await _usersCollection.InsertOneAsync(user);
 
             return Ok(new { message = "User registered successfully" });
+        }
+
+        private async Task<int> GetNextUserId()
+        {
+            // Find the highest UserId and increment by 1
+            var highestUser = await _usersCollection.Find(_ => true)
+                .SortByDescending(u => u.UserId)
+                .FirstOrDefaultAsync();
+
+            return (highestUser?.UserId ?? 0) + 1;
         }
     }
 
@@ -64,24 +79,6 @@ namespace RPRAuto.Server.Controllers
         public string Address { get; set; }
         public string City { get; set; }
         public string Country { get; set; }
-    }
-    
-    public class User : IUser
-    {
-        public string Username { get; set; }
-        public string Password { get; set; }
-        public int UserId { get; set; }
-        public string Email { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string PhoneNumber { get; set; }
-        public string Address { get; set; }
-        public string City { get; set; }
-        public string Country { get; set; }
-
-        public bool VerifyPassword(string password)
-        {
-            return BCrypt.Net.BCrypt.Verify(password, Password);
-        }
+        public Role Role { get; set; } = Role.Seller; // Default role
     }
 }

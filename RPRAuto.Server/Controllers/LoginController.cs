@@ -11,12 +11,12 @@ namespace RPRAuto.Server.Controllers
     [Route("login")]
     public class LoginController : ControllerBase
     {
-        private readonly IMongoCollection<IUser> _usersCollection;
+        private readonly IMongoCollection<User> _usersCollection;
 
         public LoginController(IMongoClient mongoClient)
         {
             var database = mongoClient.GetDatabase("RPR");
-            _usersCollection = database.GetCollection<IUser>("Users");
+            _usersCollection = database.GetCollection<User>("Users");
         }
 
         [HttpPost]
@@ -24,7 +24,7 @@ namespace RPRAuto.Server.Controllers
         {
             var user = await _usersCollection.Find(u => u.Username == loginRequest.Username).FirstOrDefaultAsync();
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.Password))
+            if (user == null || !user.VerifyPassword(loginRequest.Password))
             {
                 return Unauthorized(new { message = "Invalid username or password" });
             }
@@ -34,7 +34,7 @@ namespace RPRAuto.Server.Controllers
             return Ok(new { token });
         }
 
-        private string GenerateJwtToken(IUser user)
+        private string GenerateJwtToken(User user)
         {
             var privateKey = EnvLoader.GetRsaPrivateKey();
             var securityKey = new RsaSecurityKey(privateKey);
@@ -47,7 +47,6 @@ namespace RPRAuto.Server.Controllers
                 new Claim(JwtRegisteredClaimNames.Name, user.Username),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
-
             var token = new JwtSecurityToken(
                 issuer: "RPRAuto.Server",
                 audience: "RPRAuto.Client",
@@ -57,6 +56,29 @@ namespace RPRAuto.Server.Controllers
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+    }
+
+    public class User : IUser
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public int UserId { get; set; }
+        public Role role { get; set; }
+        public List<int> listings { get; set; } = new List<int>();
+        public List<int> bids { get; set; } = new List<int>();
+        public Dictionary<int, string> reviews { get; set; } = new Dictionary<int, string>();
+        public string Email { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string PhoneNumber { get; set; }
+        public string Address { get; set; }
+        public string City { get; set; }
+        public string Country { get; set; }
+
+        public bool VerifyPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.Verify(password, Password);
         }
     }
 

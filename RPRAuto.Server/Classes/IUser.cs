@@ -1,16 +1,34 @@
-﻿﻿namespace RPRAuto.Server.Classes;
+﻿﻿using Microsoft.Win32.SafeHandles;
 
-public interface IUser
+ namespace RPRAuto.Server.Classes;
+
+interface IUser
 {
-    string Username { get; set; }
-    string Password { get; set; }
+    class PersonalData
+    {
+        private string FirstName { get; set; }
+        private string LastName { get; set; }
+        private string PhoneNumber { get; set; }
+        private string Address { get; set; }
+        private string City { get; set; }
+        private string Country { get; set; }
+    }
+    class LoginDetails
+    {
+        private string Username { get; set; }
+        private string Password { get; set; }
+    }
     int UserId { get; set; }
-    string Email { get; set; }
-    string FirstName { get; set; }
-    string LastName { get; set; }
-    string PhoneNumber { get; set; }
-    string Address { get; set; }
-    string City { get; set; }
-    string Country { get; set; }
+    Role role { get; set; }
+    List<int> listings { get; set; }
+    List<int> bids { get; set; }
+    Dictionary<int, string> reviews { get; set; }
+    
     bool VerifyPassword(string password);
 }
+ 
+ public enum Role{
+    Admin,
+    Seller,
+    Company
+ }
