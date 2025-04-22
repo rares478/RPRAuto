@@ -1,8 +1,8 @@
 import Cookies from 'js-cookie';
 
-async function loginHandle(username, password) {
+export async function loginHandle(email, password) {
     const loginData = {
-        username: username,
+        email: email,
         password: password
     };
 
@@ -18,15 +18,14 @@ async function loginHandle(username, password) {
         });
 
         const data = await response.json();
-
-        if (response.ok) {
-            console.log('Success: ', data);
+       
+        if (data.status === 200) {
             Cookies.set("authToken", data.token, { expires: 30, secure: true, sameSite: 'strict' });
+            return { success: true }
         } else {
-            console.log('Error: ', data);
+            return { success: false, message: data.message }        
         }
     } catch (error) {
         console.error('Error:', error);
     }
-    
 }
