@@ -1,6 +1,63 @@
 @RPRAuto.Server_HostAddress = http://localhost:5023
 
-GET {{RPRAuto.Server_HostAddress}}/weatherforecast/
+# login
+POST {{RPRAuto.Server_HostAddress}}/login/
 Accept: application/json
+
+###
+
+# register
+POST {{RPRAuto.Server_HostAddress}}/register/
+Accept: application/json
+
+###
+
+GET {{RPRAuto.Server_HostAddress}}/listing/{{listingId}}
+Accept: application/json
+
+###
+
+# Update a listing
+PUT {{RPRAuto.Server_HostAddress}}/listing/{{listingId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+###
+
+# Delete a listing
+DELETE {{RPRAuto.Server_HostAddress}}/listing/{{listingId}}
+Authorization: Bearer {{token}}
+
+###
+
+# Get user
+GET {{RPRAuto.Server_HostAddress}}/user/{{userId}}
+Accept: application/json
+
+###
+
+# Get a bid listing
+GET {{RPRAuto.Server_HostAddress}}/bid/{{listingId}}
+Accept: application/json
+
+###
+
+# Update a bid listing
+PUT {{RPRAuto.Server_HostAddress}}/bid/{{listingId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+###
+
+# Delete a bid listing
+DELETE {{RPRAuto.Server_HostAddress}}/bid/{{listingId}}
+Authorization: Bearer {{token}}
+
+###
+
+# Place a new bid (for buyer)
+POST {{RPRAuto.Server_HostAddress}}/bid/{{listingId}}/place
+Content-Type: application/json
+Authorization: Bearer {{token}}
 
 ###
