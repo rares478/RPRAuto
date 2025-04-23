@@ -23,17 +23,17 @@ public class BidController : ControllerBase
     public async Task<IActionResult> GetById(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { message = "Invalid bid ID format" });
+            return BadRequest(new { status = 400, message = "Invalid bid ID format" });
 
         var bid = await _bidsCollection.Find(b => b.Id == objectId).FirstOrDefaultAsync();
 
         if (bid == null)
-            return NotFound(new { message = "Bid not found" });
+            return NotFound(new { status = 404, message = "Bid not found" });
 
         var seller = await _usersCollection.Find(u => u.UserId == bid.uId).FirstOrDefaultAsync();
 
         if (seller == null)
-            return NotFound(new { message = "Seller information not found" });
+            return NotFound(new { status = 404, message = "Seller information not found" });
 
         var response = new
         {
@@ -51,11 +51,11 @@ public class BidController : ControllerBase
     public async Task<IActionResult> Update(string id, [FromBody] BidUpdateRequest request)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { message = "Invalid bid ID format" });
+            return BadRequest(new { status = 400, message = "Invalid bid ID format" });
 
         var bid = await _bidsCollection.Find(b => b.Id == objectId).FirstOrDefaultAsync();
         if (bid == null)
-            return NotFound(new { message = "Bid listing not found" });
+            return NotFound(new { status = 404, message = "Bid listing not found" });
 
         // Update bid listing properties
         var update = Builders<Bid>.Update
@@ -64,25 +64,25 @@ public class BidController : ControllerBase
 
         await _bidsCollection.UpdateOneAsync(b => b.Id == objectId, update);
 
-        return Ok(new { message = "Bid listing updated successfully" });
+        return Ok(new { status = 200, message = "Bid listing updated successfully" });
     }
 
     [HttpPost("{id}/place")]
     public async Task<IActionResult> PlaceBid(string id, [FromBody] PlaceBidRequest request)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { message = "Invalid bid ID format" });
+            return BadRequest(new { status = 400, message = "Invalid bid ID format" });
 
         if (!ObjectId.TryParse(request.UserId, out var userId))
-            return BadRequest(new { message = "Invalid user ID format" });
+            return BadRequest(new { status = 400, message = "Invalid user ID format" });
 
         var bid = await _bidsCollection.Find(b => b.Id == objectId).FirstOrDefaultAsync();
         if (bid == null)
-            return NotFound(new { message = "Bid listing not found" });
+            return NotFound(new { status = 404, message = "Bid listing not found" });
 
         // Validate bid amount
         if (request.Amount < bid.MinBid || (bid.TopBid > 0 && request.Amount <= bid.TopBid))
-            return BadRequest(new { message = "Bid amount too low" });
+            return BadRequest(new { status = 400, message = "Bid amount too low" });
 
         // Check for instant buy
         if (request.Amount >= bid.InstantBuy && bid.InstantBuy > 0)
@@ -97,21 +97,21 @@ public class BidController : ControllerBase
 
         await _bidsCollection.UpdateOneAsync(b => b.Id == objectId, update);
 
-        return Ok(new { message = "Bid placed successfully" });
+        return Ok(new { status = 200, message = "Bid placed successfully" });
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { message = "Invalid bid ID format" });
+            return BadRequest(new { status = 400, message = "Invalid bid ID format" });
 
         var result = await _bidsCollection.DeleteOneAsync(b => b.Id == objectId);
 
         if (result.DeletedCount == 0)
-            return NotFound(new { message = "Bid listing not found" });
+            return NotFound(new { status = 404, message = "Bid listing not found" });
 
-        return Ok(new { message = "Bid listing deleted successfully" });
+        return Ok(new { status = 200, message = "Bid listing deleted successfully" });
     }
     
     [HttpGet]
@@ -125,7 +125,7 @@ public class BidController : ControllerBase
     public async Task<IActionResult> Create([FromBody] BidCreateRequest request)
     {
         if (request == null)
-            return BadRequest(new { message = "Invalid request" });
+            return BadRequest(new { status = 400, message = "Invalid request" });
 
         var bid = new Bid
         {
@@ -138,7 +138,7 @@ public class BidController : ControllerBase
 
         await _bidsCollection.InsertOneAsync(bid);
 
-        return Ok(new { message = "Bid listing created successfully" });
+        return Ok(new { status = 200, message = "Bid listing created successfully" });
     }
     
 }

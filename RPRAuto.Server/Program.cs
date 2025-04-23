@@ -12,6 +12,10 @@ builder.Services.AddOpenApi();
 builder.Services.AddSingleton<MongoDB.Driver.IMongoClient>(sp =>
     new MongoDB.Driver.MongoClient(builder.Configuration.GetConnectionString("MongoDB")));
 
+var connectionString = builder.Configuration.GetConnectionString("MongoDB");
+builder.Logging.AddConsole();
+Console.WriteLine($"MongoDB Connection String: {connectionString}");
+
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -33,7 +37,8 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("https://rpr-auto.vercel.app/")
+        //policy.WithOrigins("https://rpr-auto.vercel.app/")
+        policy.AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
