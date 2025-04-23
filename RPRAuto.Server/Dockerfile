@@ -7,7 +7,6 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["RPRAuto.Server/RPRAuto.Server.csproj", "RPRAuto.Server/"]
-COPY ["rprauto.client/rprauto.client.esproj", "rprauto.client/"]
 RUN dotnet restore "RPRAuto.Server/RPRAuto.Server.csproj"
 COPY . .
 WORKDIR "/src/RPRAuto.Server"
