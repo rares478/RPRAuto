@@ -7,8 +7,6 @@ export async function loginHandle(email, password) {
     };
 
     try {
-        // change to the host on vercel !!!
-
         const response = await fetch('https://rpr-auto.vercel.app/login', {
             method: 'POST',
             headers: {

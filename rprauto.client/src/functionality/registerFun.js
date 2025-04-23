@@ -12,9 +12,7 @@ export async function registerHandle(firstName, email, password, phone, individu
     };
 
     try {
-        // change to the host on vercel !!!
-
-        const response = await fetch('https://localhost:5000/register', {
+        const response = await fetch('https://rpr-auto.vercel.app/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
