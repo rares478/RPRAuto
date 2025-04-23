@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using RPRAuto.Server;
-using RPRAuto.Server.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 

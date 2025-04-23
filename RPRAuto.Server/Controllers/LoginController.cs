@@ -20,13 +20,13 @@ namespace RPRAuto.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
+        public async Task<IActionResult> Login([FromBody] Login loginRequest)
         {
-            var user = await _usersCollection.Find(u => u.Username == loginRequest.Username).FirstOrDefaultAsync();
+            var user = await _usersCollection.Find(u => u.Email == loginRequest.Email).FirstOrDefaultAsync();
 
             if (user == null || !user.VerifyPassword(loginRequest.Password))
             {
-                return Unauthorized(new { message = "Invalid username or password" });
+                return Unauthorized(new { message = "Invalid email or password" });
             }
 
             var token = GenerateJwtToken(user);
@@ -44,7 +44,7 @@ namespace RPRAuto.Server.Controllers
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Name, user.Username),
+                new Claim(JwtRegisteredClaimNames.Name, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
             var token = new JwtSecurityToken(
@@ -57,34 +57,5 @@ namespace RPRAuto.Server.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-    }
-
-    public class User : IUser
-    {
-        public string Username { get; set; }
-        public string Password { get; set; }
-        public int UserId { get; set; }
-        public Role role { get; set; }
-        public List<int> listings { get; set; } = new List<int>();
-        public List<int> bids { get; set; } = new List<int>();
-        public Dictionary<int, string> reviews { get; set; } = new Dictionary<int, string>();
-        public string Email { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string PhoneNumber { get; set; }
-        public string Address { get; set; }
-        public string City { get; set; }
-        public string Country { get; set; }
-
-        public bool VerifyPassword(string password)
-        {
-            return BCrypt.Net.BCrypt.Verify(password, Password);
-        }
-    }
-
-    public class LoginRequest
-    {
-        public string Username { get; set; }
-        public string Password { get; set; }
     }
 }
