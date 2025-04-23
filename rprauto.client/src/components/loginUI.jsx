@@ -1,0 +1,68 @@
+import React, { useState } from 'react';
+import { loginHandle } from '../functionality/loginFun';
+import './styles/login.css'; 
+
+function Login() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        loginHandle(email, password);
+    };
+
+    return (
+        <div className="login-container">
+            <div className="card">
+                <div className="card2">
+                    <form className="form" onSubmit={handleSubmit}>
+                        <p id="heading">Login</p>
+
+                        <div className="field">
+                            <svg viewBox="0 0 16 16" fill="currentColor" className="input-icon">
+                                <path d="M13.106 7.222c0-2.967-2.249-5.032-5.482-5.032..." />
+                            </svg>
+                            <input
+                                type="text"
+                                className="input-field"
+                                placeholder="Email"
+                                autoComplete="off"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="field">
+                            <svg viewBox="0 0 16 16" fill="currentColor" className="input-icon">
+                                <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2z..." />
+                            </svg>
+                            <input
+                                type="password"
+                                className="input-field"
+                                placeholder="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="btn">
+                            <button type="submit" className="logInBtn">
+                                Login
+                            </button>
+                            <button type="button" className="signUpBtn">
+                                Sign Up
+                            </button>
+                        </div>
+
+                        <button type="button" className="forgotPasswordBtn">
+                            Forgot Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default Login;

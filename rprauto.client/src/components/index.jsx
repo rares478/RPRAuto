@@ -4,11 +4,11 @@ import { createRoot } from 'react-dom/client'
 // The page component
 import App from './App.jsx'
 
-// Visual style
-import './index.css'
+// visual styles
+import './styles/index.css'
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+    <StrictMode>
+        <App />
+    </StrictMode>
 )
