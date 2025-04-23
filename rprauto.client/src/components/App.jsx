@@ -1,9 +1,12 @@
-// App.jsx
-import React from 'react';
-import Login from './login';
+import React from "react";
+import Page from "./loginUI.jsx";
 
-function App() {
-    return <Login />;
+var App = () => {
+    return (
+        <div className="App">
+            <Page />
+        </div>
+    );
 }
 
 export default App;
