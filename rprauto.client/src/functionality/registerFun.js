@@ -1,18 +1,18 @@
 import Cookies from 'js-cookie';
 
-export async function registerHandle(firstName, email, password, phone, individual, companyName, cui) {
+export async function registerHandle(firstName, email, password, phone, isCompany, companyName, cui) {
     const registerData = {
         firstName: firstName,
         email: email,
         password: password,
-        phone: phone,
-        individual: individual,
+        phoneNumber: phone,
+        isCompany: isCompany,
         companyName: companyName,
         cui: cui
     };
 
     try {
-        const response = await fetch('https://rpr-auto.vercel.app/register', {
+        const response = await fetch('https://rprauto.onrender.com/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
