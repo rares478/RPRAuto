@@ -53,7 +53,7 @@ public class Register
     public string FirstName { get; set; }
     public string PhoneNumber { get; set; }
     public bool IsCompany { get; set; }
-    public string CompanyCUI { get; set; } // Only required if IsCompany is true
+    public string? CompanyCUI { get; set; } // Only required if IsCompany is true
 }
 
 public class UserUpdateRequest

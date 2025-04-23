@@ -65,7 +65,7 @@ namespace RPRAuto.Server.Controllers
                         Country = ""
                     },
                     Role = registerRequest.IsCompany ? Role.Company : Role.Seller,
-                    CompanyCUI = registerRequest.IsCompany ? registerRequest.CompanyCUI : "",
+                    CompanyCUI = registerRequest.IsCompany ? registerRequest.CompanyCUI : null,
                     Listings = new List<ObjectId>(),
                     Bids = new List<ObjectId>()
                 };
