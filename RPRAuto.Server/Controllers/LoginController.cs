@@ -22,7 +22,7 @@ namespace RPRAuto.Server.Controllers
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] Login loginRequest)
         {
-            var user = await _usersCollection.Find(u => u.Email == loginRequest.Email).FirstOrDefaultAsync();
+            var user = await _usersCollection.Find(u => u.Login.Email == loginRequest.Email).FirstOrDefaultAsync();
 
             if (user == null || !user.VerifyPassword(loginRequest.Password))
             {
@@ -44,7 +44,7 @@ namespace RPRAuto.Server.Controllers
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Name, user.Email),
+                new Claim(JwtRegisteredClaimNames.Name, user.Login.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
             var token = new JwtSecurityToken(
