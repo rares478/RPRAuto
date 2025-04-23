@@ -1,63 +1,77 @@
-@RPRAuto.Server_HostAddress = http://localhost:5023
+@host = https://rprauto.onrender.com
+@userId = 65ff4e128e89fddb521c6673
+@token = your_auth_token_here
 
-# login
-POST {{RPRAuto.Server_HostAddress}}/login/
+### Get user by ID
+GET {{host}}/user/{{userId}}
 Accept: application/json
 
-###
-
-# register
-POST {{RPRAuto.Server_HostAddress}}/register/
-Accept: application/json
-
-###
-
-GET {{RPRAuto.Server_HostAddress}}/listing/{{listingId}}
-Accept: application/json
-
-###
-
-# Update a listing
-PUT {{RPRAuto.Server_HostAddress}}/listing/{{listingId}}
+### Modify a user
+PUT {{host}}/user/{{userId}}
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
-###
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "phoneNumber": "1234567890",
+  "address": "123 Main St",
+  "city": "New York",
+  "country": "USA"
+}
 
-# Delete a listing
-DELETE {{RPRAuto.Server_HostAddress}}/listing/{{listingId}}
+### Delete a user
+DELETE {{host}}/user/{{userId}}
 Authorization: Bearer {{token}}
 
-###
-
-# Get user
-GET {{RPRAuto.Server_HostAddress}}/user/{{userId}}
+### Get all listings for a user
+GET {{host}}/user/{{userId}}/listings
 Accept: application/json
 
-###
-
-# Get a bid listing
-GET {{RPRAuto.Server_HostAddress}}/bid/{{listingId}}
+### Get all bids for a user
+GET {{host}}/user/{{userId}}/bids
 Accept: application/json
 
-###
+### Get login details for a user
+GET {{host}}/user/{{userId}}/login
+Accept: application/json
+Authorization: Bearer {{token}}
 
-# Update a bid listing
-PUT {{RPRAuto.Server_HostAddress}}/bid/{{listingId}}
+### Get personal details for a user
+GET {{host}}/user/{{userId}}/personal
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Login request with body
+POST {{host}}/login
 Content-Type: application/json
-Authorization: Bearer {{token}}
 
-###
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
 
-# Delete a bid listing
-DELETE {{RPRAuto.Server_HostAddress}}/bid/{{listingId}}
-Authorization: Bearer {{token}}
-
-###
-
-# Place a new bid (for buyer)
-POST {{RPRAuto.Server_HostAddress}}/bid/{{listingId}}/place
+### Register request with body
+POST {{host}}/register
 Content-Type: application/json
-Authorization: Bearer {{token}}
 
-###
+{
+  "email": "newuser@example.com",
+  "password": "password123",
+  "firstName": "New",
+  "phoneNumber": "9876543210",
+  "isCompany": false
+}
+
+### Register company request
+POST {{host}}/register
+Content-Type: application/json
+
+{
+  "email": "company@example.com",
+  "password": "companypass",
+  "firstName": "Company",
+  "phoneNumber": "5555555555",
+  "isCompany": true,
+  "companyCUI": "RO12345678"
+}
