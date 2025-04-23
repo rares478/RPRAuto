@@ -12,6 +12,10 @@ builder.Services.AddOpenApi();
 builder.Services.AddSingleton<MongoDB.Driver.IMongoClient>(sp =>
     new MongoDB.Driver.MongoClient(builder.Configuration.GetConnectionString("MongoDB")));
 
+var connectionString = builder.Configuration.GetConnectionString("MongoDB");
+builder.Logging.AddConsole();
+Console.WriteLine($"MongoDB Connection String: {connectionString}");
+
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
