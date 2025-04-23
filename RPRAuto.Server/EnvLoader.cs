@@ -6,7 +6,7 @@ public static class EnvLoader
 {
     public static RSA GetRsaPrivateKey()
     {
-        string privateKeyPem = File.ReadAllText("private.pem");
+        string privateKeyPem = Environment.GetEnvironmentVariable("Private_Key");
         
         var rsa = RSA.Create();
         rsa.ImportFromPem(privateKeyPem);
@@ -15,7 +15,7 @@ public static class EnvLoader
 
     public static RSA GetRsaPublicKey()
     {
-        string publicKeyPem = File.ReadAllText("public.pem");
+        string publicKeyPem = Environment.GetEnvironmentVariable("Public_Key");
         
         var rsa = RSA.Create();
         rsa.ImportFromPem(publicKeyPem);
