@@ -9,7 +9,9 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy",
-        "ConnectionStrings__MongoDB": "PLACEHOLDER_FOR_CONNECTION_STRING"
+        "ConnectionStrings__MongoDB": "PLACEHOLDER_FOR_CONNECTION_STRING",
+        "PublicKey": "PLACEHOLDER_FOR_PUBLIC_KEY",
+        "PrivateKey": "PLACEHOLDER_FOR_PRIVATE_KEY"
       }
     },
     "https": {
@@ -20,7 +22,9 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy",
-        "ConnectionStrings__MongoDB": "PLACEHOLDER_FOR_CONNECTION_STRING"
+        "ConnectionStrings__MongoDB": "PLACEHOLDER_FOR_CONNECTION_STRING",
+        "PublicKey": "PLACEHOLDER_FOR_PUBLIC_KEY",
+        "PrivateKey": "PLACEHOLDER_FOR_PRIVATE_KEY"
       }
     }
   }
