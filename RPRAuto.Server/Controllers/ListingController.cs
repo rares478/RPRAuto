@@ -23,17 +23,17 @@ public class ListingController : ControllerBase
     public async Task<IActionResult> GetById(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { message = "Invalid ID format" });
+            return BadRequest(new { status = 400, message = "Invalid ID format" });
         
         var listing = await _listingsCollection.Find(l => l.Id == objectId).FirstOrDefaultAsync();
         
         if (listing == null)
-            return NotFound(new { message = "Listing not found" });
+            return NotFound(new { status = 404, message = "Listing not found" });
         
         var seller = await _usersCollection.Find(u => u.UserId == listing.uId).FirstOrDefaultAsync();
         
         if (seller == null)
-            return NotFound(new { message = "Seller information not found" });
+            return NotFound(new { status = 404, message = "Seller information not found" });
         
         var response = new
         {
@@ -49,26 +49,26 @@ public class ListingController : ControllerBase
     public async Task<IActionResult> Delete(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { message = "Invalid ID format" });
+            return BadRequest(new { status = 400, message = "Invalid ID format" });
         
         var result = await _listingsCollection.DeleteOneAsync(l => l.Id == objectId);
         
         if (result.DeletedCount == 0)
-            return NotFound(new { message = "Listing not found" });
+            return NotFound(new { status = 404, message = "Listing not found" });
         
-        return Ok(new { message = "Listing deleted successfully" });
+        return Ok(new { status = 200, message = "Listing deleted successfully" });
     }
     
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(string id, [FromBody] ListingUpdateRequest request)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { message = "Invalid ID format" });
+            return BadRequest(new { status = 400, message = "Invalid ID format" });
         
         var listing = await _listingsCollection.Find(l => l.Id == objectId).FirstOrDefaultAsync();
         
         if (listing == null)
-            return NotFound(new { message = "Listing not found" });
+            return NotFound(new { status = 404, message = "Listing not found" });
         
         // Update listing properties
         var update = Builders<Listing>.Update
@@ -77,14 +77,14 @@ public class ListingController : ControllerBase
         
         await _listingsCollection.UpdateOneAsync(l => l.Id == objectId, update);
         
-        return Ok(new { message = "Listing updated successfully" });
+        return Ok(new { status = 200, message = "Listing updated successfully" });
     }
     
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] ListingCreateRequest request)
     {
         if (request == null)
-            return BadRequest(new { message = "Invalid request" });
+            return BadRequest(new { status = 400, message = "Invalid request" });
         
         var listing = new Listing
         {
@@ -95,7 +95,7 @@ public class ListingController : ControllerBase
         
         await _listingsCollection.InsertOneAsync(listing);
         
-        return Ok(new { message = "Listing created successfully" });
+        return Ok(new { status = 200, message = "Listing created successfully" });
     }
     
     [HttpGet]
@@ -104,7 +104,7 @@ public class ListingController : ControllerBase
         var listings = await _listingsCollection.Find(_ => true).Limit(30).ToListAsync();
         
         if (listings == null || listings.Count == 0)
-            return NotFound(new { message = "No listings found" });
+            return NotFound(new { status = 404, message = "No listings found" });
         
         var response = listings.Select(l => new
         {
@@ -120,19 +120,19 @@ public class ListingController : ControllerBase
     public async Task<IActionResult> Buy(string id, [FromBody] ListingPurchaseRequest request)
     {
         if (!ObjectId.TryParse(id, out var listingId))
-            return BadRequest(new { message = "Invalid listing ID format" });
+            return BadRequest(new { status = 400, message = "Invalid listing ID format" });
         
         if (!ObjectId.TryParse(request.UserId, out var buyerId))
-            return BadRequest(new { message = "Invalid buyer ID format" });
+            return BadRequest(new { status = 400, message = "Invalid buyer ID format" });
 
         var listing = await _listingsCollection.Find(l => l.Id == listingId).FirstOrDefaultAsync();
     
         if (listing == null)
-            return NotFound(new { message = "Listing not found" });
+            return NotFound(new { status = 404, message = "Listing not found" });
 
         // TODO: Implement purchase logic here
     
-        return Ok(new { message = "Purchase successful" });
+        return Ok(new { status = 200, message = "Purchase successful" });
     }
     
     

@@ -33,7 +33,8 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("https://rpr-auto.vercel.app/")
+        //policy.WithOrigins("https://rpr-auto.vercel.app/")
+        policy.AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod();
     });

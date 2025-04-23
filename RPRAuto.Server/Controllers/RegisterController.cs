@@ -22,19 +22,19 @@ namespace RPRAuto.Server.Controllers
             
             if (string.IsNullOrEmpty(registerRequest.Email) || string.IsNullOrEmpty(registerRequest.Password))
             {
-                return BadRequest(new { message = "Email and password are required" });
+                return BadRequest(new {status = 400, message = "Email and password are required" });
             }
             
             if (registerRequest.IsCompany && string.IsNullOrEmpty(registerRequest.CompanyCUI))
             {
-                return BadRequest(new { message = "Company CUI is required for company accounts" });
+                return BadRequest(new { status = 400, message = "Company CUI is required for company accounts" });
             }
             
             // Check if email already exists
             var existingUser = await _usersCollection.Find(u => u.Email == registerRequest.Email).FirstOrDefaultAsync();
             if (existingUser != null)
             {
-                return BadRequest(new { message = "Email already exists" });
+                return BadRequest(new { status = 400, message = "Email already exists" });
             }
             
             // Create new user
@@ -61,7 +61,7 @@ namespace RPRAuto.Server.Controllers
 
             await _usersCollection.InsertOneAsync(user);
 
-            return Ok(new { message = "User registered successfully" });
+            return Ok(new { status = 200, message = "User registered successfully" });
         }
     }
 }

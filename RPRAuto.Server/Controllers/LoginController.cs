@@ -26,12 +26,12 @@ namespace RPRAuto.Server.Controllers
 
             if (user == null || !user.VerifyPassword(loginRequest.Password))
             {
-                return Unauthorized(new { message = "Invalid email or password" });
+                return Unauthorized(new { status = 401 ,message = "Invalid email or password" });
             }
 
             var token = GenerateJwtToken(user);
 
-            return Ok(new { token });
+            return Ok(new { status = 200, token });
         }
 
         private string GenerateJwtToken(User user)

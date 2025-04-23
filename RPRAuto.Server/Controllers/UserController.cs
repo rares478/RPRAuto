@@ -26,12 +26,12 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetUserById(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { message = "Invalid user ID format" });
+            return BadRequest(new { status = 400, message = "Invalid user ID format" });
 
         var user = await _usersCollection.Find(u => u.UserId == objectId).FirstOrDefaultAsync();
 
         if (user == null)
-            return NotFound(new { message = "User not found" });
+            return NotFound(new { status = 404, message = "User not found" });
 
         // Don't return password in response
         user.Login.Password = null;
@@ -43,11 +43,11 @@ public class UserController : ControllerBase
     public async Task<IActionResult> ModifyUser(string id, [FromBody] UserUpdateRequest request)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { message = "Invalid user ID format" });
+            return BadRequest(new { status = 400, message = "Invalid user ID format" });
 
         var user = await _usersCollection.Find(u => u.UserId == objectId).FirstOrDefaultAsync();
         if (user == null)
-            return NotFound(new { message = "User not found" });
+            return NotFound(new { status = 404, message = "User not found" });
 
         var update = Builders<User>.Update;
         var updateBuilder = update.Set(u => u.Personal.FirstName, request.FirstName)
@@ -59,32 +59,32 @@ public class UserController : ControllerBase
 
         await _usersCollection.UpdateOneAsync(u => u.UserId == objectId, updateBuilder);
 
-        return Ok(new { message = "User updated successfully" });
+        return Ok(new { status = 200, message = "User updated successfully" });
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { message = "Invalid user ID format" });
+            return BadRequest(new { status = 400, message = "Invalid user ID format" });
 
         var result = await _usersCollection.DeleteOneAsync(u => u.UserId == objectId);
 
         if (result.DeletedCount == 0)
-            return NotFound(new { message = "User not found" });
+            return NotFound(new { status = 404, message = "User not found" });
 
-        return Ok(new { message = "User deleted successfully" });
+        return Ok(new { status = 200, message = "User deleted successfully" });
     }
 
     [HttpGet("{id}/listings")]
     public async Task<IActionResult> GetAllListings(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { message = "Invalid user ID format" });
+            return BadRequest(new { status = 400, message = "Invalid user ID format" });
 
         var user = await _usersCollection.Find(u => u.UserId == objectId).FirstOrDefaultAsync();
         if (user == null)
-            return NotFound(new { message = "User not found" });
+            return NotFound(new { status = 404, message = "User not found" });
 
         var listings = await _listingsCollection.Find(l => user.Listings.Contains(l.Id)).ToListAsync();
 
@@ -95,11 +95,11 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetAllBids(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { message = "Invalid user ID format" });
+            return BadRequest(new { status = 400, message = "Invalid user ID format" });
 
         var user = await _usersCollection.Find(u => u.UserId == objectId).FirstOrDefaultAsync();
         if (user == null)
-            return NotFound(new { message = "User not found" });
+            return NotFound(new { status = 404, message = "User not found" });
 
         var bids = await _bidsCollection.Find(b => user.Bids.Contains(b.Id)).ToListAsync();
 
@@ -119,7 +119,7 @@ public class UserController : ControllerBase
             .FirstOrDefaultAsync();
 
         if (user == null)
-            return NotFound(new { message = "User not found" });
+            return NotFound(new { status = 404, message = "User not found" });
 
         return Ok(user);
     }
@@ -128,7 +128,7 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetPersonalDetails(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { message = "Invalid user ID format" });
+            return BadRequest(new { status = 400, message = "Invalid user ID format" });
 
         var user = await _usersCollection.Find(u => u.UserId == objectId)
             .Project<PersonalDetailsResponse>(Builders<User>.Projection
@@ -136,7 +136,7 @@ public class UserController : ControllerBase
             .FirstOrDefaultAsync();
 
         if (user == null)
-            return NotFound(new { message = "User not found" });
+            return NotFound(new { status = 404, message = "User not found" });
 
         return Ok(user);
     }
