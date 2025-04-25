@@ -1,11 +1,21 @@
 import React from "react";
 import Page from "./loginUI.jsx";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+
+// routes and pages
+import Login from "./loginUI.jsx";
+import Register from "./registerUI.jsx";
 
 var App = () => {
     return (
-        <div className="App">
-            <Page />
-        </div>
+        <Router>
+            <Routes>
+                <Route path="/" element={<Page />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="*" element={<Page />} />
+            </Routes>
+        </Router>
     );
 }
 

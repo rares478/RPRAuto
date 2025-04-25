@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { loginHandle } from '../functionality/loginFun';
 import './styles/login.css'; 
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+
+    const navigate = useNavigate();
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -50,12 +53,12 @@ function Login() {
                             <button type="submit" className="logInBtn">
                                 Login
                             </button>
-                            <button type="button" className="signUpBtn">
+                            <button type="button" className="signUpBtn" onClick={() => navigate('/register')}>
                                 Sign Up
                             </button>
                         </div>
 
-                        <button type="button" className="forgotPasswordBtn">
+                        <button type="button" className="forgotPasswordBtn" onClick={() => navigate('/forgot-password')}>
                             Forgot Password
                         </button>
                     </form>

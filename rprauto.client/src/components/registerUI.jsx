@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { registerHandle } from '../functionality/registerFun';
 import './styles/signup.css';
+import { useNavigate } from 'react-router-dom';
 
 function Register() {
     const [firstName, setFirstName] = useState('');
@@ -11,6 +12,8 @@ function Register() {
     const [companyName, setCompanyName] = useState('');
     const [cui, setCui] = useState('');
     const [error, setError] = useState('');
+
+    const navigate = useNavigate();
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -137,8 +140,12 @@ function Register() {
                         {error && <p className="error-text">{error}</p>}
 
                         <div className="btn">
-                            <button type="submit" className="button1">Sign Up</button>
-                            <button type="button" className="button2" onClick={() => window.location.reload()}>Cancel</button>
+                            <button type="submit" className="button1">
+                                Sign Up
+                            </button>
+                            <button type="button" className="button2" onClick={() => navigate('/')}>
+                                Cancel
+                            </button>
                         </div>
                     </form>
                 </div>
