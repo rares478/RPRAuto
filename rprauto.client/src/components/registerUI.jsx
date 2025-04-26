@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { registerHandle } from '../functionality/registerFun';
-import './styles/signup.css';
+import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
+import './styles/signup.css';
 
 function Register() {
     const [firstName, setFirstName] = useState('');
@@ -15,9 +16,20 @@ function Register() {
 
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        registerHandle(firstName, email, password, phone, individual, companyName, cui);
+        try {
+            const response = await registerHandle(firstName, email, password, phone, individual, companyName, cui);
+
+            if (response.success) {
+                Cookies.set("authToken", response.token, { expires: 30, secure: true, sameSite: 'strict' });
+                navigate('/');
+            } else {
+                setError(response.message || 'Registration failed.');
+            }
+        } catch (err) {
+            setError('Something went wrong. Please try again.');
+        }
     };
 
     return (
@@ -28,9 +40,6 @@ function Register() {
                         <p id="heading">Create Account</p>
 
                         <div className="field">
-                            <svg viewBox="0 0 16 16" fill="currentColor" height="16" width="16" className="input-icon">
-                                <path d="M8 8a3 3 0 1 0 0-6..." />
-                            </svg>
                             <input
                                 type="text"
                                 className="input-field"
@@ -42,9 +51,6 @@ function Register() {
                         </div>
 
                         <div className="field">
-                            <svg viewBox="0 0 16 16" fill="currentColor" height="16" width="16" className="input-icon">
-                                <path d="M0 4a2 2 0 0 1 2-2..." />
-                            </svg>
                             <input
                                 type="email"
                                 className="input-field"
@@ -56,9 +62,6 @@ function Register() {
                         </div>
 
                         <div className="field">
-                            <svg viewBox="0 0 16 16" fill="currentColor" height="16" width="16" className="input-icon">
-                                <path d="M8 1a2 2 0 0 1 2 2v4H6..." />
-                            </svg>
                             <input
                                 type="password"
                                 className="input-field"
@@ -70,9 +73,6 @@ function Register() {
                         </div>
 
                         <div className="field">
-                            <svg viewBox="0 0 16 16" fill="currentColor" height="16" width="16" className="input-icon">
-                                <path d="M3.654 1.328a.678..." />
-                            </svg>
                             <input
                                 type="tel"
                                 className="input-field"
@@ -88,7 +88,7 @@ function Register() {
                                     type="radio"
                                     name="account-type"
                                     value="individual"
-                                    checked={individual}
+                                    checked={individual === true}
                                     onChange={() => setIndividual(true)}
                                 />
                                 Individual
@@ -98,7 +98,7 @@ function Register() {
                                     type="radio"
                                     name="account-type"
                                     value="company"
-                                    checked={!individual}
+                                    checked={individual === false}
                                     onChange={() => setIndividual(false)}
                                 />
                                 Company
@@ -108,9 +108,6 @@ function Register() {
                         {!individual && (
                             <>
                                 <div className="field company-field">
-                                    <svg viewBox="0 0 16 16" fill="currentColor" height="16" width="16" className="input-icon">
-                                        <path d="M14.763.075A.5.5 0 0 1..." />
-                                    </svg>
                                     <input
                                         type="text"
                                         className="input-field"
@@ -122,9 +119,6 @@ function Register() {
                                 </div>
 
                                 <div className="field company-field">
-                                    <svg viewBox="0 0 16 16" fill="currentColor" height="16" width="16" className="input-icon">
-                                        <path d="M5.5 9.511c.076.954.83 1.697..." />
-                                    </svg>
                                     <input
                                         type="text"
                                         className="input-field"
