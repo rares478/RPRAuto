@@ -16,17 +16,18 @@ function Register() {
 
     const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
+    const handleSubmit =  (e) => {
         e.preventDefault();
+
         try {
-            const response = await registerHandle(firstName, email, password, phone, individual, companyName, cui);
+            const response = registerHandle(firstName, email, password, phone, individual, companyName, cui);
 
             if (response.success) {
                 Cookies.set("authToken", response.token, { expires: 30, secure: true, sameSite: 'strict' });
                 navigate('/');
-            } else {
-                setError(response.message || 'Registration failed.');
             }
+
+            // add else statement, where you show the message of the response
         } catch (err) {
             setError('Something went wrong. Please try again.');
         }
