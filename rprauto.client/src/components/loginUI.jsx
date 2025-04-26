@@ -22,8 +22,6 @@ function Login() {
             }
             // add else statement, where you show the message of the response
 
-            // optional, regarding the token, could use a counter that resets everytime the user opens the website
-            // if counter reaches a desired value, the token gets deleted
         } catch (err) {
             setError('Something went wrong. Please try again.');
         }  
