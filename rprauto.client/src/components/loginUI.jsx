@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { loginHandle } from '../functionality/loginFun';
-import './styles/login.css'; 
+import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
+import './styles/login.css';
 
 function Login() {
     const [email, setEmail] = useState('');
@@ -10,9 +11,20 @@ function Login() {
 
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        loginHandle(email, password);
+        try {
+            const response = await loginHandle(email, password);
+
+            if (response.success) {
+                Cookies.set("authToken", response.token, { expires: 30, secure: true, sameSite: 'strict' });
+                navigate('/');
+            } else {
+                setError(response.message || 'Login failed. Please check your credentials.');
+            }
+        } catch (err) {
+            setError('Something went wrong. Please try again.');
+        }
     };
 
     return (
@@ -23,9 +35,6 @@ function Login() {
                         <p id="heading">Login</p>
 
                         <div className="field">
-                            <svg viewBox="0 0 16 16" fill="currentColor" className="input-icon">
-                                <path d="M13.106 7.222c0-2.967-2.249-5.032-5.482-5.032..." />
-                            </svg>
                             <input
                                 type="text"
                                 className="input-field"
@@ -33,21 +42,22 @@ function Login() {
                                 autoComplete="off"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
+                                required
                             />
                         </div>
 
                         <div className="field">
-                            <svg viewBox="0 0 16 16" fill="currentColor" className="input-icon">
-                                <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2z..." />
-                            </svg>
                             <input
                                 type="password"
                                 className="input-field"
                                 placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                required
                             />
                         </div>
+
+                        {error && <p className="error-text">{error}</p>}
 
                         <div className="btn">
                             <button type="submit" className="logInBtn">

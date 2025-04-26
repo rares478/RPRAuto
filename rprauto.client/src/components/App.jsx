@@ -6,6 +6,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Page from "./loginUI.jsx";
 import Login from "./loginUI.jsx";
 import Register from "./registerUI.jsx";
+// NOTE: Vezi ca Page redirectioneaza tot la login ca inca nu avem main page
+// NOTE: Vezi ca Page redirectioneaza tot la login ca inca nu avem main page
+
 
 var App = () => {
     return (
