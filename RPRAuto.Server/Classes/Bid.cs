@@ -13,6 +13,8 @@ public class Bid : IBid
     public Dictionary<ObjectId, int> Bids { get; set; }
     public int InstantBuy { get; set; }
     public ICar Car { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime EndAt { get; set; }
 }
 
 public class BidUpdateRequest
@@ -34,4 +36,5 @@ public class BidCreateRequest
     public int MinBid { get; set; }
     public int InstantBuy { get; set; }
     public ICar Car { get; set; }
+    public DateTime EndAt { get; set; }
 }

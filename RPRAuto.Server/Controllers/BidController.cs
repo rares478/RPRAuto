@@ -41,7 +41,9 @@ public class BidController : ControllerBase
             topBid = bid.TopBid,
             minBid = bid.MinBid,
             instantBuy = bid.InstantBuy,
-            car = bid.Car
+            car = bid.Car,
+            createdAt = bid.CreatedAt,
+            endAt = bid.EndAt,
         };
 
         return Ok(response);
@@ -83,6 +85,9 @@ public class BidController : ControllerBase
         // Validate bid amount
         if (request.Amount < bid.MinBid || (bid.TopBid > 0 && request.Amount <= bid.TopBid))
             return BadRequest(new { status = 400, message = "Bid amount too low" });
+        
+        if(DateTime.UtcNow > bid.EndAt)
+            return BadRequest(new { status = 400, message = "Bid listing has expired" });
 
         // Check for instant buy
         if (request.Amount >= bid.InstantBuy && bid.InstantBuy > 0)
@@ -133,7 +138,9 @@ public class BidController : ControllerBase
             TopBid = request.TopBid,
             MinBid = request.MinBid,
             InstantBuy = request.InstantBuy,
-            Car = request.Car
+            Car = request.Car,
+            CreatedAt = DateTime.UtcNow,
+            EndAt = request.EndAt
         };
 
         await _bidsCollection.InsertOneAsync(bid);

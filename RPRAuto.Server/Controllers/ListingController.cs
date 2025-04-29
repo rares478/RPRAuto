@@ -39,7 +39,9 @@ public class ListingController : ControllerBase
         {
             price = listing.Price,
             car = listing.Car,
-            sellerFirstName = seller.Personal.FirstName
+            sellerFirstName = seller.Personal.FirstName,
+            createdAt = listing.CreatedAt,
+            endAt = listing.EndAt,
         };
         
         return Ok(response);
@@ -90,7 +92,9 @@ public class ListingController : ControllerBase
         {
             Price = request.Price,
             Car = request.Car,
-            uId = request.UserId
+            uId = request.UserId,
+            CreatedAt = DateTime.UtcNow,
+            EndAt = request.EndAt
         };
         
         await _listingsCollection.InsertOneAsync(listing);
