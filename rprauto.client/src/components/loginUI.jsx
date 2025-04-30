@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { loginHandle } from '../functionality/loginFun';
 import './styles/login.css'; 
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 function Login() {
     const [email, setEmail] = useState('');

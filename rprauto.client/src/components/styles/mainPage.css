@@ -1,0 +1,474 @@
+/* Main container that holds everything */
+.main-container {
+    position: relative;
+    min-height: 100vh;
+    background: transparent;
+    padding-bottom: 500px; /* Space for cards */
+  
+    background-image: url('lambo.jpg'); /* Replace with your image path */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  
+    /* Creates a stacking context */
+    isolation: isolate;
+  }
+  
+  /* Buttons container at the top */
+  .buttons-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  
+  .left-buttons, .right-buttons {
+    display: flex;
+    gap: 15px;
+  }
+  
+  /* Updated Button styles */
+  .radio-wrapper {
+    position: relative;
+  }
+  
+  .radio-wrapper .input {
+    position: absolute;
+    opacity: 0;
+  }
+  
+  .btn {
+    padding: 0.5em 2em 0.5em 2.5em;
+    font-size: 1em;
+    font-weight: bold;
+    border-radius: 15px;
+    color: #fff6fb;
+    letter-spacing: 0.3em;
+    text-shadow: -2px 2px 5px #7464e4;
+    background-color: transparent;
+    border: 2px solid #7464e4;
+    box-shadow:
+      0 0 0px 1px #7464e4,
+      0 0 10px 2px #7464e4,
+      inset 0 0 0px 1px #7464e4,
+      inset 0 0 10px 2px #7464e4;
+    transition: 100ms;
+    cursor: pointer;
+    font-family: "Orbitron", sans-serif;
+    text-transform: uppercase;
+  }
+  
+  .input:hover + .btn {
+    box-shadow:
+      0 0 0px 1px #a11f9f,
+      0 0 10px 2px #a11f9f,
+      inset 0 0 0px 1px #a11f9f,
+      inset 0 0 30px 2px #a11f9f;
+    text-shadow: 0 0 10px #a11f9f;
+    transform: translateY(-5px);
+  }
+  
+  /* Search section */
+  .search-section {
+    position: relative;
+    width: 100%;
+    margin-top: 120px;
+  }
+  
+  .search-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+  }
+  
+  .searchBox {
+    display: flex;
+    max-width: 600px;
+    width: 140%;
+    align-items: center;
+    background: #2f3640;
+    border-radius: 50px;
+    position: relative;
+  }
+  
+  .searchInput {
+    border: none;
+    background: none;
+    outline: none;
+    color: white;
+    font-size: 30px;
+    padding: 30px 70px 30px 40px;
+    width: 100%;
+  }
+  
+  .searchButton {
+    color: white;
+    position: absolute;
+    right: 50px;
+    width: 80px;
+    height: 50px;
+    border-radius: 90%;
+    background: linear-gradient(90deg, #7464e4 0%, #880cae 100%);
+    border: 0;
+    transition: all 0.3s;
+  }
+  
+  .searchButton:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Purple line */
+  .purple-line {
+    height: 7px;
+    background: #7464e4;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    margin-top: -34px;
+  }
+  
+  /* container de sub search bar  */
+  .content-container {
+    position: relative;
+    width: 100%;
+    background-color: #111019;
+    min-height: 1400px;
+    margin-top: -1px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: column;
+    padding-left: 100px;
+  }
+  
+  
+  
+  
+  
+  /* 3D Carousel with 5 Images - Bigger and Left-Centered */
+  
+  .card-3d-container {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center; /* Vertical centering */
+    padding:200px 0 100px; /* adjust position of the cards */
+    margin-left: -10%; /* Adjusted left margin for perfect centering */
+  }
+  
+  .card-3d {
+    position: relative;
+    width: 1200px; /* Increased width */
+    height: 900px; /* Increased height */
+    transform-style: preserve-3d;
+    transform: perspective(1400px); /* Increased perspective */
+    animation: autoRun3d 20s linear infinite;
+    will-change: transform;
+    transition: transform 0.5s ease-out;
+  }
+  
+  .card-3d div {
+    position: absolute;
+    width: 450px; /* Larger cards */
+    height: 600px; /* Taller cards */
+    background-color: transparent;
+    border: solid 2px rgba(255, 255, 255, 0.2);
+    border-radius: 0.8rem; /* Slightly more rounded */
+    top: 50%;
+    left: 50%;
+    transform-origin: center center;
+    animation: animateBrightness 20s linear infinite;
+    transition: all 0.3s ease;
+    will-change: transform, filter;
+    overflow: hidden;
+    
+  }
+  
+  .card-3d div img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.7rem;
+  }
+  
+  /* 5-card arrangement with consistent hover */
+  .card-3d div:nth-child(1) { 
+    transform: translate(-50%, -50%) rotateY(0deg) translateZ(400px);
+    --card-rotation: 0deg;
+  }
+  .card-3d div:nth-child(2) { 
+    transform: translate(-50%, -50%) rotateY(72deg) translateZ(400px);
+    --card-rotation: 72deg;
+  }
+  .card-3d div:nth-child(3) { 
+    transform: translate(-50%, -50%) rotateY(144deg) translateZ(400px);
+    --card-rotation: 144deg;
+  }
+  .card-3d div:nth-child(4) { 
+    transform: translate(-50%, -50%) rotateY(216deg) translateZ(400px);
+    --card-rotation: 216deg;
+  }
+  .card-3d div:nth-child(5) { 
+    transform: translate(-50%, -50%) rotateY(288deg) translateZ(400px);
+    --card-rotation: 288deg;
+  }
+  
+  /* Unified hover behavior */
+  .card-3d:hover {
+    animation-play-state: paused;
+    transform: perspective(1400px) rotateY(var(--current-rotation));
+  }
+  
+  .card-3d:hover div {
+    animation-play-state: paused;
+    transform: translate(-50%, -50%) rotateY(var(--card-rotation)) translateZ(400px);
+  }
+  
+  .card-3d:hover div:hover {
+    transform: translate(-50%, -50%) rotateY(var(--card-rotation)) translateZ(400px) scale(1.1) !important;
+    z-index: 10;
+    border-color: rgba(255, 255, 255, 0.5);
+    filter: brightness(1.1);
+    
+  }
+  
+  @keyframes autoRun3d {
+    from {
+      transform: perspective(1400px) rotateY(-360deg);
+      --current-rotation: -360deg;
+    }
+    to {
+      transform: perspective(1400px) rotateY(0deg);
+      --current-rotation: 0deg;
+    }
+  }
+  
+  
+  
+  
+  
+  
+  /* cardurile din divu de jos */
+  .card-container {
+    position: relative;
+    width: 100%;
+    background-color: #8881cc;
+    padding: 200px 0;
+    margin-top: 0;
+  }
+  
+  .cards-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 30px;
+    margin-right: 50px;
+    flex-wrap: wrap;
+  }
+  
+  .card {
+    --background: linear-gradient(to left, #ba1475 0%, #720c7a 100%);
+    width: 400px;
+    height: 600px;
+    padding: 5px;
+    border-radius: 1rem;
+    overflow: visible;
+    background: var(--background);
+    position: relative;
+    z-index: 1;
+  }
+  
+  .card::after {
+    position: absolute;
+    content: "";
+    top: 30px;
+    left: 0;
+    right: 0;
+    z-index: -1;
+    height: 100%;
+    width: 100%;
+    transform: scale(0.8);
+    filter: blur(25px);
+    background: var(--background);
+    transition: opacity 0.5s;
+  }
+  
+  .card-info {
+    background: white;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0.7rem;
+  }
+  
+  .card .title {
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    color: black;
+    font-size: 24px;
+  }
+  
+  .card:hover::after {
+    opacity: 0;
+  }
+  
+  
+  
+  
+  /* Update the card-3d-container to use flexbox */
+  .card-3d-container {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      width: 100%;
+      padding: 200px 0 100px;
+      margin-left: -10%;
+      gap: 50px; /* Space between cards and radio inputs */
+  }
+  
+  /* Radio inputs wrapper */
+  .radio-inputs-wrapper {
+      position: relative;
+      z-index: 10;
+      margin-right: 50px; /* Additional right margin if needed */
+  }
+  
+  /* Keep your existing radio-inputs styles */
+  .radio-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-width: 350px;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  /* alegere tip de caroserie  */
+  .radio-inputs {
+    position: absolute;
+    right: 200px;
+    top: 90%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    z-index: 10;
+  }
+  
+  .radio-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 140px;
+    min-height: 140px;
+    border-radius: 0.5rem;
+    border: 2px solid #b5bfd9;
+    background-color: #fff;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    transition: 0.15s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .radio-tile:before {
+    content: "";
+    position: absolute;
+    display: block;
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 2px solid #b5bfd9;
+    background-color: #fff;
+    border-radius: 50%;
+    top: 0.25rem;
+    left: 0.25rem;
+    opacity: 0;
+    transform: scale(0);
+    transition: 0.25s ease;
+  }
+  
+  .radio-tile:hover {
+    border-color: #2260ff;
+  }
+  
+  .radio-tile:hover:before {
+    transform: scale(1);
+    opacity: 1;
+  }
+  
+  .radio-icon svg {
+    width: 4rem;
+    height: 4rem;
+    fill: #494949;
+  }
+  
+  .radio-label {
+    color: #707070;
+    transition: 0.375s ease;
+    text-align: center;
+    font-size: 20px; /* Increased from 13px */
+    font-weight: 500; /* Optional: Makes text bolder */
+  }
+  
+  .radio-input {
+    clip: rect(0 0 0 0);
+    -webkit-clip-path: inset(100%);
+    clip-path: inset(100%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+  
+  .radio-input:checked + .radio-tile {
+    border-color: #7464e4;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    color: #7464e4;
+  }
+  
+  .radio-input:checked + .radio-tile:before {
+    transform: scale(1);
+    opacity: 1;
+    background-color: #7464e4;
+    border-color: #7464e4;
+  }
+  
+  .radio-input:checked + .radio-tile .radio-icon svg {
+    fill: #7464e4;
+  }
+  
+  .radio-input:checked + .radio-tile .radio-label {
+    color: #7464e4;
+  }
+  
+  .radio-input:focus + .radio-tile {
+    border-color: #7464e4;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1), 0 0 0 4px #b5c9fc;
+  }
+  
+  .radio-input:focus + .radio-tile:before {
+    transform: scale(1);
+    opacity: 1;
+  }
+  
+  /* Update card-3d-container positioning */
+  .card-3d-container {
+    position: relative;
+    min-height: 800px;
+  }
+  
+  

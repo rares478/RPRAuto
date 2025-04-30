@@ -1,5 +1,3 @@
-import Cookies from 'js-cookie';
-
 export async function loginHandle(email, password) {
     const loginData = {
         email: email,
