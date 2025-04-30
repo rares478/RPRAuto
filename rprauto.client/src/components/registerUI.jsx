@@ -3,7 +3,6 @@ import { registerHandle } from '../functionality/registerFun';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 import './styles/signup.css';
-import Cookies from 'js-cookie';
 
 function Register() {
     const [firstName, setFirstName] = useState('');
