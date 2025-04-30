@@ -19,7 +19,7 @@ public class User : IUser
     public List<ObjectId> Bids { get; set; } = new List<ObjectId>();
     
     [BsonElement("reviews")]
-    public Dictionary<ObjectId, string> Reviews { get; set; } = new Dictionary<ObjectId, string>();
+    public ObjectId? Review { get; set; }
 
     // Helper properties to maintain compatibility
     [BsonIgnore]
