@@ -17,13 +17,10 @@ function Login() {
             const response = loginHandle(email, password);
 
             if (response.success) {
-                Cookies.set("authToken", response.token, { expires: 30, secure: true, sameSite: 'strict' });
+                Cookies.set("authToken", response.token, { expires: 60, secure: true, sameSite: 'strict' });
                 navigate('/');
             }
             // add else statement, where you show the message of the response
-
-            // optional, regarding the token, could use a counter that resets everytime the user opens the website
-            // if counter reaches a desired value, the token gets deleted
         } catch (err) {
             setError('Something went wrong. Please try again.');
         }  
