@@ -3,6 +3,7 @@ import { registerHandle } from '../functionality/registerFun';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 import './styles/signup.css';
+import Cookies from 'js-cookie';
 
 function Register() {
     const [firstName, setFirstName] = useState('');
@@ -16,7 +17,7 @@ function Register() {
 
     const navigate = useNavigate();
 
-    const handleSubmit =  (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
 
         try {
@@ -26,7 +27,6 @@ function Register() {
                 Cookies.set("authToken", response.token, { expires: 30, secure: true, sameSite: 'strict' });
                 navigate('/');
             }
-
             // add else statement, where you show the message of the response
         } catch (err) {
             setError('Something went wrong. Please try again.');
@@ -131,8 +131,6 @@ function Register() {
                                 </div>
                             </>
                         )}
-
-                        {error && <p className="error-text">{error}</p>}
 
                         <div className="btn">
                             <button type="submit" className="button1">

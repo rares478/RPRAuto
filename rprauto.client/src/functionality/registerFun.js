@@ -1,5 +1,3 @@
-import Cookies from 'js-cookie';
-
 export async function registerHandle(firstName, email, password, phone, isCompany, companyName, cui) {
     const registerData = {
         firstName: firstName,

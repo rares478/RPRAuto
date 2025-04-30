@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { loginHandle } from '../functionality/loginFun';
 import './styles/login.css'; 
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 function Login() {
     const [email, setEmail] = useState('');
@@ -17,11 +18,10 @@ function Login() {
             const response = loginHandle(email, password);
 
             if (response.success) {
-                Cookies.set("authToken", response.token, { expires: 30, secure: true, sameSite: 'strict' });
+                Cookies.set("authToken", response.token, { expires: 60, secure: true, sameSite: 'strict' });
                 navigate('/');
             }
             // add else statement, where you show the message of the response
-
         } catch (err) {
             setError('Something went wrong. Please try again.');
         }  
