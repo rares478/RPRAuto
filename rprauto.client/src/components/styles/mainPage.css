@@ -2,10 +2,10 @@
 .main-container {
     position: relative;
     min-height: 100vh;
-    padding-bottom: 500px;
     transform-origin: top center;
     background-size: cover;
     background: transparent url('/assets/lambo.jpg') no-repeat fixed center;
+    overflow-y: auto; /* Allow scrolling */
   }
   
   /* Buttons container at the top */
@@ -133,7 +133,6 @@
     justify-content: flex-start;
     align-items: center;
     flex-direction: column;
-    padding-left: 100px;
   }
   
   /* 3D Carousel with 5 Images - Bigger and Left-Centered */
@@ -143,7 +142,7 @@
     display: flex;
     justify-content: flex-start;
     align-items: center; /* Vertical centering */
-    margin-left: -10%; /* Adjusted left margin for perfect centering */
+    padding: 40px 0 20px; /* Reduce padding */
     position: relative;
   }
   
@@ -239,7 +238,7 @@
     position: relative;
     width: 100%;
     background-color: #8881cc;
-    padding: 200px 0;
+    padding: 40px 0;
     margin-top: 0;
   }
   
