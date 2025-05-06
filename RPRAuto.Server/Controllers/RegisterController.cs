@@ -2,6 +2,9 @@
 using MongoDB.Driver;
 using RPRAuto.Server.Classes;
 using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
 
 namespace RPRAuto.Server.Controllers
@@ -72,13 +75,39 @@ namespace RPRAuto.Server.Controllers
 
                 await _usersCollection.InsertOneAsync(user);
 
-                return Ok(new { status = 200, message = "User registered successfully" });
+
+                var token = GenerateJwtToken(user);
+                return Ok(new { status = 200, message = "User registered successfully", token = token });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during user registration");
                 return StatusCode(500, new { status = 500, message = "An error occurred during registration" });
             }
+        }
+        
+        private string GenerateJwtToken(User user)
+        {
+            var privateKey = EnvLoader.GetRsaPrivateKey();
+            var securityKey = new RsaSecurityKey(privateKey);
+
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.RsaSha256);
+
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Name, user.Login.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            };
+            var token = new JwtSecurityToken(
+                issuer: "RPRAuto.Server",
+                audience: "RPRAuto.Client",
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(1),
+                signingCredentials: credentials
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
