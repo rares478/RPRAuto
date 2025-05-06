@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 
-export async function loginHandle(email, password) {
+export async function verifyUserHandle(email, password) {
     try {
         const token = Cookies.get('authToken');
 
@@ -21,7 +21,7 @@ export async function loginHandle(email, password) {
 
             const data = await response.json();
             console.warn('Unauthorized:', data.message || 'Invalid token');
-            
+
             return false;
         } else {
             console.error('Unexpected response:', response.status);
