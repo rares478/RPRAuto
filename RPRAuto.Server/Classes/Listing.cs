@@ -10,6 +10,8 @@ public class Listing : IListing
     public ObjectId uId { get; set; }
     public int Price { get; set; } 
     public ICar Car { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime EndAt { get; set; }
 }
 
 public class ListingUpdateRequest
@@ -27,6 +29,7 @@ public class ListingCreateRequest
     public ObjectId UserId { get; set; }
     public int Price { get; set; }
     public ICar Car { get; set; }
+    public DateTime EndAt { get; set; }
 }
 
 public class ListingPurchaseRequest

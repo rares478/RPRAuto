@@ -11,4 +11,6 @@ interface IBid
  Dictionary<ObjectId, int> Bids { get; set; }
  int InstantBuy { get; set; }
  ICar Car { get; set; }
+ DateTime CreatedAt { get; set; }
+ DateTime EndAt { get; set; }
 }

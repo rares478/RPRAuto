@@ -11,7 +11,7 @@ public interface IUser
     string? CompanyCUI { get; set; }
     List<ObjectId> Listings { get; set; }
     List<ObjectId> Bids { get; set; }
-    Dictionary<ObjectId, string> Reviews { get; set; }
+    ObjectId? Review { get; set; }
 
     bool VerifyPassword(string password);
 }

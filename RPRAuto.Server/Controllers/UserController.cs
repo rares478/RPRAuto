@@ -13,6 +13,7 @@ public class UserController : ControllerBase
     private readonly IMongoCollection<User> _usersCollection;
     private readonly IMongoCollection<Bid> _bidsCollection;
     private readonly IMongoCollection<Listing> _listingsCollection;
+    private readonly IMongoCollection<Review> _reviewsCollection;
 
     public UserController(IMongoClient mongoClient)
     {
@@ -20,6 +21,7 @@ public class UserController : ControllerBase
         _usersCollection = database.GetCollection<User>("Users");
         _bidsCollection = database.GetCollection<Bid>("Bids");
         _listingsCollection = database.GetCollection<Listing>("Listings");
+        _reviewsCollection = database.GetCollection<Review>("Reviews");
     }
 
     [HttpGet("{id}")]
@@ -140,5 +142,49 @@ public class UserController : ControllerBase
 
         return Ok(user);
     }
+
+    [HttpPut("{id}/review")]
+    public async Task<IActionResult> AddReview(string id, [FromBody] ReviewRequest request)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+            return BadRequest(new { status = 400, message = "Invalid user ID format" });
+
+        var user = await _usersCollection.Find(u => u.UserId == objectId).FirstOrDefaultAsync();
+        if (user == null)
+            return NotFound(new { status = 404, message = "User not found" });
+
+        var review = new Review
+        {
+            UserId = objectId,
+            ReviewText = request.Review,
+            Rating = request.Rating,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _reviewsCollection.InsertOneAsync(review);
+
+        // Add review ID to user's reviews list
+        user.Review = review.ReviewId;
+        await _usersCollection.UpdateOneAsync(
+            u => u.UserId == objectId,
+            Builders<User>.Update.Set(u => u.Review, user.Review)
+        );
+
+        return Ok(new { status = 200, message = "Review added successfully" });
+    }
+
+    [HttpGet("{id}/review")]
+    public async Task<IActionResult> GetReviews(string id)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+            return BadRequest(new { status = 400, message = "Invalid user ID format" });
+
+        var user = await _usersCollection.Find(u => u.UserId == objectId).FirstOrDefaultAsync();
+        if (user == null)
+            return NotFound(new { status = 404, message = "User not found" });
+        
+        return Ok(user.Review);
+    }
+    
 }
 
