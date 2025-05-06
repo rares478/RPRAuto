@@ -5,7 +5,7 @@
     background: transparent;
     padding-bottom: 500px; /* Space for cards */
   
-    background-image: url('lambo.jpg'); /* Replace with your image path */
+    background-image: url('/assets/lambo.jpg'); /* Use absolute path */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -470,5 +470,4 @@
     position: relative;
     min-height: 800px;
   }
-  
   
