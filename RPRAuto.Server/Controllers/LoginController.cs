@@ -33,6 +33,33 @@ namespace RPRAuto.Server.Controllers
 
             return Ok(new { status = 200, token });
         }
+        
+        [HttpPost("validate")]
+        public async Task<IActionResult> Validate([FromBody] string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var rsa = EnvLoader.GetRsaPublicKey();
+            var securityKey = new RsaSecurityKey(rsa);
+
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = securityKey,
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ClockSkew = TimeSpan.Zero
+            };
+
+            try
+            {
+                handler.ValidateToken(token, validationParameters, out var validatedToken);
+                return Ok(new { status = 200, message = "Token is valid" });
+            }
+            catch (Exception)
+            {
+                return Unauthorized(new { status = 401, message = "Invalid token" });
+            }
+        }
 
         private string GenerateJwtToken(User user)
         {
