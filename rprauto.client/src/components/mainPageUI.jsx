@@ -114,11 +114,11 @@ const MainPage = () => {
                         <div><img src="/assets/patru.png" alt="Image 4" /></div>
                         <div><img src="/assets/cinci.png" alt="Image 5" /></div>
                     </div>
-                    {/* Radio Tiles from Uiverse */}
-                    <div className="radio-inputs">
-                        <label>
-                            <input className="radio-input" type="radio" name="engine" />
-                            <span className="radio-tile">
+                </div>
+                <div className="radio-inputs">
+                    <label>
+                        <input className="radio-input" type="radio" name="engine" />
+                        <span className="radio-tile">
                                 <span className="radio-icon">
                                     <svg stroke="currentColor" xml:space="preserve" viewBox="0 0 493.407 493.407" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" id="Capa_1" version="1.1" width="200px" height="200px" fill="none">
                                         <g strokeWidth="0" id="SVGRepo_bgCarrier"></g>
@@ -130,10 +130,10 @@ const MainPage = () => {
                                 </span>
                                 <span className="radio-label">Bicycle</span>
                             </span>
-                        </label>
-                        <label>
-                            <input checked className="radio-input" type="radio" name="engine" defaultChecked />
-                            <span className="radio-tile">
+                    </label>
+                    <label>
+                        <input checked className="radio-input" type="radio" name="engine" defaultChecked />
+                        <span className="radio-tile">
                                 <span className="radio-icon">
                                     <svg stroke="currentColor" xml:space="preserve" viewBox="0 0 467.168 467.168" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" id="Capa_1" version="1.1" fill="none">
                                         <g strokeWidth="0" id="SVGRepo_bgCarrier"></g>
@@ -149,10 +149,10 @@ const MainPage = () => {
                                 </span>
                                 <span className="radio-label">Motorbike</span>
                             </span>
-                        </label>
-                        <label>
-                            <input className="radio-input" type="radio" name="engine" />
-                            <span className="radio-tile">
+                    </label>
+                    <label>
+                        <input className="radio-input" type="radio" name="engine" />
+                        <span className="radio-tile">
                                 <span className="radio-icon">
                                     <svg stroke="currentColor" xml:space="preserve" viewBox="0 0 324.018 324.017" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" id="Capa_1" version="1.1" fill="none">
                                         <g strokeWidth="0" id="SVGRepo_bgCarrier"></g>
@@ -170,8 +170,7 @@ const MainPage = () => {
                                 </span>
                                 <span className="radio-label">Car</span>
                             </span>
-                        </label>
-                    </div>
+                    </label>
                 </div>
             </div>
 
