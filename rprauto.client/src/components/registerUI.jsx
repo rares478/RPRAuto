@@ -47,9 +47,6 @@ const SignUp = () => {
                 <div className="card2">
                     <form className="form" onSubmit={handleSubmit}>
                         <p id="heading">Create Account</p>
-
-                        {error && <p style={{ color: 'red' }}>{error}</p>}
-
                         <div className="field">
                             <input
                                 type="text"
