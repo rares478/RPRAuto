@@ -11,15 +11,22 @@ export async function loginHandle(email, password) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ token }),
+            body: JSON.stringify(token),
         });
 
-        if (!response.ok) {
+        if (response.status === 200) {
+            return true;
+        } else if (response.status === 401) {
+            Cookies.remove('authToken');
+
+            const data = await response.json();
+            console.warn('Unauthorized:', data.message || 'Invalid token');
+            
+            return false;
+        } else {
+            console.error('Unexpected response:', response.status);
             return false;
         }
-
-        const data = await response.json();
-        return data.valid === true;
     } catch (error) {
         console.error('Token validation failed:', error);
         return false;
