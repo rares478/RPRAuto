@@ -82,16 +82,16 @@ body, html {
     position: relative;
     z-index: 10;
   }
-  
-  .searchBox {
-    display: flex;
-    max-width: 600px;
-    width: 140%;
-    align-items: center;
-    background: #2f3640;
-    border-radius: 50px;
-    position: relative;
-  }
+
+.searchBox {
+  display: flex;
+  max-width: 600px;
+  width: 100%; /* Changed from 140% */
+  align-items: center;
+  background: #2f3640;
+  border-radius: 50px;
+  position: relative;
+}
   
   .searchInput {
     border: none;
@@ -121,12 +121,12 @@ body, html {
   }
   
   /* Purple line */
-  .purple-line {
-    height: 7px;
-    background: #7464e4;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    margin-top: -34px;
-  }
+.purple-line {
+  height: 7px;
+  background: #7464e4;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  margin-top: -34px;
+}
   
   /* container de sub search bar  */
   .content-container {
@@ -247,7 +247,6 @@ body, html {
     background-color: #8881cc;
     margin-top: 0;
     padding: 16px 0;
-    margin-top: 0;
   }
   
   .cards-group {
