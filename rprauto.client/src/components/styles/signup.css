@@ -85,8 +85,18 @@ body {
 }
 
 .company-field {
-    display: none;
     margin-top: 10px;
+    display: flex; /* or 'block' works too depending on your layout */
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    border-radius: 25px;
+    padding: 0.8em;
+    border: none;
+    outline: none;
+    color: white;
+    background-color: #171717;
+    box-shadow: inset 2px 5px 10px rgb(5, 5, 5);
 }
 
 .form .btn {
