@@ -4,7 +4,10 @@
     min-height: 100vh;
     background: transparent;
     padding-bottom: 500px; /* Space for cards */
-  
+
+    padding-top: 20px; /* Add padding to make the top visible */
+    transform: scale(1); /* Ensure proper scaling for 100% zoom */
+    transform-origin: top center;
     background-image: url('/assets/lambo.jpg'); /* Use absolute path */
     background-size: cover;
     background-position: center;
