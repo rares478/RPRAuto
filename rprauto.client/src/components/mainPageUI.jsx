@@ -115,7 +115,8 @@ const MainPage = () => {
                         <div><img src="/assets/cinci.png" alt="Image 5" /></div>
                     </div>
                 </div>
-                <div className="radio-inputs">
+
+                {/* <div className="radio-inputs">
                     <label>
                         <input className="radio-input" type="radio" name="engine" />
                         <span className="radio-tile">
@@ -171,7 +172,7 @@ const MainPage = () => {
                                 <span className="radio-label">Car</span>
                             </span>
                     </label>
-                </div>
+                </div>*/}
             </div>
 
             {/* Card container */}
