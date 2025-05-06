@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { registerHandle } from '../functionality/registerFun';
-import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 import './styles/signup.css';
 
-function Register() {
+// handler functions
+import { registerHandle } from '../functionality/registerFun';
+
+const SignUp = () => {
     const [firstName, setFirstName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -20,15 +21,23 @@ function Register() {
         e.preventDefault();
 
         try {
-            const response = registerHandle(firstName, email, password, phone, individual, companyName, cui);
+            const result = registerHandle(
+                firstName,
+                email,
+                password,
+                phone,
+                individual ? 'individual' : 'company',
+                individual ? '' : companyName,
+                individual ? '' : cui
+            );
 
-            if (response.success) {
-                Cookies.set("authToken", response.token, { expires: 30, secure: true, sameSite: 'strict' });
+            if (result.success) {
                 navigate('/');
+            } else {
+                setError(result.message || 'Registration failed.');
             }
-            // add else statement, where you show the message of the response
         } catch (err) {
-            setError('Something went wrong. Please try again.');
+            setError('An unexpected error occurred.');
         }
     };
 
@@ -38,6 +47,8 @@ function Register() {
                 <div className="card2">
                     <form className="form" onSubmit={handleSubmit}>
                         <p id="heading">Create Account</p>
+
+                        {error && <p style={{ color: 'red' }}>{error}</p>}
 
                         <div className="field">
                             <input
@@ -87,8 +98,7 @@ function Register() {
                                 <input
                                     type="radio"
                                     name="account-type"
-                                    value="individual"
-                                    checked={individual === true}
+                                    checked={individual}
                                     onChange={() => setIndividual(true)}
                                 />
                                 Individual
@@ -97,8 +107,7 @@ function Register() {
                                 <input
                                     type="radio"
                                     name="account-type"
-                                    value="company"
-                                    checked={individual === false}
+                                    checked={!individual}
                                     onChange={() => setIndividual(false)}
                                 />
                                 Company
@@ -132,18 +141,14 @@ function Register() {
                         )}
 
                         <div className="btn">
-                            <button type="submit" className="button1">
-                                Sign Up
-                            </button>
-                            <button type="button" className="button2" onClick={() => navigate('/')}>
-                                Cancel
-                            </button>
+                            <button type="submit" className="button1">Sign Up</button>
+                            <button type="button" className="button2" onClick={() => navigate('/')}>Cancel</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     );
-}
+};
 
-export default Register;
+export default SignUp;

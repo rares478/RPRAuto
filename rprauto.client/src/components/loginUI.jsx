@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { loginHandle } from '../functionality/loginFun';
 import './styles/login.css'; 
 import { useNavigate } from 'react-router-dom';
+
+// handler functions
+import { loginHandle } from '../functionality/loginFun';
 
 function Login() {
     const [email, setEmail] = useState('');
@@ -9,7 +11,7 @@ function Login() {
     const [error, setError] = useState('');
 
     const navigate = useNavigate();
-
+    
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -18,8 +20,9 @@ function Login() {
 
             if (response.success) {
                 navigate('/');
+            } else {
+                setError(response.message || 'Login failed. Please check your credentials.');
             }
-            // add else statement, where you show the message of the response
         } catch (err) {
             setError('Something went wrong. Please try again.');
         }  
@@ -30,6 +33,9 @@ function Login() {
         <div className="login-container">
             <div className="card">
                 <div className="card2">
+
+                {error && <p style={{ color: 'red' }}>{error}</p>}
+
                     <form className="form" onSubmit={handleSubmit}>
                         <p id="heading">Login</p>
 
