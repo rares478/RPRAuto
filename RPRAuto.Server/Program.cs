@@ -33,10 +33,10 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        //policy.WithOrigins("https://rpr-auto.vercel.app/")
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("https://rpr-auto.vercel.app")
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -46,7 +46,6 @@ var app = builder.Build();
 
 app.UseDefaultFiles();
 app.MapStaticAssets();
-app.UseCors();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -55,6 +54,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors();
 
 app.UseAuthentication();
 app.UseAuthorization();
