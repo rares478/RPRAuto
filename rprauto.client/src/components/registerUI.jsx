@@ -10,7 +10,7 @@ const SignUp = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [phone, setPhone] = useState('');
-    const [individual, setIndividual] = useState(true);
+    const [isCompany, setIsCompany] = useState(false);
     const [companyName, setCompanyName] = useState('');
     const [cui, setCui] = useState('');
     const [error, setError] = useState('');
@@ -19,18 +19,18 @@ const SignUp = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
+    
         try {
             const result = registerHandle(
                 firstName,
                 email,
                 password,
                 phone,
-                individual ? 'individual' : 'company',
-                individual ? '' : companyName,
-                individual ? '' : cui
+                isCompany,
+                isCompany ? companyName : '',
+                isCompany ? cui : ''
             );
-
+    
             if (result.success) {
                 navigate('/');
             } else {
@@ -47,9 +47,6 @@ const SignUp = () => {
                 <div className="card2">
                     <form className="form" onSubmit={handleSubmit}>
                         <p id="heading">Create Account</p>
-
-                        {error && <p style={{ color: 'red' }}>{error}</p>}
-
                         <div className="field">
                             <input
                                 type="text"
@@ -98,8 +95,8 @@ const SignUp = () => {
                                 <input
                                     type="radio"
                                     name="account-type"
-                                    checked={individual}
-                                    onChange={() => setIndividual(true)}
+                                    checked={!isCompany}
+                                    onChange={() => setIsCompany(false)}
                                 />
                                 Individual
                             </label>
@@ -107,14 +104,14 @@ const SignUp = () => {
                                 <input
                                     type="radio"
                                     name="account-type"
-                                    checked={!individual}
-                                    onChange={() => setIndividual(false)}
+                                    checked={isCompany}
+                                    onChange={() => setIsCompany(true)}
                                 />
                                 Company
                             </label>
                         </div>
 
-                        {!individual && (
+                        {isCompany && (
                             <>
                                 <div className="field company-field">
                                     <input

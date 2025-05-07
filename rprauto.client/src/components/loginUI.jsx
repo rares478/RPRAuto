@@ -33,9 +33,6 @@ function Login() {
         <div className="login-container">
             <div className="card">
                 <div className="card2">
-
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-
                     <form className="form" onSubmit={handleSubmit}>
                         <p id="heading">Login</p>
 
