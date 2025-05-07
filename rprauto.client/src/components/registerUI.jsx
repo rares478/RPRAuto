@@ -17,11 +17,11 @@ const SignUp = () => {
 
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
     
         try {
-            const result = registerHandle(
+            const result = await registerHandle(
                 firstName,
                 email,
                 password,
