@@ -12,11 +12,11 @@ function Login() {
 
     const navigate = useNavigate();
     
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
-            const response = loginHandle(email, password);
+            const response = await loginHandle(email, password);
 
             if (response.success) {
                 navigate('/');
