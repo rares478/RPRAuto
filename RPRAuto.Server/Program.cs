@@ -37,6 +37,11 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
+        
+        policy.WithOrigins("https://rpr-auto-git-pojar-rares-projects-5c5d3702.vercel.app")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
