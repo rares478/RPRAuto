@@ -3,7 +3,7 @@ import "./styles/mainPage.css";
 
 function MainPageUI() {
     return (
-        <div className="main-container">
+        <div className="main-container" content="width=device-width, initial-scale=1.0">
             {/* Top buttons */}
             <div className="buttons-container">
                 {/* Left buttons */}
@@ -143,10 +143,8 @@ function MainPageUI() {
             </div>
             {/* Content container */}
             <div className="content-container">
-                {/* 3D Card Carousel */}
-                <div className="content-container">
-                    <div className="card-3d-container">
-                        <div className="card-3d">
+                <div className="card-3d-container">
+                    <div className="card-3d">
                             <div>
                                 <img src="unu.png" alt="Image 1" />
                             </div>
@@ -163,7 +161,6 @@ function MainPageUI() {
                                 <img src="cinci.png" alt="Image 5" />
                             </div>
                         </div>
-                        {/* From Uiverse.io by Yaya12085 */}
                         <div className="radio-inputs">
                             <label>
                                 <input className="radio-input" type="radio" name="engine" />
@@ -275,7 +272,6 @@ function MainPageUI() {
                             </label>
                         </div>
                     </div>
-                </div>
             </div>
             {/* Card container */}
             <div className="card-container">
