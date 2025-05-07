@@ -1,7 +1,7 @@
 ﻿import React from "react";
 import "./styles/mainPage.css";
 
-function MainPageUI() {
+function MainPage() {
     return (
         <div className="main-container" content="width=device-width, initial-scale=1.0">
             {/* Top buttons */}
@@ -297,4 +297,4 @@ function MainPageUI() {
     );
 }
 
-export default MainPageUI;
+export default MainPage;

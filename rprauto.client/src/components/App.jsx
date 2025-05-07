@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 
 import Login from "./loginUI.jsx";
 import Register from "./registerUI.jsx";
-import MainPageUI from "./MainPageUI.jsx";
+import MainPage from "./mainPageUI.jsx";
 
 
 
@@ -12,7 +12,7 @@ var App = () => {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={<MainPageUI />} />
+                <Route path="/" element={<MainPage />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
             </Routes>
