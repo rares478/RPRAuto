@@ -6,15 +6,13 @@ import Page from "./mainPageUI.jsx";
 import Login from "./loginUI.jsx";
 import Register from "./registerUI.jsx";
 
-
 var App = () => {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={<Page />} />
+                <Route path="/" element={<MainPage />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="*" element={<Page />} />
             </Routes>
         </Router>
     );
