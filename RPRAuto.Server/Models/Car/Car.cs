@@ -1,5 +1,6 @@
 using MongoDB.Bson.Serialization.Attributes;
 using RPRAuto.Server.Interfaces;
+using RPRAuto.Server.Models.Enums;
 
 namespace RPRAuto.Server.Models.Car;
 
@@ -27,13 +28,13 @@ public class Car : ICar
     public int Doors { get; set; }
 
     [BsonElement("fuelType")]
-    public Models.Enums.FuelType FuelType { get; set; }
+    public FuelType FuelType { get; set; }
 
     [BsonElement("engineSize")]
     public float EngineSize { get; set; }
 
     [BsonElement("bodyType")]
-    public Models.Enums.BodyType BodyType { get; set; }
+    public BodyType BodyType { get; set; }
 
     [BsonElement("horsePower")]
     public int HorsePower { get; set; }

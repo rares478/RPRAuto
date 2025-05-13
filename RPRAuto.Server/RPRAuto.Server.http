@@ -44,7 +44,7 @@ Accept: application/json
 Authorization: Bearer {{token}}
 
 ### Login request with body
-POST {{host}}/login
+POST {{host}}/auth/login
 Content-Type: application/json
 
 {
@@ -85,31 +85,33 @@ Accept: application/json
 GET {{host}}/listing/{{listingId}}
 Accept: application/json
 
-### Create new listing
+### Create a new listing
 POST {{host}}/listing
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "car": {
-    "make": "BMW",
-    "model": "3 Series",
-    "year": 2022,
-    "mileage": 15000,
-    "fuelType": "Petrol",
-    "color": "Black",
-    "doors": 4,
-    "engineSize": 2.0,
-    "bodyType": "Sedan",
-    "horsePower": 184,
-    "isManual": false,
-    "description": "Excellent condition",
-    "pictures": []
-  },
-  "price": 35000,
-  "description": "Excellent condition, one owner, full service history",
-  "title": "BMW 3 Series 2022",
-  "status": "Active"
+  "request": {
+    "car": {
+      "make": "BMW",
+      "model": "3 Series",
+      "year": 2022,
+      "mileage": 15000,
+      "fuelType": "Petrol",
+      "color": "Black",
+      "doors": 4,
+      "engineSize": 2.0,
+      "bodyType": "Sedan",
+      "horsePower": 184,
+      "isManual": false,
+      "description": "Excellent condition",
+      "pictures": []
+    },
+    "price": 35000,
+    "description": "Excellent condition, one owner, full service history",
+    "title": "BMW 3 Series 2022",
+    "endAt": "2024-05-13T16:47:35Z"
+  }
 }
 
 ### Update listing
