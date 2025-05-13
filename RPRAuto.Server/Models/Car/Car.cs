@@ -18,8 +18,8 @@ public class Car : ICar
     [BsonElement("description")]
     public string Description { get; set; } = string.Empty;
 
-    [BsonElement("isManual")]
-    public bool IsManual { get; set; }
+    [BsonElement("gearboxType")]
+    public GearboxType GearboxType { get; set; }
 
     [BsonElement("color")]
     public string Color { get; set; } = string.Empty;

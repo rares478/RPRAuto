@@ -21,13 +21,6 @@ public class ListingController : ControllerBase
         _userRepository = userRepository;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetAllListings()
-    {
-        var listings = await _listingRepository.GetActiveListingsAsync();
-        return Ok(listings);
-    }
-
     [HttpGet("{id}")]
     public async Task<IActionResult> GetListingById(string id)
     {
@@ -62,7 +55,6 @@ public class ListingController : ControllerBase
 
         await _listingRepository.CreateAsync(listing);
 
-        // Add listing to user's listings
         user.Listings.Add(listing.Id);
         await _userRepository.UpdateAsync(userId, user);
 
@@ -79,7 +71,6 @@ public class ListingController : ControllerBase
         if (listing == null)
             throw new NotFoundException("Listing not found");
 
-        // Verify ownership
         var userId = GetUserIdFromToken();
         if (listing.UserId != userId)
             throw new UnauthorizedException("You are not authorized to update this listing");
@@ -101,14 +92,12 @@ public class ListingController : ControllerBase
         if (listing == null)
             throw new NotFoundException("Listing not found");
 
-        // Verify ownership
         var userId = GetUserIdFromToken();
         if (listing.UserId != userId)
             throw new UnauthorizedException("You are not authorized to delete this listing");
 
         await _listingRepository.DeleteAsync(objectId);
 
-        // Remove listing from user's listings
         var user = await _userRepository.GetByIdAsync(userId);
         if (user != null)
         {
@@ -132,7 +121,6 @@ public class ListingController : ControllerBase
         if (listing.Status != ListingStatus.Active)
             throw new ValidationException("This listing is not available for purchase");
 
-        // Update listing status to sold
         listing.Status = ListingStatus.Sold;
         await _listingRepository.UpdateAsync(objectId, listing);
 
@@ -149,34 +137,88 @@ public class ListingController : ControllerBase
         return Ok(listings);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetListingsByPage(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 30)
+    {
+        if (page < 1)
+            throw new ValidationException("Page number must be greater than 0");
+        
+        if (pageSize < 1)
+            throw new ValidationException("Page size must be greater than 0");
+
+        var (listings, totalCount) = await _listingRepository.GetListingsByPageAsync(page, pageSize);
+        
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        
+        return Ok(new
+        {
+            Listings = listings,
+            Pagination = new
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                HasNextPage = page < totalPages,
+                HasPreviousPage = page > 1
+            }
+        });
+    }
+
     [HttpGet("search")]
     public async Task<IActionResult> SearchListings(
         [FromQuery] string? make = null,
         [FromQuery] string? model = null,
-        [FromQuery] decimal? minPrice = null,
-        [FromQuery] decimal? maxPrice = null,
-        [FromQuery] int? minYear = null,
-        [FromQuery] int? maxYear = null)
+        [FromQuery] decimal? price = null,
+        [FromQuery] int? year = null,
+        [FromQuery] string? gearbox = null,
+        [FromQuery] string? body = null,
+        [FromQuery] string? color = null,
+        [FromQuery] int? doors = null,
+        [FromQuery] string? fuel = null,
+        [FromQuery] float? engine = null,
+        [FromQuery] int? power = null,
+        [FromQuery] int? mileage = null)
     {
         var filter = Builders<Listing>.Filter.Eq(l => l.Status, ListingStatus.Active);
 
-        if (make != null)
+        if (!string.IsNullOrEmpty(make))
             filter &= Builders<Listing>.Filter.Regex(l => l.Car.Make, new MongoDB.Bson.BsonRegularExpression(make, "i"));
 
-        if (model != null)
+        if (!string.IsNullOrEmpty(model))
             filter &= Builders<Listing>.Filter.Regex(l => l.Car.Model, new MongoDB.Bson.BsonRegularExpression(model, "i"));
 
-        if (minPrice.HasValue)
-            filter &= Builders<Listing>.Filter.Gte(l => l.Price, minPrice.Value);
+        if (price.HasValue)
+            filter &= Builders<Listing>.Filter.Eq(l => l.Price, price.Value);
 
-        if (maxPrice.HasValue)
-            filter &= Builders<Listing>.Filter.Lte(l => l.Price, maxPrice.Value);
+        if (year.HasValue)
+            filter &= Builders<Listing>.Filter.Eq(l => l.Car.Year, year.Value);
 
-        if (minYear.HasValue)
-            filter &= Builders<Listing>.Filter.Gte(l => l.Car.Year, minYear.Value);
+        if (!string.IsNullOrEmpty(gearbox) && gearbox != "Any")
+            filter &= Builders<Listing>.Filter.Eq(l => l.Car.GearboxType.ToString(), gearbox);
 
-        if (maxYear.HasValue)
-            filter &= Builders<Listing>.Filter.Lte(l => l.Car.Year, maxYear.Value);
+        if (!string.IsNullOrEmpty(body) && body != "Any")
+            filter &= Builders<Listing>.Filter.Eq(l => l.Car.BodyType.ToString(), body);
+
+        if (!string.IsNullOrEmpty(color))
+            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Color, new MongoDB.Bson.BsonRegularExpression(color, "i"));
+
+        if (doors.HasValue)
+            filter &= Builders<Listing>.Filter.Eq(l => l.Car.Doors, doors.Value);
+
+        if (!string.IsNullOrEmpty(fuel))
+            filter &= Builders<Listing>.Filter.Eq(l => l.Car.FuelType.ToString(), fuel);
+
+        if (engine.HasValue)
+            filter &= Builders<Listing>.Filter.Eq(l => l.Car.EngineSize, engine.Value);
+
+        if (power.HasValue)
+            filter &= Builders<Listing>.Filter.Eq(l => l.Car.HorsePower, power.Value);
+
+        if (mileage.HasValue)
+            filter &= Builders<Listing>.Filter.Eq(l => l.Car.Mileage, mileage.Value);
 
         var listings = await _listingRepository.SearchAsync(filter);
         return Ok(listings);
