@@ -6,7 +6,7 @@ export async function verifyUserHandle(email, password) {
 
         if (!token) return false;
 
-        const response = await fetch('/login/validate', {
+        const response = await fetch('auth/validate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

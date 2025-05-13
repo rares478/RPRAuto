@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { verifyUserHandle } from '../utils/auth'; // You implement this
+import { verifyUserHandle } from '../utils/auth';
 import './styles/mainPage.css';
 
 const MainPage = () => {
