@@ -4,6 +4,8 @@ using RPRAuto.Server.Interfaces;
 using RPRAuto.Server.Models.User;
 using RPRAuto.Server.Exceptions;
 using RPRAuto.Server.Models.Review;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -180,7 +182,7 @@ public class UserController : ControllerBase
 
     private ObjectId GetUserIdFromToken()
     {
-        var userIdClaim = User.FindFirst("userId");
+        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
         if (userIdClaim == null || !ObjectId.TryParse(userIdClaim.Value, out var userId))
             throw new UnauthorizedException("Invalid user token");
 

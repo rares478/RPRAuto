@@ -3,6 +3,8 @@ using MongoDB.Bson;
 using RPRAuto.Server.Interfaces;
 using RPRAuto.Server.Models.Review;
 using RPRAuto.Server.Exceptions;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -84,7 +86,7 @@ public class ReviewController : ControllerBase
 
     private ObjectId GetUserIdFromToken()
     {
-        var userIdClaim = User.FindFirst("userId");
+        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
         if (userIdClaim == null || !ObjectId.TryParse(userIdClaim.Value, out var userId))
             throw new UnauthorizedException("Invalid user token");
 
