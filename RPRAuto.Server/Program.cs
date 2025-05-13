@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using RPRAuto.Server;
+using RPRAuto.Server.Extensions;
+using RPRAuto.Server.Interfaces;
+using RPRAuto.Server.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,20 +15,28 @@ builder.Services.AddOpenApi();
 builder.Services.AddSingleton<MongoDB.Driver.IMongoClient>(sp =>
     new MongoDB.Driver.MongoClient(builder.Configuration.GetConnectionString("MongoDB")));
 
+// Register repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IListingRepository, ListingRepository>();
+builder.Services.AddScoped<IBidRepository, BidRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        var publicKey = EnvLoader.GetRsaPublicKey();
+        var rsa = EnvLoader.GetRsaPublicKey();
+        var securityKey = new RsaSecurityKey(rsa);
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = "RPRAuto.Server",
-            ValidAudience = "RPRAuto.Client",
-            IssuerSigningKey = new RsaSecurityKey(publicKey)
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = securityKey
         };
     });
 
@@ -45,9 +56,10 @@ builder.Services.AddCors(options =>
     });
 });
 
-
 var app = builder.Build();
 
+// Add global exception handler
+app.UseGlobalExceptionHandler();
 
 app.UseDefaultFiles();
 app.MapStaticAssets();

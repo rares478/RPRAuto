@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
-using MongoDB.Driver;
-using RPRAuto.Server.Classes;
+using RPRAuto.Server.Interfaces;
+using RPRAuto.Server.Models.Bid;
+using RPRAuto.Server.Exceptions;
+using RPRAuto.Server.Models.Enums;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -9,146 +11,158 @@ namespace RPRAuto.Server.Controllers;
 [Route("bid")]
 public class BidController : ControllerBase
 {
-    private readonly IMongoCollection<Bid> _bidsCollection;
-    private readonly IMongoCollection<User> _usersCollection;
+    private readonly IBidRepository _bidRepository;
+    private readonly IUserRepository _userRepository;
 
-    public BidController(IMongoClient mongoClient)
+    public BidController(
+        IBidRepository bidRepository,
+        IUserRepository userRepository)
     {
-        var database = mongoClient.GetDatabase("RPR");
-        _bidsCollection = database.GetCollection<Bid>("Bids");
-        _usersCollection = database.GetCollection<User>("Users");
+        _bidRepository = bidRepository;
+        _userRepository = userRepository;
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(string id)
-    {
-        if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid bid ID format" });
-
-        var bid = await _bidsCollection.Find(b => b.Id == objectId).FirstOrDefaultAsync();
-
-        if (bid == null)
-            return NotFound(new { status = 404, message = "Bid not found" });
-
-        var seller = await _usersCollection.Find(u => u.UserId == bid.uId).FirstOrDefaultAsync();
-
-        if (seller == null)
-            return NotFound(new { status = 404, message = "Seller information not found" });
-
-        var response = new
-        {
-            sellerFirstName = seller.Personal.FirstName,
-            title = bid.Title,
-            topBid = bid.TopBid,
-            minBid = bid.MinBid,
-            instantBuy = bid.InstantBuy,
-            car = bid.Car,
-            createdAt = bid.CreatedAt,
-            endAt = bid.EndAt,
-        };
-
-        return Ok(response);
-    }
-
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(string id, [FromBody] BidUpdateRequest request)
-    {
-        if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid bid ID format" });
-
-        var bid = await _bidsCollection.Find(b => b.Id == objectId).FirstOrDefaultAsync();
-        if (bid == null)
-            return NotFound(new { status = 404, message = "Bid listing not found" });
-
-        // Update bid listing properties
-        var update = Builders<Bid>.Update
-            .Set(b => b.MinBid, request.MinBid)
-            .Set(b => b.InstantBuy, request.InstantBuy)
-            .Set(b => b.Title, request.Title);
-
-        await _bidsCollection.UpdateOneAsync(b => b.Id == objectId, update);
-
-        return Ok(new { status = 200, message = "Bid listing updated successfully" });
-    }
-
-    [HttpPost("{id}/place")]
-    public async Task<IActionResult> PlaceBid(string id, [FromBody] PlaceBidRequest request)
-    {
-        if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid bid ID format" });
-
-        if (!ObjectId.TryParse(request.UserId, out var userId))
-            return BadRequest(new { status = 400, message = "Invalid user ID format" });
-
-        var bid = await _bidsCollection.Find(b => b.Id == objectId).FirstOrDefaultAsync();
-        if (bid == null)
-            return NotFound(new { status = 404, message = "Bid listing not found" });
-
-        // Validate bid amount
-        if (request.Amount < bid.MinBid || (bid.TopBid > 0 && request.Amount <= bid.TopBid))
-            return BadRequest(new { status = 400, message = "Bid amount too low" });
-        
-        if(DateTime.UtcNow > bid.EndAt)
-            return BadRequest(new { status = 400, message = "Bid listing has expired" });
-
-        // Check for instant buy
-        if (request.Amount >= bid.InstantBuy && bid.InstantBuy > 0)
-        {
-            // TODO: Handle instant buy logic
-        }
-
-        // Update bid dictionary and top bid
-        var update = Builders<Bid>.Update
-            .Set(b => b.Bids[userId], request.Amount)
-            .Set(b => b.TopBid, request.Amount);
-
-        await _bidsCollection.UpdateOneAsync(b => b.Id == objectId, update);
-
-        return Ok(new { status = 200, message = "Bid placed successfully" });
-    }
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(string id)
-    {
-        if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid bid ID format" });
-
-        var result = await _bidsCollection.DeleteOneAsync(b => b.Id == objectId);
-
-        if (result.DeletedCount == 0)
-            return NotFound(new { status = 404, message = "Bid listing not found" });
-
-        return Ok(new { status = 200, message = "Bid listing deleted successfully" });
-    }
-    
     [HttpGet]
-    public async Task<IActionResult> GetBidListings()
+    public async Task<IActionResult> GetBids()
     {
-        var bids = await _bidsCollection.Find(_ => true).Limit(30).ToListAsync();
+        var bids = await _bidRepository.GetLatestBidsAsync(30);
         return Ok(bids);
     }
-    
+
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] BidCreateRequest request)
+    public async Task<IActionResult> CreateBid([FromBody] BidCreateRequest request)
     {
-        if (request == null)
-            return BadRequest(new { status = 400, message = "Invalid request" });
+        var userId = GetUserIdFromToken();
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
 
         var bid = new Bid
         {
-            uId = request.UserId,
+            UserId = userId,
             Title = request.Title,
             TopBid = request.TopBid,
             MinBid = request.MinBid,
             InstantBuy = request.InstantBuy,
             Car = request.Car,
             CreatedAt = DateTime.UtcNow,
-            EndAt = request.EndAt
+            EndAt = request.EndAt,
+            Bids = new Dictionary<ObjectId, decimal>()
         };
 
-        await _bidsCollection.InsertOneAsync(bid);
-
-        return Ok(new { status = 200, message = "Bid listing created successfully" });
+        await _bidRepository.CreateAsync(bid);
+        return Ok(new { message = "Bid created successfully", bidId = bid.Id });
     }
-    
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetBidById(string id)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+            throw new ValidationException("Invalid bid ID format");
+
+        var bid = await _bidRepository.GetByIdAsync(objectId);
+        if (bid == null)
+            throw new NotFoundException("Bid not found");
+
+        return Ok(bid);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateBid(string id, [FromBody] BidUpdateRequest request)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+            throw new ValidationException("Invalid bid ID format");
+
+        var bid = await _bidRepository.GetByIdAsync(objectId);
+        if (bid == null)
+            throw new NotFoundException("Bid not found");
+
+        var userId = GetUserIdFromToken();
+        if (bid.UserId != userId)
+            throw new UnauthorizedException("You are not authorized to update this bid");
+
+        if (DateTime.UtcNow >= bid.EndAt)
+            throw new ValidationException("Cannot update expired bid");
+
+        bid.Title = request.Title;
+        bid.MinBid = request.MinBid;
+        bid.InstantBuy = request.InstantBuy;
+
+        await _bidRepository.UpdateAsync(objectId, bid);
+        return Ok(new { message = "Bid updated successfully" });
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteBid(string id)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+            throw new ValidationException("Invalid bid ID format");
+
+        var bid = await _bidRepository.GetByIdAsync(objectId);
+        if (bid == null)
+            throw new NotFoundException("Bid not found");
+
+        var userId = GetUserIdFromToken();
+        if (bid.UserId != userId)
+            throw new UnauthorizedException("You are not authorized to delete this bid");
+
+        if (bid.Bids.Count > 0)
+            throw new ValidationException("Cannot delete bid with existing bids");
+
+        await _bidRepository.DeleteAsync(objectId);
+        return Ok(new { message = "Bid deleted successfully" });
+    }
+
+    [HttpPost("{id}/place")]
+    public async Task<IActionResult> PlaceBid(string id, [FromBody] BidPlaceRequest request)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+            throw new ValidationException("Invalid bid ID format");
+
+        var bid = await _bidRepository.GetByIdAsync(objectId);
+        if (bid == null)
+            throw new NotFoundException("Bid not found");
+
+        if (DateTime.UtcNow >= bid.EndAt)
+            throw new ValidationException("Bid has expired");
+
+        var userId = GetUserIdFromToken();
+        if (bid.UserId == userId)
+            throw new ValidationException("Cannot place bid on your own bid");
+
+        // Check if user has already bid
+        if (bid.Bids.ContainsKey(userId))
+            throw new ValidationException("You have already placed a bid");
+
+        // Check if bid amount meets minimum requirements
+        if (request.Amount < bid.MinBid)
+            throw new ValidationException($"Bid amount must be at least {bid.MinBid}");
+
+        // Check if bid amount is higher than current top bid
+        if (bid.TopBid > 0 && request.Amount <= bid.TopBid)
+            throw new ValidationException($"Bid amount must be higher than current top bid of {bid.TopBid}");
+
+        // Add the bid
+        bid.Bids[userId] = request.Amount;
+        bid.TopBid = request.Amount;
+
+        // Check for instant buy
+        if (bid.InstantBuy > 0 && request.Amount >= bid.InstantBuy)
+        {
+            // Handle instant buy logic
+            bid.EndAt = DateTime.UtcNow;
+        }
+
+        await _bidRepository.UpdateAsync(objectId, bid);
+        return Ok(new { message = "Bid placed successfully" });
+    }
+
+    private ObjectId GetUserIdFromToken()
+    {
+        var userIdClaim = User.FindFirst("userId");
+        if (userIdClaim == null || !ObjectId.TryParse(userIdClaim.Value, out var userId))
+            throw new UnauthorizedException("Invalid user token");
+
+        return userId;
+    }
 }

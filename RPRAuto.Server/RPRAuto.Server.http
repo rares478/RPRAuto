@@ -1,6 +1,7 @@
-@host = https://rprauto.onrender.com
-@userId = 65ff4e128e89fddb521c6673
-@token = your_auth_token_here
+@host = http://localhost:5023
+@userId = 68094858e6327b8c48ab1e5d
+@token = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODA5NDg1OGU2MzI3YjhjNDhhYjFlNWQiLCJuYW1lIjoicmFyZXM0NzhAZ21haWwuY29tIiwianRpIjoiMDlmM2UwNGEtZmJkZS00Y2FlLTk5NzktZTJiZjZiY2Y1ZDY2IiwiZXhwIjoxNzQ2NjMwNjYxLCJpc3MiOiJSUFJBdXRvLlNlcnZlciIsImF1ZCI6IlJQUkF1dG8uQ2xpZW50In0.RIi5WdiGBwktzoBJLQpnIE47JGBnHDebSHUHVHTRiCcQt3JpC12JCVuZopJZkGtqlfFsdAhCL_gPsTIbmyTh7dFKdA6xd9o173PBO7xFk7fmjpDhoWUpp81a2TtDsdE4CCmijkp2x3KAaS9ynLIE59GmIm5bomduuBw0EkUWLU44JiGvqLImb_UyBVsPjpL6oHdleoTwOhd_G2DxuPnHHk_wpSVpB4oJciBVIpgUIiwrn9ZviSBtLJhAu74AwgcMCBG2-rTDtSpQI8wIRjUAHoCEV87k297SaCOVIrL-V-e3FeAUiNXP3h_0LfcZSRfqkmEVMA_M2xtB9NFgWuiQRQ
+@listingId = your_listing_id_here
 
 ### Get user by ID
 GET {{host}}/user/{{userId}}
@@ -75,3 +76,77 @@ Content-Type: application/json
   "isCompany": true,
   "companyCUI": "RO12345678"
 }
+
+### Get all listings
+GET {{host}}/listing
+Accept: application/json
+
+### Get listing by ID
+GET {{host}}/listing/{{listingId}}
+Accept: application/json
+
+### Create new listing
+POST {{host}}/listing
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "car": {
+    "make": "BMW",
+    "model": "3 Series",
+    "year": 2022,
+    "mileage": 15000,
+    "fuelType": "Petrol",
+    "transmission": "Automatic",
+    "color": "Black"
+  },
+  "price": 35000,
+  "description": "Excellent condition, one owner, full service history"
+}
+
+### Update listing
+PUT {{host}}/listing/{{listingId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "price": 33000,
+  "description": "Updated description: Excellent condition, one owner, full service history, new tires"
+}
+
+### Delete listing
+DELETE {{host}}/listing/{{listingId}}
+Authorization: Bearer {{token}}
+
+### Purchase listing
+POST {{host}}/listing/{{listingId}}/purchase
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "paymentMethod": "Bank Transfer"
+}
+
+### Search listings - All parameters
+GET {{host}}/listing/search?make=BMW&model=3&minPrice=30000&maxPrice=40000&minYear=2020&maxYear=2023
+Accept: application/json
+
+### Search listings - By make only
+GET {{host}}/listing/search?make=BMW
+Accept: application/json
+
+### Search listings - By price range only
+GET {{host}}/listing/search?minPrice=30000&maxPrice=40000
+Accept: application/json
+
+### Search listings - By year range only
+GET {{host}}/listing/search?minYear=2020&maxYear=2023
+Accept: application/json
+
+### Search listings - By make and model
+GET {{host}}/listing/search?make=BMW&model=3
+Accept: application/json
+
+### Search listings - By make and price range
+GET {{host}}/listing/search?make=BMW&minPrice=30000&maxPrice=40000
+Accept: application/json

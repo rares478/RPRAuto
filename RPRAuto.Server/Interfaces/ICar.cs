@@ -1,12 +1,10 @@
-﻿using System.Runtime.InteropServices.JavaScript;
-
-namespace RPRAuto.Server.Interfaces;
+﻿namespace RPRAuto.Server.Interfaces;
 
 public interface ICar
 {
     string Make { get; set; }
     string Model { get; set; }
-    JSType.Date Year { get; set; }
+    int Year { get; set; }
     string Description { get; set; }
     bool IsManual { get; set; }
     string Color { get; set; }
