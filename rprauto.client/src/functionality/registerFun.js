@@ -12,7 +12,7 @@ export async function registerHandle(firstName, email, password, phone, isCompan
     };
 
     try {
-        const response = await fetch('auth/register', {
+        const response = await fetch('https://rprauto.onrender.com/auth/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
