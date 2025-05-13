@@ -38,6 +38,7 @@ public class BidController : ControllerBase
         var response = new
         {
             sellerFirstName = seller.Personal.FirstName,
+            title = bid.Title,
             topBid = bid.TopBid,
             minBid = bid.MinBid,
             instantBuy = bid.InstantBuy,
@@ -62,7 +63,8 @@ public class BidController : ControllerBase
         // Update bid listing properties
         var update = Builders<Bid>.Update
             .Set(b => b.MinBid, request.MinBid)
-            .Set(b => b.InstantBuy, request.InstantBuy);
+            .Set(b => b.InstantBuy, request.InstantBuy)
+            .Set(b => b.Title, request.Title);
 
         await _bidsCollection.UpdateOneAsync(b => b.Id == objectId, update);
 
@@ -135,6 +137,7 @@ public class BidController : ControllerBase
         var bid = new Bid
         {
             uId = request.UserId,
+            Title = request.Title,
             TopBid = request.TopBid,
             MinBid = request.MinBid,
             InstantBuy = request.InstantBuy,

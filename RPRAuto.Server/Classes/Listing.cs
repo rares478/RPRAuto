@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using RPRAuto.Server.Interfaces;
 
 namespace RPRAuto.Server.Classes;
 
@@ -9,6 +10,7 @@ public class Listing : IListing
     public ObjectId Id { get; set; }
     public ObjectId uId { get; set; }
     public int Price { get; set; } 
+    public string Title { get; set; }
     public ICar Car { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime EndAt { get; set; }
@@ -18,6 +20,7 @@ public class ListingUpdateRequest
 {
     public int Price { get; set; }
     public ICar Car { get; set; }
+    public string Title { get; set; }
 }
 
 public class ListingDeleteRequest
@@ -28,6 +31,7 @@ public class ListingCreateRequest
 {
     public ObjectId UserId { get; set; }
     public int Price { get; set; }
+    public string Title { get; set; }
     public ICar Car { get; set; }
     public DateTime EndAt { get; set; }
 }

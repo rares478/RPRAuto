@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using RPRAuto.Server.Interfaces;
 
 namespace RPRAuto.Server.Classes;
 
@@ -8,6 +9,7 @@ public class Bid : IBid
     [BsonId]
     public ObjectId Id { get; set; }
     public ObjectId uId { get; set; }
+    public string Title { get; set; }
     public int TopBid { get; set; }
     public int MinBid { get; set; }
     public Dictionary<ObjectId, int> Bids { get; set; }
@@ -21,6 +23,7 @@ public class BidUpdateRequest
 {
     public int MinBid { get; set; }
     public int InstantBuy { get; set; }
+    public string Title { get; set; }
 }
 
 public class PlaceBidRequest
@@ -32,6 +35,7 @@ public class PlaceBidRequest
 public class BidCreateRequest
 {
     public ObjectId UserId { get; set; }
+    public string Title { get; set; }
     public int TopBid { get; set; }
     public int MinBid { get; set; }
     public int InstantBuy { get; set; }

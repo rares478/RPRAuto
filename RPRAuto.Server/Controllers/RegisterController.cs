@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
+using RPRAuto.Server.Interfaces;
 
 namespace RPRAuto.Server.Controllers
 {

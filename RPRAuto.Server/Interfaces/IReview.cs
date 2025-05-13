@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson;
 
-namespace RPRAuto.Server.Classes;
+namespace RPRAuto.Server.Interfaces;
 
 public interface IReview
 {

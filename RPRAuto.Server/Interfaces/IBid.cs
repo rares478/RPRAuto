@@ -1,11 +1,12 @@
 ﻿using MongoDB.Bson;
 
-namespace RPRAuto.Server.Classes;
+namespace RPRAuto.Server.Interfaces;
 
 interface IBid
 { 
  ObjectId Id { get; set; }
- ObjectId uId { get; set; }
+ ObjectId uId { get; set; } 
+ string Title { get; set; }
  int TopBid { get; set; }
  int MinBid { get; set; }
  Dictionary<ObjectId, int> Bids { get; set; }

@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using RPRAuto.Server.Interfaces;
 
 namespace RPRAuto.Server.Classes;
 

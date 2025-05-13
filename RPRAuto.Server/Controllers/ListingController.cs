@@ -38,6 +38,7 @@ public class ListingController : ControllerBase
         var response = new
         {
             price = listing.Price,
+            title = listing.Title,
             car = listing.Car,
             sellerFirstName = seller.Personal.FirstName,
             createdAt = listing.CreatedAt,
@@ -75,7 +76,8 @@ public class ListingController : ControllerBase
         // Update listing properties
         var update = Builders<Listing>.Update
             .Set(l => l.Price, request.Price)
-            .Set(l => l.Car, request.Car);
+            .Set(l => l.Car, request.Car)
+            .Set(l => l.Title, request.Title);
         
         await _listingsCollection.UpdateOneAsync(l => l.Id == objectId, update);
         
@@ -91,6 +93,7 @@ public class ListingController : ControllerBase
         var listing = new Listing
         {
             Price = request.Price,
+            Title = request.Title,
             Car = request.Car,
             uId = request.UserId,
             CreatedAt = DateTime.UtcNow,
