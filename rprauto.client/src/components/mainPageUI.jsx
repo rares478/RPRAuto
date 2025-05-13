@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './styles/mainPage.css';
 
 // handler functions
-import { verifyUserHandle } from '../functionality/auth';
+import { verifyUserHandle } from '../functionality/authFun';
 
 const MainPage = () => {
     const navigate = useNavigate();
