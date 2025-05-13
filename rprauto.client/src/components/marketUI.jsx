@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+// styles
 import './styles/market.css';
 import './styles/card.css';
+
+// handle functions
 import { loadCarsHandle } from '../functionality/marketFun';
 
 const Market = () => {
@@ -30,20 +35,20 @@ const Market = () => {
                 <nav>
                     <ul className="nav-links">
                         <li>
-                            <input type="radio" id="login" name="btn-right" className="input" hidden />
-                            <label className="btn" htmlFor="login" onClick={() => navigate('/')}>
+                            <input type="radio" id="home" name="btn-right" className="input" hidden />
+                            <label className="btn" htmlFor="home" onClick={() => navigate('/')}>
                                 Home
                             </label>
                         </li>
                         <li>
-                            <input type="radio" id="register" name="btn-right" className="input" hidden />
-                            <label className="btn" htmlFor="register" onClick={() => navigate('/')}>
+                            <input type="radio" id="inventory" name="btn-right" className="input" hidden />
+                            <label className="btn" htmlFor="inventory" onClick={() => navigate('/')}>
                                 Inventory
                             </label>
                         </li>
                         <li>
-                            <input type="radio" id="register" name="btn-right" className="input" hidden />
-                            <label className="btn" htmlFor="register" onClick={() => navigate('/')}>
+                            <input type="radio" id="contact" name="btn-right" className="input" hidden />
+                            <label className="btn" htmlFor="contact" onClick={() => navigate('/')}>
                                 Contact
                             </label>
                         </li>
