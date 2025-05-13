@@ -1,4 +1,4 @@
-@host = http://localhost:5023
+@host = https://rprauto.onrender.com
 @userId = 68094858e6327b8c48ab1e5d
 @token = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODA5NDg1OGU2MzI3YjhjNDhhYjFlNWQiLCJuYW1lIjoicmFyZXM0NzhAZ21haWwuY29tIiwianRpIjoiMDlmM2UwNGEtZmJkZS00Y2FlLTk5NzktZTJiZjZiY2Y1ZDY2IiwiZXhwIjoxNzQ2NjMwNjYxLCJpc3MiOiJSUFJBdXRvLlNlcnZlciIsImF1ZCI6IlJQUkF1dG8uQ2xpZW50In0.RIi5WdiGBwktzoBJLQpnIE47JGBnHDebSHUHVHTRiCcQt3JpC12JCVuZopJZkGtqlfFsdAhCL_gPsTIbmyTh7dFKdA6xd9o173PBO7xFk7fmjpDhoWUpp81a2TtDsdE4CCmijkp2x3KAaS9ynLIE59GmIm5bomduuBw0EkUWLU44JiGvqLImb_UyBVsPjpL6oHdleoTwOhd_G2DxuPnHHk_wpSVpB4oJciBVIpgUIiwrn9ZviSBtLJhAu74AwgcMCBG2-rTDtSpQI8wIRjUAHoCEV87k297SaCOVIrL-V-e3FeAUiNXP3h_0LfcZSRfqkmEVMA_M2xtB9NFgWuiQRQ
 @listingId = your_listing_id_here
@@ -97,11 +97,19 @@ Authorization: Bearer {{token}}
     "year": 2022,
     "mileage": 15000,
     "fuelType": "Petrol",
-    "transmission": "Automatic",
-    "color": "Black"
+    "color": "Black",
+    "doors": 4,
+    "engineSize": 2.0,
+    "bodyType": "Sedan",
+    "horsePower": 184,
+    "isManual": false,
+    "description": "Excellent condition",
+    "pictures": []
   },
   "price": 35000,
-  "description": "Excellent condition, one owner, full service history"
+  "description": "Excellent condition, one owner, full service history",
+  "title": "BMW 3 Series 2022",
+  "status": "Active"
 }
 
 ### Update listing

@@ -52,6 +52,7 @@ public class ListingController : ControllerBase
         var listing = new Listing
         {
             UserId = userId,
+            Title = $"{request.Car.Make} {request.Car.Model} {request.Car.Year}",
             Car = request.Car,
             Price = request.Price,
             Description = request.Description,
