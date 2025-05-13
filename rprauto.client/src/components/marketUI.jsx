@@ -9,6 +9,7 @@ import './styles/card.css';
 import { loadCarsHandle } from '../functionality/marketFun';
 
 const Market = () => {
+    const navigate = useNavigate();
     const [filters, setFilters] = useState({
         make: '', model: '', price: '', year: '', gearbox: '',
         body: '', color: '', doors: '', fuel: '', engine: '', power: '', mileage: ''
