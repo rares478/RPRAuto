@@ -56,6 +56,30 @@ body {
     color: #9089D3;
 }
 
+/* Added by Pojar */
+.nav-links .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    color: #fff;
+    background-color: transparent;
+    border: 2px solid #fff;
+    border-radius: 4px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+.nav-links .btn:hover {
+    color: #9089D3;
+    border-color: #9089D3;
+    background-color: rgba(144, 137, 211, 0.1);
+}
+
+/* End Added by Pojar */
+
 /* Search Bar */
 .search-bar {
     display: flex;

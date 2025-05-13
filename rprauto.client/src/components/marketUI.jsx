@@ -18,7 +18,8 @@ const Market = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const results = await loadCarsHandle(filters);
+        const results = await loadCarsHandle(filters, page, pageSize);
+        
         setCars(results);
     };
 
@@ -28,9 +29,24 @@ const Market = () => {
                 <h1>RPR Auto</h1>
                 <nav>
                     <ul className="nav-links">
-                        <li><a href="#">Home</a></li>
-                        <li><a href="#">Inventory</a></li>
-                        <li><a href="#">Contact</a></li>
+                        <li>
+                            <input type="radio" id="login" name="btn-right" className="input" hidden />
+                            <label className="btn" htmlFor="login" onClick={() => navigate('/')}>
+                                Home
+                            </label>
+                        </li>
+                        <li>
+                            <input type="radio" id="register" name="btn-right" className="input" hidden />
+                            <label className="btn" htmlFor="register" onClick={() => navigate('/')}>
+                                Inventory
+                            </label>
+                        </li>
+                        <li>
+                            <input type="radio" id="register" name="btn-right" className="input" hidden />
+                            <label className="btn" htmlFor="register" onClick={() => navigate('/')}>
+                                Contact
+                            </label>
+                        </li>
                     </ul>
                 </nav>
             </header>

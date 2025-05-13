@@ -29,15 +29,21 @@ const MainPage = () => {
                 <div className="left-buttons">
                     <div className="radio-wrapper">
                         <input type="radio" id="value-1" name="btn" className="input" />
-                        <label className="btn" htmlFor="value-1">AUCTIONS</label>
+                        <label className="btn" htmlFor="value-1">
+                            AUCTIONS
+                        </label>
                     </div>
                     <div className="radio-wrapper">
                         <input type="radio" id="value-2" name="btn" className="input" defaultChecked />
-                        <label className="btn" htmlFor="value-2">MARKET</label>
+                        <label className="btn" htmlFor="value-2" onClick={() => navigate('/market')}>
+                            MARKET
+                        </label>
                     </div>
                     <div className="radio-wrapper">
                         <input type="radio" id="value-3" name="btn" className="input" />
-                        <label className="btn" htmlFor="value-3">LOCATION</label>
+                        <label className="btn" htmlFor="value-3">
+                            LOCATION
+                        </label>
                     </div>
                 </div>
 
