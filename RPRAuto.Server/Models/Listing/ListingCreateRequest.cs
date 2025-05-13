@@ -1,5 +1,5 @@
 using MongoDB.Bson;
-using RPRAuto.Server.Interfaces;
+using RPRAuto.Server.Models.Car;
 
 namespace RPRAuto.Server.Models.Listing;
 
@@ -10,6 +10,6 @@ public class ListingCreateRequest
     public Enums.ListingStatus Status { get; set; } = Enums.ListingStatus.Active;
     public decimal Price { get; set; }
     public string Title { get; set; }
-    public ICar Car { get; set; }
+    public Car.Car Car { get; set; } = new Car.Car();
     public DateTime EndAt { get; set; }
 } 
