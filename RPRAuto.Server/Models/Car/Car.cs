@@ -27,13 +27,13 @@ public class Car : ICar
     public int Doors { get; set; }
 
     [BsonElement("fuelType")]
-    public FuelType FuelType { get; set; }
+    public Models.Enums.FuelType FuelType { get; set; }
 
     [BsonElement("engineSize")]
     public float EngineSize { get; set; }
 
     [BsonElement("bodyType")]
-    public BodyType BodyType { get; set; }
+    public Models.Enums.BodyType BodyType { get; set; }
 
     [BsonElement("horsePower")]
     public int HorsePower { get; set; }
