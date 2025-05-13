@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import MainPage from "./mainPageUI.jsx";
 import Login from "./loginUI.jsx";
 import Register from "./registerUI.jsx";
+import Market from "./marketUI.jsx";
 
 var App = () => {
     return (
@@ -13,6 +14,7 @@ var App = () => {
                 <Route path="/" element={<MainPage />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/market" element={<Market />} />
             </Routes>
         </Router>
     );
