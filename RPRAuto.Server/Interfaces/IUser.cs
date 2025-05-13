@@ -1,13 +1,14 @@
 ﻿using MongoDB.Bson;
+using RPRAuto.Server.Models.Enums;
 
-namespace RPRAuto.Server.Classes;
+namespace RPRAuto.Server.Interfaces;
 
 public interface IUser
 {
     ObjectId UserId { get; set; }
     LoginDetails Login { get; set; }
     PersonalData Personal { get; set; }
-    Role Role { get; set; }
+    UserRole Role { get; set; }
     string? CompanyCUI { get; set; }
     List<ObjectId> Listings { get; set; }
     List<ObjectId> Bids { get; set; }
@@ -30,11 +31,4 @@ public class LoginDetails
 {
     public string Email { get; set; }
     public string Password { get; set; }
-}
-
-public enum Role
-{
-    Admin,
-    Seller,
-    Company
 }

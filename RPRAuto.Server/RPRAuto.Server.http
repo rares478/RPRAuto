@@ -1,6 +1,7 @@
 @host = https://rprauto.onrender.com
-@userId = 65ff4e128e89fddb521c6673
-@token = your_auth_token_here
+@userId = 68094858e6327b8c48ab1e5d
+@token = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODIzN2FiYWUyMGJjMGE2ZDRiMmZkYzciLCJuYW1lIjoiaGF1aGF1QGV4YW1wbGUuY29tIiwianRpIjoiNjk3OGI1NDktMjczMi00ZWViLWIzMTMtZmExNGY5MjNmZmY1IiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiVXNlciIsImV4cCI6MTc0NzE1OTI0Mn0.Z1AxkmEKDXReHjfdx11DCBW0U2IOu6nhvaebsjx28R8IsNNz9XUmoXTemUk9q9EcGR40HVLxOht2e2MZmvw7RYxnw46j3d6Y0aLzxdk1RzkypJj_2rmlv3Ejp0iQHazYBo6EfcCYwUwccVUc13Q3uVJ9maTdCcSj2n1m6fALIH2Yj3JruuFkd9_hhs-LTj9-i1VFq812K-as6-TTpmHcRo-Bz3lwacJRfTubXVaVJt4tDHUOr27rSp2sZYoyO-YNupizx6XQ4XsSTL_Nm9Nc4JtWOCRKEpJpRv0fJe64ZegmHqRZPALVan7MRC42pivUvUUq-h88kw8BgnPOR93AKQ
+@listingId = your_listing_id_here
 
 ### Get user by ID
 GET {{host}}/user/{{userId}}
@@ -43,7 +44,7 @@ Accept: application/json
 Authorization: Bearer {{token}}
 
 ### Login request with body
-POST {{host}}/login
+POST {{host}}/auth/login
 Content-Type: application/json
 
 {
@@ -52,11 +53,11 @@ Content-Type: application/json
 }
 
 ### Register request with body
-POST {{host}}/register
+POST {{host}}/auth/register
 Content-Type: application/json
 
 {
-  "email": "newuser@example.com",
+  "email": "hauhau@example.com",
   "password": "password123",
   "firstName": "New",
   "phoneNumber": "9876543210",
@@ -75,3 +76,87 @@ Content-Type: application/json
   "isCompany": true,
   "companyCUI": "RO12345678"
 }
+
+### Get all listings
+GET {{host}}/listing
+Accept: application/json
+
+### Get listing by ID
+GET {{host}}/listing/{{listingId}}
+Accept: application/json
+
+### Create a new listing
+POST {{host}}/listing
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "request": {
+    "car": {
+      "make": "BMW",
+      "model": "3 Series",
+      "year": 2022,
+      "mileage": 15000,
+      "fuelType": "Petrol",
+      "color": "Black",
+      "doors": 4,
+      "engineSize": 2.0,
+      "bodyType": "Sedan",
+      "horsePower": 184,
+      "isManual": false,
+      "description": "Excellent condition",
+      "pictures": []
+    },
+    "price": 35000,
+    "description": "Excellent condition, one owner, full service history",
+    "title": "BMW 3 Series 2022",
+    "endAt": "2024-05-13T16:47:35Z"
+  }
+}
+
+### Update listing
+PUT {{host}}/listing/{{listingId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "price": 33000,
+  "description": "Updated description: Excellent condition, one owner, full service history, new tires"
+}
+
+### Delete listing
+DELETE {{host}}/listing/{{listingId}}
+Authorization: Bearer {{token}}
+
+### Purchase listing
+POST {{host}}/listing/{{listingId}}/purchase
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "paymentMethod": "Bank Transfer"
+}
+
+### Search listings - All parameters
+GET {{host}}/listing/search?make=BMW&model=3&minPrice=30000&maxPrice=40000&minYear=2020&maxYear=2023
+Accept: application/json
+
+### Search listings - By make only
+GET {{host}}/listing/search?make=BMW
+Accept: application/json
+
+### Search listings - By price range only
+GET {{host}}/listing/search?minPrice=30000&maxPrice=40000
+Accept: application/json
+
+### Search listings - By year range only
+GET {{host}}/listing/search?minYear=2020&maxYear=2023
+Accept: application/json
+
+### Search listings - By make and model
+GET {{host}}/listing/search?make=BMW&model=3
+Accept: application/json
+
+### Search listings - By make and price range
+GET {{host}}/listing/search?make=BMW&minPrice=30000&maxPrice=40000
+Accept: application/json

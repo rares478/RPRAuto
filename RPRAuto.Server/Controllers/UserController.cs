@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
-using MongoDB.Driver;
-using RPRAuto.Server.Classes;
-using Microsoft.AspNetCore.Authorization;
+using RPRAuto.Server.Interfaces;
+using RPRAuto.Server.Models.User;
+using RPRAuto.Server.Exceptions;
+using RPRAuto.Server.Models.Review;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -10,33 +11,32 @@ namespace RPRAuto.Server.Controllers;
 [Route("user")]
 public class UserController : ControllerBase
 {
-    private readonly IMongoCollection<User> _usersCollection;
-    private readonly IMongoCollection<Bid> _bidsCollection;
-    private readonly IMongoCollection<Listing> _listingsCollection;
-    private readonly IMongoCollection<Review> _reviewsCollection;
+    private readonly IUserRepository _userRepository;
+    private readonly IListingRepository _listingRepository;
+    private readonly IBidRepository _bidRepository;
+    private readonly IReviewRepository _reviewRepository;
 
-    public UserController(IMongoClient mongoClient)
+    public UserController(
+        IUserRepository userRepository,
+        IListingRepository listingRepository,
+        IBidRepository bidRepository,
+        IReviewRepository reviewRepository)
     {
-        var database = mongoClient.GetDatabase("RPR");
-        _usersCollection = database.GetCollection<User>("Users");
-        _bidsCollection = database.GetCollection<Bid>("Bids");
-        _listingsCollection = database.GetCollection<Listing>("Listings");
-        _reviewsCollection = database.GetCollection<Review>("Reviews");
+        _userRepository = userRepository;
+        _listingRepository = listingRepository;
+        _bidRepository = bidRepository;
+        _reviewRepository = reviewRepository;
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUserById(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid user ID format" });
+            throw new ValidationException("Invalid user ID format");
 
-        var user = await _usersCollection.Find(u => u.UserId == objectId).FirstOrDefaultAsync();
-
+        var user = await _userRepository.GetByIdAsync(objectId);
         if (user == null)
-            return NotFound(new { status = 404, message = "User not found" });
-
-        // Don't return password in response
-        user.Login.Password = null;
+            throw new NotFoundException("User not found");
 
         return Ok(user);
     }
@@ -45,51 +45,53 @@ public class UserController : ControllerBase
     public async Task<IActionResult> ModifyUser(string id, [FromBody] UserUpdateRequest request)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid user ID format" });
+            throw new ValidationException("Invalid user ID format");
 
-        var user = await _usersCollection.Find(u => u.UserId == objectId).FirstOrDefaultAsync();
+        var user = await _userRepository.GetByIdAsync(objectId);
         if (user == null)
-            return NotFound(new { status = 404, message = "User not found" });
+            throw new NotFoundException("User not found");
 
-        var update = Builders<User>.Update;
-        var updateBuilder = update.Set(u => u.Personal.FirstName, request.FirstName)
-                                 .Set(u => u.Personal.LastName, request.LastName)
-                                 .Set(u => u.Personal.PhoneNumber, request.PhoneNumber)
-                                 .Set(u => u.Personal.Address, request.Address)
-                                 .Set(u => u.Personal.City, request.City)
-                                 .Set(u => u.Personal.Country, request.Country);
+        var userId = GetUserIdFromToken();
+        if (user.UserId != userId)
+            throw new UnauthorizedException("You are not authorized to modify this user");
 
-        await _usersCollection.UpdateOneAsync(u => u.UserId == objectId, updateBuilder);
+        user.Personal.FirstName = request.FirstName;
+        user.Personal.LastName = request.LastName;
+        user.Personal.PhoneNumber = request.PhoneNumber;
+        user.Personal.Address = request.Address;
+        user.CompanyCUI = request.CompanyCUI;
+        user.Personal.City = request.City;
+        user.Personal.Country = request.Country;
 
-        return Ok(new { status = 200, message = "User updated successfully" });
+        await _userRepository.UpdateAsync(objectId, user);
+        return Ok(new { message = "User updated successfully" });
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid user ID format" });
+            throw new ValidationException("Invalid user ID format");
 
-        var result = await _usersCollection.DeleteOneAsync(u => u.UserId == objectId);
+        var user = await _userRepository.GetByIdAsync(objectId);
+        if (user == null)
+            throw new NotFoundException("User not found");
 
-        if (result.DeletedCount == 0)
-            return NotFound(new { status = 404, message = "User not found" });
+        var userId = GetUserIdFromToken();
+        if (user.UserId != userId)
+            throw new UnauthorizedException("You are not authorized to delete this user");
 
-        return Ok(new { status = 200, message = "User deleted successfully" });
+        await _userRepository.DeleteAsync(objectId);
+        return Ok(new { message = "User deleted successfully" });
     }
 
     [HttpGet("{id}/listings")]
     public async Task<IActionResult> GetAllListings(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid user ID format" });
+            throw new ValidationException("Invalid user ID format");
 
-        var user = await _usersCollection.Find(u => u.UserId == objectId).FirstOrDefaultAsync();
-        if (user == null)
-            return NotFound(new { status = 404, message = "User not found" });
-
-        var listings = await _listingsCollection.Find(l => user.Listings.Contains(l.Id)).ToListAsync();
-
+        var listings = await _listingRepository.GetByUserIdAsync(objectId);
         return Ok(listings);
     }
 
@@ -97,14 +99,9 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetAllBids(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid user ID format" });
+            throw new ValidationException("Invalid user ID format");
 
-        var user = await _usersCollection.Find(u => u.UserId == objectId).FirstOrDefaultAsync();
-        if (user == null)
-            return NotFound(new { status = 404, message = "User not found" });
-
-        var bids = await _bidsCollection.Find(b => user.Bids.Contains(b.Id)).ToListAsync();
-
+        var bids = await _bidRepository.GetByUserIdAsync(objectId);
         return Ok(bids);
     }
 
@@ -112,79 +109,81 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetLoginDetails(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { message = "Invalid user ID format" });
+            throw new ValidationException("Invalid user ID format");
 
-        var user = await _usersCollection.Find(u => u.UserId == objectId)
-            .Project<LoginDetailsResponse>(Builders<User>.Projection
-                .Include(u => u.Login.Email)
-                .Exclude(u => u.Login.Password))
-            .FirstOrDefaultAsync();
-
+        var user = await _userRepository.GetByIdAsync(objectId);
         if (user == null)
-            return NotFound(new { status = 404, message = "User not found" });
+            throw new NotFoundException("User not found");
 
-        return Ok(user);
+        var userId = GetUserIdFromToken();
+        if (user.UserId != userId)
+            throw new UnauthorizedException("You are not authorized to view this user's login details");
+
+        return Ok(new { email = user.Login.Email, role = user.Role });
     }
 
     [HttpGet("{id}/personal")]
     public async Task<IActionResult> GetPersonalDetails(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid user ID format" });
+            throw new ValidationException("Invalid user ID format");
 
-        var user = await _usersCollection.Find(u => u.UserId == objectId)
-            .Project<PersonalDetailsResponse>(Builders<User>.Projection
-                .Include(u => u.Personal))
-            .FirstOrDefaultAsync();
-
+        var user = await _userRepository.GetByIdAsync(objectId);
         if (user == null)
-            return NotFound(new { status = 404, message = "User not found" });
+            throw new NotFoundException("User not found");
 
-        return Ok(user);
+        var userId = GetUserIdFromToken();
+        if (user.UserId != userId)
+            throw new UnauthorizedException("You are not authorized to view this user's personal details");
+
+        return Ok(new
+        {
+            firstName = user.Personal.FirstName,
+            lastName = user.Personal.LastName,
+            phoneNumber = user.Personal.PhoneNumber,
+            address = user.Personal.Address,
+            createdAt = user.CreatedAt
+        });
     }
 
     [HttpPut("{id}/review")]
     public async Task<IActionResult> AddReview(string id, [FromBody] ReviewRequest request)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid user ID format" });
+            throw new ValidationException("Invalid user ID format");
 
-        var user = await _usersCollection.Find(u => u.UserId == objectId).FirstOrDefaultAsync();
+        var user = await _userRepository.GetByIdAsync(objectId);
         if (user == null)
-            return NotFound(new { status = 404, message = "User not found" });
+            throw new NotFoundException("User not found");
 
         var review = new Review
         {
-            UserId = objectId,
-            ReviewText = request.Review,
+            ReviewerId = objectId,
             Rating = request.Rating,
+            ReviewText = request.Comment,
             CreatedAt = DateTime.UtcNow
         };
 
-        await _reviewsCollection.InsertOneAsync(review);
-
-        // Add review ID to user's reviews list
-        user.Review = review.ReviewId;
-        await _usersCollection.UpdateOneAsync(
-            u => u.UserId == objectId,
-            Builders<User>.Update.Set(u => u.Review, user.Review)
-        );
-
-        return Ok(new { status = 200, message = "Review added successfully" });
+        await _reviewRepository.CreateAsync(review);
+        return Ok(new { message = "Review added successfully", reviewId = review.ReviewId });
     }
 
     [HttpGet("{id}/review")]
-    public async Task<IActionResult> GetReviews(string id)
+    public async Task<IActionResult> GetReview(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid user ID format" });
+            throw new ValidationException("Invalid user ID format");
 
-        var user = await _usersCollection.Find(u => u.UserId == objectId).FirstOrDefaultAsync();
-        if (user == null)
-            return NotFound(new { status = 404, message = "User not found" });
-        
-        return Ok(user.Review);
+        var review = await _userRepository.GetUserReviewAsync(objectId);
+        return Ok(review);
     }
-    
-}
 
+    private ObjectId GetUserIdFromToken()
+    {
+        var userIdClaim = User.FindFirst("userId");
+        if (userIdClaim == null || !ObjectId.TryParse(userIdClaim.Value, out var userId))
+            throw new UnauthorizedException("Invalid user token");
+
+        return userId;
+    }
+}

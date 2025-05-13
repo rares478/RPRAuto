@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 
-export async function verifyUserHandle(email, password) {
+export async function verifyUserHandle() {
     try {
         const token = Cookies.get('authToken');
 
