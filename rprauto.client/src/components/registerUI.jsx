@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './styles/signup.css';
 
 // handler functions
-import { registerHandle } from '../functionality/registerFun';
+import { registerHandle, validateName, validateEmail, validatePassword, validatePhone, validateCUI } from '../functionality/registerFun';
 
 const SignUp = () => {
     const [firstName, setFirstName] = useState('');
@@ -17,11 +17,42 @@ const SignUp = () => {
 
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
     
+        if (!validateName(firstName)) {
+            setError('First name must start with a capital letter and contain only letters.');
+            return;
+        }
+    
+        if (!validateEmail(email)) {
+            setError('Please enter a valid email address.');
+            return;
+        }
+    
+        if (phone && !validatePhone(phone)) {
+            setError('Phone number must start with 07, 02, or 03 and contain 10 digits.');
+            return;
+        }
+    
+        if (!validatePassword(password)) {
+            setError('Password must contain at least one uppercase letter and one number.');
+            return;
+        }
+    
+        if (isCompany) {
+            if (!validateName(companyName)) {
+                setError('Company name must start with a capital letter.');
+                return;
+            }
+            if (!validateCUI(cui)) {
+                setError('CUI must be a number with up to 10 digits.');
+                return;
+            }
+        }
+
         try {
-            const result = registerHandle(
+            const result = await registerHandle(
                 firstName,
                 email,
                 password,

@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
+using RPRAuto.Server.Interfaces;
+using RPRAuto.Server.Models.Listing;
+using RPRAuto.Server.Exceptions;
+using RPRAuto.Server.Models.Enums;
 using MongoDB.Driver;
-using RPRAuto.Server.Classes;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -9,135 +12,182 @@ namespace RPRAuto.Server.Controllers;
 [Route("listing")]
 public class ListingController : ControllerBase
 {
-    private readonly IMongoCollection<Listing> _listingsCollection;
-    private readonly IMongoCollection<User> _usersCollection;
+    private readonly IListingRepository _listingRepository;
+    private readonly IUserRepository _userRepository;
 
-    public ListingController(IMongoClient mongoClient)
+    public ListingController(IListingRepository listingRepository, IUserRepository userRepository)
     {
-        var database = mongoClient.GetDatabase("RPR");
-        _listingsCollection = database.GetCollection<Listing>("Listings");
-        _usersCollection = database.GetCollection<User>("Users");
+        _listingRepository = listingRepository;
+        _userRepository = userRepository;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllListings()
+    {
+        var listings = await _listingRepository.GetActiveListingsAsync();
+        return Ok(listings);
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(string id)
+    public async Task<IActionResult> GetListingById(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid ID format" });
-        
-        var listing = await _listingsCollection.Find(l => l.Id == objectId).FirstOrDefaultAsync();
-        
+            throw new ValidationException("Invalid listing ID format");
+
+        var listing = await _listingRepository.GetByIdAsync(objectId);
         if (listing == null)
-            return NotFound(new { status = 404, message = "Listing not found" });
-        
-        var seller = await _usersCollection.Find(u => u.UserId == listing.uId).FirstOrDefaultAsync();
-        
-        if (seller == null)
-            return NotFound(new { status = 404, message = "Seller information not found" });
-        
-        var response = new
-        {
-            price = listing.Price,
-            car = listing.Car,
-            sellerFirstName = seller.Personal.FirstName,
-            createdAt = listing.CreatedAt,
-            endAt = listing.EndAt,
-        };
-        
-        return Ok(response);
+            throw new NotFoundException("Listing not found");
+
+        return Ok(listing);
     }
-    
-    [HttpDelete]
-    public async Task<IActionResult> Delete(string id)
-    {
-        if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid ID format" });
-        
-        var result = await _listingsCollection.DeleteOneAsync(l => l.Id == objectId);
-        
-        if (result.DeletedCount == 0)
-            return NotFound(new { status = 404, message = "Listing not found" });
-        
-        return Ok(new { status = 200, message = "Listing deleted successfully" });
-    }
-    
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(string id, [FromBody] ListingUpdateRequest request)
-    {
-        if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid ID format" });
-        
-        var listing = await _listingsCollection.Find(l => l.Id == objectId).FirstOrDefaultAsync();
-        
-        if (listing == null)
-            return NotFound(new { status = 404, message = "Listing not found" });
-        
-        // Update listing properties
-        var update = Builders<Listing>.Update
-            .Set(l => l.Price, request.Price)
-            .Set(l => l.Car, request.Car);
-        
-        await _listingsCollection.UpdateOneAsync(l => l.Id == objectId, update);
-        
-        return Ok(new { status = 200, message = "Listing updated successfully" });
-    }
-    
+
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] ListingCreateRequest request)
+    public async Task<IActionResult> CreateListing([FromBody] ListingCreateRequest request)
     {
-        if (request == null)
-            return BadRequest(new { status = 400, message = "Invalid request" });
-        
+        var userId = GetUserIdFromToken();
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+
         var listing = new Listing
         {
-            Price = request.Price,
+            UserId = userId,
+            Title = $"{request.Car.Make} {request.Car.Model} {request.Car.Year}",
             Car = request.Car,
-            uId = request.UserId,
-            CreatedAt = DateTime.UtcNow,
-            EndAt = request.EndAt
+            Price = request.Price,
+            Description = request.Description,
+            Status = ListingStatus.Active,
+            CreatedAt = DateTime.UtcNow
         };
-        
-        await _listingsCollection.InsertOneAsync(listing);
-        
-        return Ok(new { status = 200, message = "Listing created successfully" });
-    }
-    
-    [HttpGet]
-    public async Task<IActionResult> GetListings()
-    {
-        var listings = await _listingsCollection.Find(_ => true).Limit(30).ToListAsync();
-        
-        if (listings == null || listings.Count == 0)
-            return NotFound(new { status = 404, message = "No listings found" });
-        
-        var response = listings.Select(l => new
-        {
-            id = l.Id.ToString(),
-            price = l.Price,
-            car = l.Car
-        });
-        
-        return Ok(response);
-    }
-    
-    [HttpPost("{id}/purchase")]
-    public async Task<IActionResult> Buy(string id, [FromBody] ListingPurchaseRequest request)
-    {
-        if (!ObjectId.TryParse(id, out var listingId))
-            return BadRequest(new { status = 400, message = "Invalid listing ID format" });
-        
-        if (!ObjectId.TryParse(request.UserId, out var buyerId))
-            return BadRequest(new { status = 400, message = "Invalid buyer ID format" });
 
-        var listing = await _listingsCollection.Find(l => l.Id == listingId).FirstOrDefaultAsync();
-    
+        await _listingRepository.CreateAsync(listing);
+
+        // Add listing to user's listings
+        user.Listings.Add(listing.Id);
+        await _userRepository.UpdateAsync(userId, user);
+
+        return Ok(new { message = "Listing created successfully", listingId = listing.Id });
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateListing(string id, [FromBody] ListingUpdateRequest request)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+            throw new ValidationException("Invalid listing ID format");
+
+        var listing = await _listingRepository.GetByIdAsync(objectId);
         if (listing == null)
-            return NotFound(new { status = 404, message = "Listing not found" });
+            throw new NotFoundException("Listing not found");
 
-        // TODO: Implement purchase logic here
-    
-        return Ok(new { status = 200, message = "Purchase successful" });
+        // Verify ownership
+        var userId = GetUserIdFromToken();
+        if (listing.UserId != userId)
+            throw new UnauthorizedException("You are not authorized to update this listing");
+
+        listing.Price = request.Price;
+        listing.Description = request.Description;
+
+        await _listingRepository.UpdateAsync(objectId, listing);
+        return Ok(new { message = "Listing updated successfully" });
     }
-    
-    
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteListing(string id)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+            throw new ValidationException("Invalid listing ID format");
+
+        var listing = await _listingRepository.GetByIdAsync(objectId);
+        if (listing == null)
+            throw new NotFoundException("Listing not found");
+
+        // Verify ownership
+        var userId = GetUserIdFromToken();
+        if (listing.UserId != userId)
+            throw new UnauthorizedException("You are not authorized to delete this listing");
+
+        await _listingRepository.DeleteAsync(objectId);
+
+        // Remove listing from user's listings
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user != null)
+        {
+            user.Listings.Remove(objectId);
+            await _userRepository.UpdateAsync(userId, user);
+        }
+
+        return Ok(new { message = "Listing deleted successfully" });
+    }
+
+    [HttpPost("{id}/purchase")]
+    public async Task<IActionResult> PurchaseListing(string id, [FromBody] ListingPurchaseRequest request)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+            throw new ValidationException("Invalid listing ID format");
+
+        var listing = await _listingRepository.GetByIdAsync(objectId);
+        if (listing == null)
+            throw new NotFoundException("Listing not found");
+
+        if (listing.Status != ListingStatus.Active)
+            throw new ValidationException("This listing is not available for purchase");
+
+        // Update listing status to sold
+        listing.Status = ListingStatus.Sold;
+        await _listingRepository.UpdateAsync(objectId, listing);
+
+        return Ok(new { message = "Listing purchased successfully" });
+    }
+
+    [HttpGet("user/{userId}")]
+    public async Task<IActionResult> GetUserListings(string userId)
+    {
+        if (!ObjectId.TryParse(userId, out var objectId))
+            throw new ValidationException("Invalid user ID format");
+
+        var listings = await _listingRepository.GetByUserIdAsync(objectId);
+        return Ok(listings);
+    }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchListings(
+        [FromQuery] string? make = null,
+        [FromQuery] string? model = null,
+        [FromQuery] decimal? minPrice = null,
+        [FromQuery] decimal? maxPrice = null,
+        [FromQuery] int? minYear = null,
+        [FromQuery] int? maxYear = null)
+    {
+        var filter = Builders<Listing>.Filter.Eq(l => l.Status, ListingStatus.Active);
+
+        if (make != null)
+            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Make, new MongoDB.Bson.BsonRegularExpression(make, "i"));
+
+        if (model != null)
+            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Model, new MongoDB.Bson.BsonRegularExpression(model, "i"));
+
+        if (minPrice.HasValue)
+            filter &= Builders<Listing>.Filter.Gte(l => l.Price, minPrice.Value);
+
+        if (maxPrice.HasValue)
+            filter &= Builders<Listing>.Filter.Lte(l => l.Price, maxPrice.Value);
+
+        if (minYear.HasValue)
+            filter &= Builders<Listing>.Filter.Gte(l => l.Car.Year, minYear.Value);
+
+        if (maxYear.HasValue)
+            filter &= Builders<Listing>.Filter.Lte(l => l.Car.Year, maxYear.Value);
+
+        var listings = await _listingRepository.SearchAsync(filter);
+        return Ok(listings);
+    }
+
+    private ObjectId GetUserIdFromToken()
+    {
+        var userIdClaim = User.FindFirst("userId");
+        if (userIdClaim == null || !ObjectId.TryParse(userIdClaim.Value, out var userId))
+            throw new UnauthorizedException("Invalid user token");
+
+        return userId;
+    }
 }

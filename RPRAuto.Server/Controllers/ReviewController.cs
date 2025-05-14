@@ -1,73 +1,93 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
-using MongoDB.Driver;
-using RPRAuto.Server.Classes;
+using RPRAuto.Server.Interfaces;
+using RPRAuto.Server.Models.Review;
+using RPRAuto.Server.Exceptions;
 
 namespace RPRAuto.Server.Controllers;
 
+[ApiController]
+[Route("review")]
 public class ReviewController : ControllerBase
 {
-    private readonly IMongoCollection<Review> _reviewsCollection;
+    private readonly IReviewRepository _reviewRepository;
+    private readonly IUserRepository _userRepository;
 
-    public ReviewController(IMongoClient mongoClient)
+    public ReviewController(IReviewRepository reviewRepository, IUserRepository userRepository)
     {
-        var database = mongoClient.GetDatabase("RPR");
-        _reviewsCollection = database.GetCollection<Review>("Reviews");
+        _reviewRepository = reviewRepository;
+        _userRepository = userRepository;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetReviews()
     {
-        var reviews = await _reviewsCollection.Find(_ => true).Limit(30).ToListAsync();
-
-        if (reviews == null || !reviews.Any())
-            return NotFound(new { status = 404, message = "No reviews found" });
-
+        var reviews = await _reviewRepository.GetLatestReviewsAsync(30);
         return Ok(reviews);
     }
-    
+
+    [HttpPost]
+    public async Task<IActionResult> AddReview([FromBody] ReviewRequest request)
+    {
+        var reviewerId = GetUserIdFromToken();
+
+        var review = new Review
+        {
+            ReviewerId = reviewerId,
+            Rating = request.Rating,
+            ReviewText = request.Comment,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _reviewRepository.CreateAsync(review);
+        return Ok(new { message = "Review added successfully", reviewId = review.ReviewId });
+    }
+
     [HttpPut("{id}/modify")]
-    public async Task<IActionResult> ModifyReview(string id, [FromBody] Review review)
+    public async Task<IActionResult> ModifyReview(string id, [FromBody] ReviewUpdateRequest request)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid review ID format" });
+            throw new ValidationException("Invalid review ID format");
 
-        var existingReview = await _reviewsCollection.Find(r => r.UserId == objectId).FirstOrDefaultAsync();
-        if (existingReview == null)
-            return NotFound(new { status = 404, message = "Review not found" });
+        var review = await _reviewRepository.GetByIdAsync(objectId);
+        if (review == null)
+            throw new NotFoundException("Review not found");
 
-        var update = Builders<Review>.Update
-            .Set(r => r.ReviewText, review.ReviewText)
-            .Set(r => r.Rating, review.Rating);
+        var reviewerId = GetUserIdFromToken();
+        if (review.ReviewerId != reviewerId)
+            throw new UnauthorizedException("You are not authorized to modify this review");
 
-        await _reviewsCollection.UpdateOneAsync(r => r.UserId == objectId, update);
+        review.Rating = request.Rating;
+        review.ReviewText = request.ReviewText;
 
-        return Ok(new { status = 200, message = "Review updated successfully" });
+        await _reviewRepository.UpdateAsync(objectId, review);
+        return Ok(new { message = "Review modified successfully" });
     }
-    
-    [HttpPut("{id}/delete")]
+
+    [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteReview(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            return BadRequest(new { status = 400, message = "Invalid review ID format" });
+            throw new ValidationException("Invalid review ID format");
 
-        var result = await _reviewsCollection.DeleteOneAsync(r => r.UserId == objectId);
-
-        if (result.DeletedCount == 0)
-            return NotFound(new { status = 404, message = "Review not found" });
-
-        return Ok(new { status = 200, message = "Review deleted successfully" });
-    }
-    
-    [HttpPost]
-    public async Task<IActionResult> AddReview([FromBody] Review review)
-    {
+        var review = await _reviewRepository.GetByIdAsync(objectId);
         if (review == null)
-            return BadRequest(new { status = 400, message = "Invalid review data" });
+            throw new NotFoundException("Review not found");
 
-        await _reviewsCollection.InsertOneAsync(review);
+        var userId = GetUserIdFromToken();
+        if (review.ReviewerId != userId)
+            throw new UnauthorizedException("You are not authorized to delete this review");
 
-        return CreatedAtAction(nameof(GetReviews), new { id = review.ReviewId }, review);
+        await _reviewRepository.DeleteAsync(objectId);
+        return Ok(new { message = "Review deleted successfully" });
     }
-    
+
+    private ObjectId GetUserIdFromToken()
+    {
+        var userIdClaim = User.FindFirst("userId");
+        if (userIdClaim == null || !ObjectId.TryParse(userIdClaim.Value, out var userId))
+            throw new UnauthorizedException("Invalid user token");
+
+        return userId;
+    }
 }
