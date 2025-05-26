@@ -102,10 +102,10 @@ function MainPage() {
                         <a href="/">RPR Auto</a>
                     </div>
                     <div className="nav-button">
-                        <button className="nav-button" onClick={() => window.location.href = "/marketplace"} style={{ display: "inline" }}>
+                        <button className="nav-link" onClick={() => window.location.href = "/marketplace"} style={{ display: "inline" }}>
                             Marketplace
                         </button>
-                        <button className="nav-button" onClick={() => window.location.href = "/auctions"} style={{ display: "inline" }}>
+                        <button className="nav-link" onClick={() => window.location.href = "/auctions"} style={{ display: "inline" }}>
                             Auctions
                         </button>
                         {!isAuthenticated && (
@@ -116,7 +116,7 @@ function MainPage() {
                                 <button className="nav-button" onClick={() => window.location.href = "/register"} style={{ display: "inline" }}>
                                     Register
                                 </button>
-                                <button className="nav-button" onClick={() => window.location.href = "/account"} style={{ display: "none" }}>
+                                <button className="nav-link" onClick={() => window.location.href = "/account"} style={{ display: "none" }}>
                                     My Account
                                 </button>
                             </>
@@ -129,7 +129,7 @@ function MainPage() {
                                 <button className="nav-button" onClick={() => window.location.href = "/register"} style={{ display: "none" }}>
                                     Register
                                 </button>
-                                <button className="nav-button" onClick={() => window.location.href = "/account"} style={{ display: "inline" }}>
+                                <button className="nav-link" onClick={() => window.location.href = "/account"} style={{ display: "inline" }}>
                                     My Account
                                 </button>
                             </>
