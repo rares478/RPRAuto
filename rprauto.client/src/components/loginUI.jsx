@@ -75,6 +75,9 @@ function Login() {
                         <button type="button" className="forgotPasswordBtn" onClick={() => navigate('/forgot-password')}>
                             Forgot Password
                         </button>
+
+                        {error && <div className="error-message" color="#ff0000">{error}</div>}
+
                     </form>
                 </div>
             </div>

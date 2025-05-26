@@ -80,7 +80,7 @@ const SignUp = () => {
                 <div className="card2">
                     <form className="form" onSubmit={handleSubmit}>
                         <p id="heading">Create Account</p>
-                        {error && <div className="error-message">{error}</div>}
+
                         <div className="field">
                             <input
                                 type="text"
@@ -190,6 +190,9 @@ const SignUp = () => {
                                 Cancel
                             </button>
                         </div>
+
+                        {error && <div className="error-message" color="#ff0000">{error}</div>}
+
                     </form>
                 </div>
             </div>
