@@ -16,11 +16,13 @@ public class ListingController : ControllerBase
 {
     private readonly IListingRepository _listingRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IConfiguration _configuration;
 
-    public ListingController(IListingRepository listingRepository, IUserRepository userRepository)
+    public ListingController(IListingRepository listingRepository, IUserRepository userRepository, IConfiguration configuration)
     {
         _listingRepository = listingRepository;
         _userRepository = userRepository;
+        _configuration = configuration;
     }
 
     [HttpGet("{id}")]
@@ -228,10 +230,34 @@ public class ListingController : ControllerBase
 
     private ObjectId GetUserIdFromToken()
     {
-        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
-        if (userIdClaim == null || !ObjectId.TryParse(userIdClaim.Value, out var userId))
-            throw new UnauthorizedException("Invalid user token");
+        var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+        var handler = new JwtSecurityTokenHandler();
+        var rsa = EnvLoader.GetRsaPublicKey();
+        var securityKey = new RsaSecurityKey(rsa);
 
-        return userId;
+        var validationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = securityKey,
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidIssuer = _configuration["Jwt:Issuer"],
+            ValidAudience = _configuration["Jwt:Audience"],
+            ClockSkew = TimeSpan.Zero
+        };
+
+        try
+        {
+            var principal = handler.ValidateToken(token, validationParameters, out var validatedToken);
+            var userIdClaim = principal.FindFirst(JwtRegisteredClaimNames.Sub);
+            if (userIdClaim == null || !ObjectId.TryParse(userIdClaim.Value, out var userId))
+                throw new UnauthorizedException("Invalid user token");
+
+            return userId;
+        }
+        catch (Exception)
+        {
+            throw new UnauthorizedException("Invalid user token");
+        }
     }
 }
