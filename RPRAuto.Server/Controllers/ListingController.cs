@@ -6,6 +6,7 @@ using RPRAuto.Server.Exceptions;
 using RPRAuto.Server.Models.Enums;
 using MongoDB.Driver;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -236,7 +237,7 @@ public class ListingController : ControllerBase
         _logger.LogInformation("=== Token Debug Info ===");
         _logger.LogInformation("Raw Authorization header: {AuthHeader}", authHeader);
         
-        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         _logger.LogInformation("UserIdClaim: {UserIdClaim}", userIdClaim?.Value ?? "null");
         _logger.LogInformation("All Claims: {Claims}", string.Join(", ", User.Claims.Select(c => $"{c.Type}: {c.Value}")));
         
