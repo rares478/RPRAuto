@@ -96,39 +96,43 @@ function MainPage() {
     return (
         <div className="main-container">
             {/* Navbar */}
-            <nav className="hero">
-                <div className="container">
-                    <div className="navbar-brand">
+            <nav className="navbar">
+                <div className="nav-content">
+                    <div className="nav-brand">
                         <a href="/">RPR Auto</a>
                     </div>
-                    <div className="navbar-links">
-                        <a href="/marketplace">Marketplace</a>
-                        <a href="/auctions">Live Auctions</a>
+                    <div className="nav-button">
+                        <button className="nav-button" onClick={() => window.location.href = "/marketplace"} style={{ display: "inline" }}>
+                            Marketplace
+                        </button>
+                        <button className="nav-button" onClick={() => window.location.href = "/auctions"} style={{ display: "inline" }}>
+                            Auctions
+                        </button>
                         {!isAuthenticated && (
-                             <>
-                                 <button className="nav-button" onClick={() => window.location.href = "/signin"} style={{ display: "inline" }}>
-                                     Sign In
-                                 </button>
-                                 <button className="nav-button" onClick={() => window.location.href = "/register"} style={{ display: "inline" }}>
-                                     Register
-                                 </button>
-                                 <button className="nav-button" onClick={() => window.location.href = "/account"} style={{ display: "none" }}>
-                                     My Account
-                                 </button>
-                             </>
+                            <>
+                                <button className="nav-button" onClick={() => window.location.href = "/signin"} style={{ display: "inline" }}>
+                                    Sign In
+                                </button>
+                                <button className="nav-button" onClick={() => window.location.href = "/register"} style={{ display: "inline" }}>
+                                    Register
+                                </button>
+                                <button className="nav-button" onClick={() => window.location.href = "/account"} style={{ display: "none" }}>
+                                    My Account
+                                </button>
+                            </>
                          )}
                          {isAuthenticated && (
-                             <>
-                                 <button className="nav-button" onClick={() => window.location.href = "/signin"} style={{ display: "none" }}>
-                                     Sign In
-                                 </button>
-                                 <button className="nav-button" onClick={() => window.location.href = "/register"} style={{ display: "none" }}>
-                                     Register
-                                 </button>
-                                 <button className="nav-button" onClick={() => window.location.href = "/account"} style={{ display: "inline" }}>
-                                     My Account
-                                 </button>
-                             </>
+                            <>
+                                <button className="nav-button" onClick={() => window.location.href = "/signin"} style={{ display: "none" }}>
+                                    Sign In
+                                </button>
+                                <button className="nav-button" onClick={() => window.location.href = "/register"} style={{ display: "none" }}>
+                                    Register
+                                </button>
+                                <button className="nav-button" onClick={() => window.location.href = "/account"} style={{ display: "inline" }}>
+                                    My Account
+                                </button>
+                            </>
                          )}
                     </div>
                 </div>
