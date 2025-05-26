@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './styles/styles.css';
-import './styles/sell.css';
+// import './styles/styles.css';
+// import './styles/sell.css';
+import './styles/combinedStyles.css';
 
 // function handlers
 import { submitListing } from '../functionality/sellFun';
