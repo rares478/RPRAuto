@@ -6,6 +6,7 @@ using RPRAuto.Server.Exceptions;
 using RPRAuto.Server.Models.Enums;
 using MongoDB.Driver;
 using System.Security.Claims;
+using RPRAuto.Server.Models.Car;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -44,7 +45,7 @@ public class ListingController : ControllerBase
     public async Task<IActionResult> CreateListing([FromBody] ListingCreateRequest request)
     {
         _logger.LogInformation("=== CreateListing Request Debug ===");
-        _logger.LogInformation("Request received: {@Request}", request);
+        _logger.LogInformation("Raw request data: {@Request}", request);
         
         try 
         {
@@ -59,18 +60,31 @@ public class ListingController : ControllerBase
             }
             _logger.LogInformation("User found: {UserId}", userId);
 
-            _logger.LogInformation("Creating listing with car data: {@Car}", request.Car);
+            _logger.LogInformation("Car data from request: {@Car}", request.Car);
             var listing = new Listing
             {
                 UserId = userId,
-                Title = $"{request.Car.Make} {request.Car.Model} {request.Car.Year}",
-                Car = request.Car,
+                Title = request.Title ?? $"{request.Car.Make} {request.Car.Model} {request.Car.Year}",
+                Car = new Car
+                {
+                    Make = request.Car.Make,
+                    Model = request.Car.Model,
+                    Year = request.Car.Year,
+                    Mileage = request.Car.Mileage,
+                    Color = request.Car.Color,
+                    GearboxType = request.Car.GearboxType,
+                    FuelType = request.Car.FuelType,
+                    BodyType = request.Car.BodyType,
+                    EngineSize = request.Car.EngineSize,
+                    HorsePower = request.Car.HorsePower,
+                    Pictures = request.Car.Pictures
+                },
                 Price = request.Price,
                 Description = request.Description,
-                Status = ListingStatus.Active,
+                Status = request.Status,
                 CreatedAt = DateTime.UtcNow
             };
-            _logger.LogInformation("Listing object created: {@Listing}", listing);
+            _logger.LogInformation("Created listing object: {@Listing}", listing);
 
             await _listingRepository.CreateAsync(listing);
             _logger.LogInformation("Listing saved to database with ID: {ListingId}", listing.Id);
