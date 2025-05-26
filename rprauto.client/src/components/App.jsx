@@ -19,7 +19,7 @@ const App = () => {
                         <Route path="/register" element={<Register />} />
                         <Route path="/market" element={<Market />} />
                         <Route path="/account" element={<Account />} />
-                        <Route path="/auctions" element={<MainPage />} />
+                        <Route path="/auctions" element={<MainPage />} /> {/* Replace with actual Auctions component */}
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </main>
