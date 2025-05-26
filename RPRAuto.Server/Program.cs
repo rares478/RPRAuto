@@ -14,6 +14,17 @@ BsonClassMap.RegisterClassMap<Car>(cm =>
 {
     cm.AutoMap();
     cm.SetIsRootClass(true);
+    cm.MapProperty(c => c.Make).SetElementName("make");
+    cm.MapProperty(c => c.Model).SetElementName("model");
+    cm.MapProperty(c => c.Year).SetElementName("year");
+    cm.MapProperty(c => c.Mileage).SetElementName("mileage");
+    cm.MapProperty(c => c.Color).SetElementName("color");
+    cm.MapProperty(c => c.GearboxType).SetElementName("gearboxType");
+    cm.MapProperty(c => c.FuelType).SetElementName("fuelType");
+    cm.MapProperty(c => c.BodyType).SetElementName("bodyType");
+    cm.MapProperty(c => c.EngineSize).SetElementName("engineSize");
+    cm.MapProperty(c => c.HorsePower).SetElementName("horsePower");
+    cm.MapProperty(c => c.Pictures).SetElementName("pictures");
 });
 
 // Add services to the container.
