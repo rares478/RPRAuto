@@ -28,7 +28,15 @@ public class Listing : IListing
 
     [BsonElement("car")]
     [JsonPropertyName("Car")]
+    [JsonIgnore]
     public ICar Car { get; set; } = new Car.Car();
+
+    [JsonPropertyName("Car")]
+    public Car.Car CarData
+    {
+        get => (Car.Car)Car;
+        set => Car = value;
+    }
     
     [BsonElement("status")]
     [JsonPropertyName("Status")]

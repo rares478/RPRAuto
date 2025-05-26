@@ -43,28 +43,51 @@ public class ListingController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateListing([FromBody] ListingCreateRequest request)
     {
-        var userId = GetUserIdFromToken();
-        var user = await _userRepository.GetByIdAsync(userId);
-        if (user == null)
-            throw new NotFoundException("User not found");
-
-        var listing = new Listing
+        _logger.LogInformation("=== CreateListing Request Debug ===");
+        _logger.LogInformation("Request received: {@Request}", request);
+        
+        try 
         {
-            UserId = userId,
-            Title = $"{request.Car.Make} {request.Car.Model} {request.Car.Year}",
-            Car = request.Car,
-            Price = request.Price,
-            Description = request.Description,
-            Status = ListingStatus.Active,
-            CreatedAt = DateTime.UtcNow
-        };
+            var userId = GetUserIdFromToken();
+            _logger.LogInformation("UserId from token: {UserId}", userId);
+            
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogError("User not found for ID: {UserId}", userId);
+                throw new NotFoundException("User not found");
+            }
+            _logger.LogInformation("User found: {UserId}", userId);
 
-        await _listingRepository.CreateAsync(listing);
+            _logger.LogInformation("Creating listing with car data: {@Car}", request.Car);
+            var listing = new Listing
+            {
+                UserId = userId,
+                Title = $"{request.Car.Make} {request.Car.Model} {request.Car.Year}",
+                Car = request.Car,
+                Price = request.Price,
+                Description = request.Description,
+                Status = ListingStatus.Active,
+                CreatedAt = DateTime.UtcNow
+            };
+            _logger.LogInformation("Listing object created: {@Listing}", listing);
 
-        user.Listings.Add(listing.Id);
-        await _userRepository.UpdateAsync(userId, user);
+            await _listingRepository.CreateAsync(listing);
+            _logger.LogInformation("Listing saved to database with ID: {ListingId}", listing.Id);
 
-        return Ok(new { message = "Listing created successfully", listingId = listing.Id });
+            user.Listings.Add(listing.Id);
+            await _userRepository.UpdateAsync(userId, user);
+            _logger.LogInformation("User's listings updated");
+
+            _logger.LogInformation("=== CreateListing Request Complete ===");
+            return Ok(new { message = "Listing created successfully", listingId = listing.Id });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating listing: {Message}", ex.Message);
+            _logger.LogError("Stack trace: {StackTrace}", ex.StackTrace);
+            throw;
+        }
     }
 
     [HttpPut("{id}")]
