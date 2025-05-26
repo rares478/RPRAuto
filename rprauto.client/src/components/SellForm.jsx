@@ -99,31 +99,28 @@ const SellForm = () => {
             if (formData.listingType === 'buy-now') {
                 // Create regular listing
                 const listingData = {
-                    request: {
-                        Car: {
-                            Make: carData.Make,
-                            Model: carData.Model,
-                            Year: carData.Year,
-                            Mileage: carData.Mileage,
-                            Color: carData.Color,
-                            GearboxType: carData.GearboxType,
-                            FuelType: carData.FuelType,
-                            BodyType: carData.BodyType,
-                            EngineSize: carData.EngineSize || 0,
-                            HorsePower: carData.HorsePower || 0,
-                            Pictures: carData.Pictures
-                        },
-                        Price: parseFloat(formData.price),
-                        Description: formData.description,
-                        Status: 'Active'
-                    }
+                    Car: {
+                        Make: carData.Make,
+                        Model: carData.Model,
+                        Year: carData.Year,
+                        Mileage: carData.Mileage,
+                        Color: carData.Color,
+                        GearboxType: carData.GearboxType,
+                        FuelType: carData.FuelType,
+                        BodyType: carData.BodyType,
+                        EngineSize: carData.EngineSize || 0,
+                        HorsePower: carData.HorsePower || 0,
+                        Pictures: carData.Pictures
+                    },
+                    Price: parseFloat(formData.price),
+                    Description: formData.description
                 };
 
                 const listingResponse = await fetch('https://rprauto.onrender.com/listing', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token.trim()}`
                     },
                     body: JSON.stringify(listingData)
                 });
@@ -142,34 +139,32 @@ const SellForm = () => {
 
                 // Create bid
                 const bidData = {
-                    request: {
-                        Title: `${formData.make} ${formData.model} ${formData.year}`,
-                        TopBid: parseFloat(formData.price),
-                        MinBid: parseFloat(formData.minBid),
-                        InstantBuy: parseFloat(formData.instantBuy),
-                        Car: {
-                            Make: carData.Make,
-                            Model: carData.Model,
-                            Year: carData.Year,
-                            Mileage: carData.Mileage,
-                            Color: carData.Color,
-                            GearboxType: carData.GearboxType,
-                            FuelType: carData.FuelType,
-                            BodyType: carData.BodyType,
-                            EngineSize: carData.EngineSize || 0,
-                            HorsePower: carData.HorsePower || 0,
-                            Pictures: carData.Pictures
-                        },
-                        EndAt: new Date(formData.endDate).toISOString(),
-                        Description: formData.description
-                    }
+                    Title: `${formData.make} ${formData.model} ${formData.year}`,
+                    TopBid: parseFloat(formData.price),
+                    MinBid: parseFloat(formData.minBid),
+                    InstantBuy: parseFloat(formData.instantBuy),
+                    Car: {
+                        Make: carData.Make,
+                        Model: carData.Model,
+                        Year: carData.Year,
+                        Mileage: carData.Mileage,
+                        Color: carData.Color,
+                        GearboxType: carData.GearboxType,
+                        FuelType: carData.FuelType,
+                        BodyType: carData.BodyType,
+                        EngineSize: carData.EngineSize || 0,
+                        HorsePower: carData.HorsePower || 0,
+                        Pictures: carData.Pictures
+                    },
+                    EndAt: new Date(formData.endDate).toISOString(),
+                    Description: formData.description
                 };
 
                 const bidResponse = await fetch('https://rprauto.onrender.com/bid', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token.trim()}`
                     },
                     body: JSON.stringify(bidData)
                 });
