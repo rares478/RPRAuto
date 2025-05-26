@@ -51,8 +51,7 @@ const Register = () => {
         // Call the registerHandle function
         const response = await registerHandle(firstName, email, password, phone, isCompany, companyName, cui);
 
-        if (response.success) {
-            alert('Registration successful!');
+        if (response.ok) {
             navigate('/'); // Redirect to the homepage or another route
         } else {
             setError(response.message || 'Registration failed. Please try again.');
@@ -65,9 +64,6 @@ const Register = () => {
                 <div className="card2">
                     <form className="form" onSubmit={handleSubmit}>
                         <p id="heading">Create Account</p>
-
-                        {/* Error Message */}
-                        {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
 
                         {/* First Name Field */}
                         <div className="field">
@@ -231,6 +227,10 @@ const Register = () => {
                             </div>
                         )}
 
+                        
+                        {/* Error Message */}
+                        {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+
                         {/* Buttons */}
                         <div className="btn">
                             <button type="submit" className="button1">
@@ -240,6 +240,7 @@ const Register = () => {
                                 Cancel
                             </button>
                         </div>
+
                     </form>
                 </div>
             </div>

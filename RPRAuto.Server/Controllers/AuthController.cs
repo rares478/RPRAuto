@@ -76,7 +76,7 @@ public class AuthController : ControllerBase
             // Generate JWT token
             var token = GenerateJwtToken(user);
 
-            return Ok(new AuthResponse { Message = "Registration successful", Token = token });
+            return Ok(new AuthResponse { Status = 200, Message = "Registration successful", Token = token });
         }
         catch (ValidationException ex)
         {
