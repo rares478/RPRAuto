@@ -102,12 +102,15 @@ function MainPage() {
                         <a href="/">RPR Auto</a>
                     </div>
                     <div className="nav-button">
-                        <button className="nav-link" onClick={() => window.location.href = "/marketplace"} style={{ display: "inline" }}>
+                        <a href="/" class="nav-link active" onClick={(e) => { e.preventDefault(); navigate("/"); }}>
+                            Home
+                        </a>
+                        <a href="/marketplace" class="nav-link" onClick={(e) => { e.preventDefault(); navigate("/marketplace"); }}>
                             Marketplace
-                        </button>
-                        <button className="nav-link" onClick={() => window.location.href = "/auctions"} style={{ display: "inline" }}>
+                        </a>
+                        <a href="/auctions" class="nav-link" onClick={(e) => { e.preventDefault(); navigate("/auctions"); }}>
                             Auctions
-                        </button>
+                        </a>
                         {!isAuthenticated && (
                             <>
                                 <button className="nav-button" onClick={() => window.location.href = "/signin"} style={{ display: "inline" }}>
