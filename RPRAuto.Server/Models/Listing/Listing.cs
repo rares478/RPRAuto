@@ -1,8 +1,7 @@
+using System.Text.Json.Serialization;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using RPRAuto.Server.Interfaces;
-using RPRAuto.Server.Models.Car;
-using System.Text.Json.Serialization;
 
 namespace RPRAuto.Server.Models.Listing;
 
