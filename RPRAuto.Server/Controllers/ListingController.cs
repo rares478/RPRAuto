@@ -237,8 +237,11 @@ public class ListingController : ControllerBase
 
     private ObjectId GetUserIdFromToken()
     {
-        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
+        var authHeader = Request.Headers["Authorization"].ToString();
         _logger.LogInformation("=== Token Debug Info ===");
+        _logger.LogInformation("Raw Authorization header: {AuthHeader}", authHeader);
+        
+        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
         _logger.LogInformation("UserIdClaim: {UserIdClaim}", userIdClaim?.Value ?? "null");
         _logger.LogInformation("All Claims: {Claims}", string.Join(", ", User.Claims.Select(c => $"{c.Type}: {c.Value}")));
         
