@@ -111,6 +111,8 @@ function MainPage() {
                         <a href="/auctions" class="nav-link" onClick={(e) => { e.preventDefault(); navigate("/auctions"); }}>
                             Auctions
                         </a>
+                    </div>
+                    <div class="nav-buttons">
                         {!isAuthenticated && (
                             <>
                                 <button className="nav-button" onClick={() => window.location.href = "/signin"} style={{ display: "inline" }}>
