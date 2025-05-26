@@ -151,4 +151,4 @@ const Register = () => {
     );
 };
 
-export default SignupPage;
+export default Register;
