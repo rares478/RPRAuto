@@ -99,21 +99,23 @@ const SellForm = () => {
             if (formData.listingType === 'buy-now') {
                 // Create regular listing
                 const listingData = {
-                    Car: {
-                        Make: carData.Make,
-                        Model: carData.Model,
-                        Year: carData.Year,
-                        Mileage: carData.Mileage,
-                        Color: carData.Color,
-                        GearboxType: carData.GearboxType,
-                        FuelType: carData.FuelType,
-                        BodyType: carData.BodyType,
-                        EngineSize: carData.EngineSize || 0,
-                        HorsePower: carData.HorsePower || 0,
-                        Pictures: carData.Pictures
-                    },
-                    Price: parseFloat(formData.price),
-                    Description: formData.description
+                    request: {
+                        Car: {
+                            Make: carData.Make,
+                            Model: carData.Model,
+                            Year: carData.Year,
+                            Mileage: carData.Mileage,
+                            Color: carData.Color,
+                            GearboxType: formData.gearbox || 'Any',
+                            FuelType: formData.fuelType ? formData.fuelType.toUpperCase() : 'Petrol',
+                            BodyType: formData.bodyType ? formData.bodyType.toUpperCase() : 'Any',
+                            EngineSize: carData.EngineSize || 0,
+                            HorsePower: carData.HorsePower || 0,
+                            Pictures: carData.Pictures
+                        },
+                        Price: parseFloat(formData.price),
+                        Description: formData.description
+                    }
                 };
 
                 const listingResponse = await fetch('https://rprauto.onrender.com/listing', {
@@ -400,11 +402,10 @@ const SellForm = () => {
                         onChange={handleInputChange}
                     >
                         <option value="">Select fuel type</option>
-                        <option value="gasoline">Gasoline</option>
-                        <option value="electric">Electric</option>
-                        <option value="hybrid">Hybrid</option>
-                        <option value="diesel">Diesel</option>
-                        <option value="plug-in-hybrid">Plug-in Hybrid</option>
+                        <option value="Petrol">Petrol</option>
+                        <option value="Diesel">Diesel</option>
+                        <option value="Electric">Electric</option>
+                        <option value="Hybrid">Hybrid</option>
                     </select>
                 </div>
                 <div className="form-group">
@@ -416,13 +417,15 @@ const SellForm = () => {
                         onChange={handleInputChange}
                     >
                         <option value="">Select body type</option>
-                        <option value="sedan">Sedan</option>
-                        <option value="coupe">Coupe</option>
-                        <option value="suv">SUV</option>
-                        <option value="convertible">Convertible</option>
-                        <option value="hatchback">Hatchback</option>
-                        <option value="wagon">Wagon</option>
-                        <option value="truck">Truck</option>
+                        <option value="Any">Any</option>
+                        <option value="Sedan">Sedan</option>
+                        <option value="Hatchback">Hatchback</option>
+                        <option value="SUV">SUV</option>
+                        <option value="Coupe">Coupe</option>
+                        <option value="Convertible">Convertible</option>
+                        <option value="Pickup">Pickup</option>
+                        <option value="Van">Van</option>
+                        <option value="Wagon">Wagon</option>
                     </select>
                 </div>
             </div>
