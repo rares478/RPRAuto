@@ -7,6 +7,7 @@ using RPRAuto.Server.Models.Enums;
 using MongoDB.Driver;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.Extensions.Logging;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -17,12 +18,18 @@ public class ListingController : ControllerBase
     private readonly IListingRepository _listingRepository;
     private readonly IUserRepository _userRepository;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<ListingController> _logger;
 
-    public ListingController(IListingRepository listingRepository, IUserRepository userRepository, IConfiguration configuration)
+    public ListingController(
+        IListingRepository listingRepository, 
+        IUserRepository userRepository, 
+        IConfiguration configuration,
+        ILogger<ListingController> logger)
     {
         _listingRepository = listingRepository;
         _userRepository = userRepository;
         _configuration = configuration;
+        _logger = logger;
     }
 
     [HttpGet("{id}")]
@@ -230,34 +237,25 @@ public class ListingController : ControllerBase
 
     private ObjectId GetUserIdFromToken()
     {
-        var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-        var handler = new JwtSecurityTokenHandler();
-        var rsa = EnvLoader.GetRsaPublicKey();
-        var securityKey = new RsaSecurityKey(rsa);
-
-        var validationParameters = new TokenValidationParameters
+        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
+        _logger.LogInformation("=== Token Debug Info ===");
+        _logger.LogInformation("UserIdClaim: {UserIdClaim}", userIdClaim?.Value ?? "null");
+        _logger.LogInformation("All Claims: {Claims}", string.Join(", ", User.Claims.Select(c => $"{c.Type}: {c.Value}")));
+        
+        if (userIdClaim == null || !ObjectId.TryParse(userIdClaim.Value, out var userId))
         {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = securityKey,
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidIssuer = _configuration["Jwt:Issuer"],
-            ValidAudience = _configuration["Jwt:Audience"],
-            ClockSkew = TimeSpan.Zero
-        };
-
-        try
-        {
-            var principal = handler.ValidateToken(token, validationParameters, out var validatedToken);
-            var userIdClaim = principal.FindFirst(JwtRegisteredClaimNames.Sub);
-            if (userIdClaim == null || !ObjectId.TryParse(userIdClaim.Value, out var userId))
-                throw new UnauthorizedException("Invalid user token");
-
-            return userId;
-        }
-        catch (Exception)
-        {
+            _logger.LogError("Token validation failed:");
+            _logger.LogError("- UserIdClaim is null: {IsNull}", userIdClaim == null);
+            if (userIdClaim != null)
+            {
+                _logger.LogError("- UserIdClaim value: {Value}", userIdClaim.Value);
+                _logger.LogError("- Could parse as ObjectId: {CanParse}", ObjectId.TryParse(userIdClaim.Value, out _));
+            }
             throw new UnauthorizedException("Invalid user token");
         }
+
+        _logger.LogInformation("Successfully parsed userId: {UserId}", userId);
+        _logger.LogInformation("=====================");
+        return userId;
     }
 }
