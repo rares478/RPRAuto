@@ -27,16 +27,9 @@ public class Listing : IListing
     public decimal Price { get; set; }
 
     [BsonElement("car")]
+    [BsonSerializer(typeof(MongoDB.Bson.Serialization.Serializers.ObjectSerializer))]
     [JsonPropertyName("Car")]
-    [JsonIgnore]
     public ICar Car { get; set; } = new Car.Car();
-
-    [JsonPropertyName("Car")]
-    public Car.Car CarData
-    {
-        get => (Car.Car)Car;
-        set => Car = value;
-    }
     
     [BsonElement("status")]
     [JsonPropertyName("Status")]

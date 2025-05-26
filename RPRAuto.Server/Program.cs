@@ -4,8 +4,17 @@ using RPRAuto.Server;
 using RPRAuto.Server.Extensions;
 using RPRAuto.Server.Interfaces;
 using RPRAuto.Server.Repositories;
+using RPRAuto.Server.Models.Car;
+using MongoDB.Bson.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Register MongoDB class maps
+BsonClassMap.RegisterClassMap<Car>(cm =>
+{
+    cm.AutoMap();
+    cm.SetIsRootClass(true);
+});
 
 // Add services to the container.
 builder.Services.AddControllers()
