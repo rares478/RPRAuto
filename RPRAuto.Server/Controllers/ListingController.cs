@@ -5,7 +5,6 @@ using RPRAuto.Server.Models.Listing;
 using RPRAuto.Server.Exceptions;
 using RPRAuto.Server.Models.Enums;
 using MongoDB.Driver;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace RPRAuto.Server.Controllers;
