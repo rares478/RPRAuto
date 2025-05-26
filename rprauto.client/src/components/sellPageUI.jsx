@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createListing } from './sellService';
+import { submitListing } from './sellService';
 
 const SellVehicle = () => {
     const navigate = useNavigate();
@@ -40,7 +40,7 @@ const SellVehicle = () => {
             return;
         }
 
-        const response = await createListing(formData);
+        const response = await submitListing(formData);
         if (response.success) {
             alert('Listing created successfully! Our team will review it within 24 hours.');
             navigate('/');
