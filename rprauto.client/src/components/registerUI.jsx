@@ -171,6 +171,8 @@ const SignUp = () => {
                             </>
                         )}
 
+                        {error && <div style={{ color: "#ff0000", textAlign: "center" }}>{error}</div>}
+
                         <div className="btn">
                             <button 
                                 type="submit" 
@@ -190,8 +192,6 @@ const SignUp = () => {
                                 Cancel
                             </button>
                         </div>
-
-                        {error && <div className="error-message" color="#ff0000">{error}</div>}
 
                     </form>
                 </div>
