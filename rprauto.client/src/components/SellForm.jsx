@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './styles/sell.css';
+import Cookies from 'js-cookie';
 
 const SellForm = () => {
     const [formData, setFormData] = useState({
@@ -68,9 +69,15 @@ const SellForm = () => {
         setSuccess('');
 
         try {
-            const token = localStorage.getItem('token');
+            const token = Cookies.get('authToken');
             if (!token) {
                 setError('Please log in to create a listing');
+                return;
+            }
+
+            // Validate required fields
+            if (!formData.make || !formData.model || !formData.year || !formData.mileage || !formData.price || !formData.listingType || !formData.description) {
+                setError('Please fill in all required fields');
                 return;
             }
 
@@ -80,16 +87,21 @@ const SellForm = () => {
                 Model: formData.model,
                 Year: parseInt(formData.year),
                 Mileage: parseInt(formData.mileage),
-                Color: formData.color,
-                GearboxType: formData.gearbox.toUpperCase(),
-                FuelType: formData.fuelType.toUpperCase(),
-                BodyType: formData.bodyType.toUpperCase(),
-                EngineSize: parseFloat(formData.engine),
-                HorsePower: parseInt(formData.engine.split('L')[0]) * 100, // Rough estimate
+                Color: formData.color || '',
+                GearboxType: formData.gearbox ? formData.gearbox.toUpperCase() : '',
+                FuelType: formData.fuelType ? formData.fuelType.toUpperCase() : '',
+                BodyType: formData.bodyType ? formData.bodyType.toUpperCase() : '',
+                EngineSize: formData.engine ? parseFloat(formData.engine) : 0,
+                HorsePower: formData.engine ? parseInt(formData.engine.split('L')[0]) * 100 : 0,
                 Pictures: imagePreviews.map(preview => preview.url)
             };
 
             if (formData.listingType === 'auction') {
+                if (!formData.minBid || !formData.instantBuy || !formData.endDate) {
+                    setError('Please fill in all auction fields');
+                    return;
+                }
+
                 // Create bid
                 const bidData = {
                     Title: `${formData.make} ${formData.model} ${formData.year}`,
@@ -111,7 +123,8 @@ const SellForm = () => {
                 });
 
                 if (!bidResponse.ok) {
-                    throw new Error('Failed to create auction');
+                    const errorData = await bidResponse.json();
+                    throw new Error(errorData.message || 'Failed to create auction');
                 }
             }
 
@@ -134,7 +147,8 @@ const SellForm = () => {
                 });
 
                 if (!listingResponse.ok) {
-                    throw new Error('Failed to create listing');
+                    const errorData = await listingResponse.json();
+                    throw new Error(errorData.message || 'Failed to create listing');
                 }
             }
 
@@ -168,6 +182,8 @@ const SellForm = () => {
             imageUrls: ''
         });
         setImagePreviews([]);
+        setError('');
+        setSuccess('');
     };
 
     return (
