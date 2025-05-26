@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './signup.css';
+import './styles/signup.css';
 
 const SignupPage = () => {
     const [isCompany, setIsCompany] = useState(false);
