@@ -26,7 +26,11 @@ export async function registerHandle(firstName, email, password, phone, isCompan
         const data = await response.json();
 
         if (response.ok) {
-            Cookies.set("authToken", data.token, { expires: 60, secure: true, sameSite: 'strict' });
+            Cookies.set("authToken", data.token, { 
+                expires: 60, 
+                secure: true, 
+                sameSite: 'none' 
+            });
             return { success: true }
         } else {
             return { success: false, message: data.message }        

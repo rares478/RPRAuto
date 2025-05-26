@@ -88,13 +88,50 @@ const SellForm = () => {
                 Year: parseInt(formData.year),
                 Mileage: parseInt(formData.mileage),
                 Color: formData.color || '',
-                GearboxType: formData.gearbox ? formData.gearbox.toUpperCase() : '',
+                GearboxType: formData.gearbox || 'Any',
                 FuelType: formData.fuelType ? formData.fuelType.toUpperCase() : '',
                 BodyType: formData.bodyType ? formData.bodyType.toUpperCase() : '',
                 EngineSize: formData.engine ? parseFloat(formData.engine) : 0,
                 HorsePower: formData.engine ? parseInt(formData.engine.split('L')[0]) * 100 : 0,
                 Pictures: imagePreviews.map(preview => preview.url)
             };
+
+            if (formData.listingType === 'buy-now') {
+                // Create regular listing
+                const listingData = {
+                    request: {
+                        Car: {
+                            Make: carData.Make,
+                            Model: carData.Model,
+                            Year: carData.Year,
+                            Mileage: carData.Mileage,
+                            Color: carData.Color,
+                            GearboxType: formData.gearbox || 'Any',
+                            FuelType: formData.fuelType ? formData.fuelType.toUpperCase() : 'Petrol',
+                            BodyType: formData.bodyType ? formData.bodyType.toUpperCase() : 'Any',
+                            EngineSize: carData.EngineSize || 0,
+                            HorsePower: carData.HorsePower || 0,
+                            Pictures: carData.Pictures
+                        },
+                        Price: parseFloat(formData.price),
+                        Description: formData.description
+                    }
+                };
+
+                const listingResponse = await fetch('https://rprauto.onrender.com/listing', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token.trim()}`
+                    },
+                    body: JSON.stringify(listingData)
+                });
+
+                if (!listingResponse.ok) {
+                    const errorData = await listingResponse.json();
+                    throw new Error(errorData.message || 'Failed to create listing');
+                }
+            }
 
             if (formData.listingType === 'auction') {
                 if (!formData.minBid || !formData.instantBuy || !formData.endDate) {
@@ -108,7 +145,19 @@ const SellForm = () => {
                     TopBid: parseFloat(formData.price),
                     MinBid: parseFloat(formData.minBid),
                     InstantBuy: parseFloat(formData.instantBuy),
-                    Car: carData,
+                    Car: {
+                        Make: carData.Make,
+                        Model: carData.Model,
+                        Year: carData.Year,
+                        Mileage: carData.Mileage,
+                        Color: carData.Color,
+                        GearboxType: carData.GearboxType,
+                        FuelType: carData.FuelType,
+                        BodyType: carData.BodyType,
+                        EngineSize: carData.EngineSize || 0,
+                        HorsePower: carData.HorsePower || 0,
+                        Pictures: carData.Pictures
+                    },
                     EndAt: new Date(formData.endDate).toISOString(),
                     Description: formData.description
                 };
@@ -117,7 +166,7 @@ const SellForm = () => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token.trim()}`
                     },
                     body: JSON.stringify(bidData)
                 });
@@ -125,30 +174,6 @@ const SellForm = () => {
                 if (!bidResponse.ok) {
                     const errorData = await bidResponse.json();
                     throw new Error(errorData.message || 'Failed to create auction');
-                }
-            }
-
-            if (formData.listingType === 'buy-now') {
-                // Create regular listing
-                const listingData = {
-                    Car: carData,
-                    Price: parseFloat(formData.price),
-                    Description: formData.description,
-                    Status: 'Active'
-                };
-
-                const listingResponse = await fetch('https://rprauto.onrender.com/listing', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(listingData)
-                });
-
-                if (!listingResponse.ok) {
-                    const errorData = await listingResponse.json();
-                    throw new Error(errorData.message || 'Failed to create listing');
                 }
             }
 
@@ -360,10 +385,9 @@ const SellForm = () => {
                         onChange={handleInputChange}
                     >
                         <option value="">Select gearbox</option>
-                        <option value="manual">Manual</option>
-                        <option value="automatic">Automatic</option>
-                        <option value="semi-automatic">Semi-Automatic</option>
-                        <option value="cvt">CVT</option>
+                        <option value="Manual">Manual</option>
+                        <option value="Automatic">Automatic</option>
+                        <option value="Any">Any</option>
                     </select>
                 </div>
             </div>
@@ -378,11 +402,10 @@ const SellForm = () => {
                         onChange={handleInputChange}
                     >
                         <option value="">Select fuel type</option>
-                        <option value="gasoline">Gasoline</option>
-                        <option value="electric">Electric</option>
-                        <option value="hybrid">Hybrid</option>
-                        <option value="diesel">Diesel</option>
-                        <option value="plug-in-hybrid">Plug-in Hybrid</option>
+                        <option value="Petrol">Petrol</option>
+                        <option value="Diesel">Diesel</option>
+                        <option value="Electric">Electric</option>
+                        <option value="Hybrid">Hybrid</option>
                     </select>
                 </div>
                 <div className="form-group">
@@ -394,13 +417,15 @@ const SellForm = () => {
                         onChange={handleInputChange}
                     >
                         <option value="">Select body type</option>
-                        <option value="sedan">Sedan</option>
-                        <option value="coupe">Coupe</option>
-                        <option value="suv">SUV</option>
-                        <option value="convertible">Convertible</option>
-                        <option value="hatchback">Hatchback</option>
-                        <option value="wagon">Wagon</option>
-                        <option value="truck">Truck</option>
+                        <option value="Any">Any</option>
+                        <option value="Sedan">Sedan</option>
+                        <option value="Hatchback">Hatchback</option>
+                        <option value="SUV">SUV</option>
+                        <option value="Coupe">Coupe</option>
+                        <option value="Convertible">Convertible</option>
+                        <option value="Pickup">Pickup</option>
+                        <option value="Van">Van</option>
+                        <option value="Wagon">Wagon</option>
                     </select>
                 </div>
             </div>
