@@ -31,7 +31,7 @@ function MainPage() {
             } catch (error) {
                 console.error('Error loading cars:', error);
             } finally {
-                setIsLoading(false); // Stop loading spinner
+                setIsLoading(false);
             }
         };
 
@@ -96,7 +96,7 @@ function MainPage() {
     return (
         <div className="main-container">
             {/* Navbar */}
-            <nav className="navbar">
+            <nav className="hero">
                 <div className="container">
                     <div className="navbar-brand">
                         <a href="/">RPR Auto</a>
