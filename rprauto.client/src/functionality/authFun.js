@@ -4,7 +4,10 @@ export async function verifyUserHandle() {
     try {
         const token = Cookies.get('authToken');
 
-        if (!token) return false;
+        if (!token) {
+            console.log("No auth token found in cookies.");
+            return false;
+        }
 
         const response = await fetch('https://rprauto.onrender.com/auth/validate', {
             method: 'POST',
@@ -18,7 +21,7 @@ export async function verifyUserHandle() {
             return true;
         } else {
             Cookies.remove('authToken');
-            console.error(response.message);
+            console.log(response.message);
 
             return false;
         }

@@ -2,7 +2,7 @@
 import "./styles/mainPage.css";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
-// Import functions
+// handle functions
 import { fetchCars } from "../functionality/carsFun";
 import { verifyUserHandle } from "../functionality/authFun";
 
