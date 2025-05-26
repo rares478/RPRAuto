@@ -17,13 +17,14 @@ export async function loginHandle(email, password) {
 
         const data = await response.json();
        
-        if (data.status === 200) {
+        if (response.ok) {
             Cookies.set("authToken", data.token, { expires: 60, secure: true, sameSite: 'strict' });
-            return { success: true, token: data.token }
+            return { success: true }
         } else {
             return { success: false, message: data.message }        
         }
     } catch (error) {
         console.error('Error:', error);
+        return { success: false, message: 'An error occurred during login' }
     }
 }
