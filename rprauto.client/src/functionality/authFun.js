@@ -14,21 +14,18 @@ export async function verifyUserHandle() {
             body: JSON.stringify(token),
         });
 
-        if (response.status === 200) {
+        if (response.ok) {
             return true;
-        } else if (response.status === 401) {
-            Cookies.remove('authToken');
-
-            const data = await response.json();
-            console.warn('Unauthorized:', data.message || 'Invalid token');
-
-            return false;
         } else {
-            console.error('Unexpected response:', response.status);
+            Cookies.remove('authToken');
+            console.error(response.message);
+
             return false;
         }
     } catch (error) {
-        console.error('Token validation failed:', error);
+        Cookies.remove('authToken');
+        console.error('Token validation failed: ', error);
+
         return false;
     }
 };
