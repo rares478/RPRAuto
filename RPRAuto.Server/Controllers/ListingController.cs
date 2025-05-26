@@ -5,9 +5,8 @@ using RPRAuto.Server.Models.Listing;
 using RPRAuto.Server.Exceptions;
 using RPRAuto.Server.Models.Enums;
 using MongoDB.Driver;
-using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -17,18 +16,15 @@ public class ListingController : ControllerBase
 {
     private readonly IListingRepository _listingRepository;
     private readonly IUserRepository _userRepository;
-    private readonly IConfiguration _configuration;
     private readonly ILogger<ListingController> _logger;
 
     public ListingController(
         IListingRepository listingRepository, 
         IUserRepository userRepository, 
-        IConfiguration configuration,
         ILogger<ListingController> logger)
     {
         _listingRepository = listingRepository;
         _userRepository = userRepository;
-        _configuration = configuration;
         _logger = logger;
     }
 
@@ -196,10 +192,10 @@ public class ListingController : ControllerBase
         var filter = Builders<Listing>.Filter.Eq(l => l.Status, ListingStatus.Active);
 
         if (!string.IsNullOrEmpty(make))
-            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Make, new MongoDB.Bson.BsonRegularExpression(make, "i"));
+            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Make, new BsonRegularExpression(make, "i"));
 
         if (!string.IsNullOrEmpty(model))
-            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Model, new MongoDB.Bson.BsonRegularExpression(model, "i"));
+            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Model, new BsonRegularExpression(model, "i"));
 
         if (price.HasValue)
             filter &= Builders<Listing>.Filter.Eq(l => l.Price, price.Value);
@@ -214,7 +210,7 @@ public class ListingController : ControllerBase
             filter &= Builders<Listing>.Filter.Eq(l => l.Car.BodyType.ToString(), body);
 
         if (!string.IsNullOrEmpty(color))
-            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Color, new MongoDB.Bson.BsonRegularExpression(color, "i"));
+            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Color, new BsonRegularExpression(color, "i"));
 
         if (doors.HasValue)
             filter &= Builders<Listing>.Filter.Eq(l => l.Car.Doors, doors.Value);
@@ -241,7 +237,7 @@ public class ListingController : ControllerBase
         _logger.LogInformation("=== Token Debug Info ===");
         _logger.LogInformation("Raw Authorization header: {AuthHeader}", authHeader);
         
-        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         _logger.LogInformation("UserIdClaim: {UserIdClaim}", userIdClaim?.Value ?? "null");
         _logger.LogInformation("All Claims: {Claims}", string.Join(", ", User.Claims.Select(c => $"{c.Type}: {c.Value}")));
         
