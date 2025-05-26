@@ -11,6 +11,8 @@ function MainPage() {
     const [currentSlide, setCurrentSlide] = useState({});
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isOwner, setIsOwner] = useState(false); // State to control the Owner section visibility
+    const [ownerPassword, setOwnerPassword] = useState(""); // State to handle owner password input
 
     // Check authentication status
     useEffect(() => {
@@ -93,6 +95,22 @@ function MainPage() {
         }, 3000);
     };
 
+    // Function to handle owner login
+    const handleOwnerLogin = (e) => {
+        e.preventDefault();
+        if (ownerPassword === "1234") {
+            setIsOwner(true);
+            setOwnerPassword("");
+        } else {
+            alert("Invalid password. Access denied.");
+        }
+    };
+
+    // Function to close the Owner section
+    const closeOwnerSection = () => {
+        setIsOwner(false);
+    };
+
     return (
         <div className="main-container">
             {/* Navbar */}
@@ -125,23 +143,53 @@ function MainPage() {
                                     My Account
                                 </button>
                             </>
-                         )}
-                         {isAuthenticated && (
-                            <>
-                                <button className="nav-button" onClick={() => window.location.href = "/signin"} style={{ display: "none" }}>
-                                    Sign In
-                                </button>
-                                <button className="nav-button" onClick={() => window.location.href = "/register"} style={{ display: "none" }}>
-                                    Register
-                                </button>
-                                <button className="nav-link" onClick={() => window.location.href = "/account"} style={{ display: "inline" }}>
-                                    My Account
-                                </button>
-                            </>
-                         )}
+                        )}
+                        {isAuthenticated && (
+                           <>
+                               <button className="nav-button" onClick={() => window.location.href = "/signin"} style={{ display: "none" }}>
+                                   Sign In
+                               </button>
+                               <button className="nav-button" onClick={() => window.location.href = "/register"} style={{ display: "none" }}>
+                                   Register
+                               </button>
+                               <button className="nav-link" onClick={() => window.location.href = "/account"} style={{ display: "inline" }}>
+                                   My Account
+                               </button>
+                           </>
+                        )}
+
+                        <button className="nav-button" onClick={() => window.location.href = "/owner"} style={{ display: "inline" }}>
+                            Owner
+                        </button>
                     </div>
                 </div>
-             </nav>
+            </nav>
+
+            {/* Owner Section */}
+            {isOwner && (
+                <div className="modal owner-panel">
+                    <div className="modal-content">
+                        <span className="close" onClick={closeOwnerSection}>&times;</span>
+                        <h2>Owner Access</h2>
+                        <form onSubmit={handleOwnerLogin}>
+                            <div className="form-group">
+                                <label>Owner Password</label>
+                                <input
+                                    type="password"
+                                    className="form-input"
+                                    placeholder="Enter owner password"
+                                    value={ownerPassword}
+                                    onChange={(e) => setOwnerPassword(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <button type="submit" className="btn btn-primary full-width">
+                                Access Owner Panel
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {/* Hero Section */}
             <section className="hero">
