@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './styles/sell.css';
 
 // function handlers
-import { submitListing } from './submitListing';
+import { submitListing } from '../functionality/sellFun';
 
 const SellVehicle = () => {
     const navigate = useNavigate();
