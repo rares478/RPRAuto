@@ -105,22 +105,34 @@ function MainPage() {
                         <a href="/marketplace">Marketplace</a>
                         <a href="/auctions">Live Auctions</a>
                         {!isAuthenticated && (
-                            <>
-                                <a href="/signin" style={{ display: "inline" }}>Sign In</a>
-                                <a href="/register" style={{ display: "inline" }}>Register</a>
-                                <a href="/account" style={{ display: "none" }}>My Account</a>
-                            </>
-                        )}
-                        {isAuthenticated && (
-                              <>
-                                <a href="/signin" style={{ display: "none" }}>Sign In</a>
-                                <a href="/register" style={{ display: "none" }}>Register</a>
-                                <a href="/account" style={{ display: "inline" }}>My Account</a>
-                              </>                        
+                             <>
+                                 <button className="nav-button" onClick={() => window.location.href = "/signin"} style={{ display: "inline" }}>
+                                     Sign In
+                                 </button>
+                                 <button className="nav-button" onClick={() => window.location.href = "/register"} style={{ display: "inline" }}>
+                                     Register
+                                 </button>
+                                 <button className="nav-button" onClick={() => window.location.href = "/account"} style={{ display: "none" }}>
+                                     My Account
+                                 </button>
+                             </>
+                         )}
+                         {isAuthenticated && (
+                             <>
+                                 <button className="nav-button" onClick={() => window.location.href = "/signin"} style={{ display: "none" }}>
+                                     Sign In
+                                 </button>
+                                 <button className="nav-button" onClick={() => window.location.href = "/register"} style={{ display: "none" }}>
+                                     Register
+                                 </button>
+                                 <button className="nav-button" onClick={() => window.location.href = "/account"} style={{ display: "inline" }}>
+                                     My Account
+                                 </button>
+                             </>
                          )}
                     </div>
                 </div>
-            </nav>
+             </nav>
 
             {/* Hero Section */}
             <section className="hero">
