@@ -4,32 +4,33 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    background-color: #0f0f0f;
+    min-height: 100vh;
+    background-color: #111827;
     font-family: Arial, sans-serif;
 }
 
 .signup-container {
-    width: 400px;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    width: 100%;
+    max-width: 600px;
+    padding: 20px;
+    margin-top: 64px; /* Match login exactly */
 }
 
 .form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 16px;
     padding: 2em;
-    background-color: #171717;
-    border-radius: 20px;
+    background-color: #1f2937;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
 }
 
 #heading {
     text-align: center;
-    margin: 0.5em 0 1em 0;
-    color: rgb(191, 0, 255);
+    margin: 0 0 0.5em 0; /* Reduced margin */
+    color: #695FD6;
     font-size: 1.5em;
     font-weight: bold;
 }
@@ -39,19 +40,24 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.5em;
-    border-radius: 25px;
-    padding: 0.8em;
-    border: none;
+    border-radius: 8px;
+    padding: 0.6em; /* Reduced from 0.8em */
+    border: 1px solid rgba(105, 95, 214, 0.3);
     outline: none;
     color: white;
-    background-color: #171717;
-    box-shadow: inset 2px 5px 10px rgb(5, 5, 5);
+    background-color: #111827;
+    transition: all 0.3s ease;
+}
+
+.field:focus-within {
+    border-color: #695FD6;
+    box-shadow: 0 0 0 2px rgba(105, 95, 214, 0.2);
 }
 
 .input-icon {
     height: 1.3em;
     width: 1.3em;
-    fill: rgb(191, 0, 255);
+    fill: #695FD6;
 }
 
 .input-field {
@@ -59,101 +65,96 @@ body {
     border: none;
     outline: none;
     width: 100%;
-    color: rgb(160, 160, 160);
+    color: #fff;
     font-size: 0.95em;
 }
 
 .input-field::placeholder {
-    color: #555;
+    color: #9ca3af;
 }
 
 .radio-group {
     display: flex;
     justify-content: space-between;
-    margin: 10px 0;
+    margin: 0; /* Removed margin */
+    padding: 0.5em 0;
 }
 
 .radio-option {
     display: flex;
     align-items: center;
-    color: white;
-    gap: 5px;
+    color: #fff;
+    gap: 8px;
 }
 
 .radio-option input {
-    accent-color: rgb(191, 0, 255);
+    accent-color: #695FD6;
+}
+
+.company-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns for company fields */
+    gap: 12px;
+    margin-top: 0; /* Removed margin */
 }
 
 .company-field {
-    margin-top: 10px;
-    display: flex; /* or 'block' works too depending on your layout */
+    margin: 0; /* Removed margin */
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5em;
-    border-radius: 25px;
-    padding: 0.8em;
-    border: none;
+    border-radius: 8px;
+    padding: 0.6em; /* Reduced from 0.8em */
+    border: 1px solid rgba(105, 95, 214, 0.3);
     outline: none;
     color: white;
-    background-color: #171717;
-    box-shadow: inset 2px 5px 10px rgb(5, 5, 5);
+    background-color: #111827;
+    transition: all 0.3s ease;
+}
+
+.company-field:focus-within {
+    border-color: #695FD6;
+    box-shadow: 0 0 0 2px rgba(105, 95, 214, 0.2);
 }
 
 .form .btn {
     display: flex;
     justify-content: center;
     flex-direction: row;
-    margin-top: 1.5em;
-    gap: 10px;
+    margin-top: 1em;
+    gap: 16px;
 }
 
-.button1 {
-    padding: 0.8em;
-    border-radius: 5px;
+.button1, .button2 {
+    padding: 0.8em 2em;
+    border-radius: 8px;
     border: none;
     outline: none;
-    transition: .4s ease-in-out;
-    background-image: linear-gradient(163deg, #a7a2f8 0%, #3700ff 100%);
-    color: rgb(0, 0, 0);
-    font-weight: bold;
-    flex: 1;
+    transition: all 0.3s ease;
+    background-color: #695FD6;
+    color: white;
+    font-weight: 600;
     cursor: pointer;
+    white-space: nowrap;
 }
 
-.button1:hover {
-    background-image: linear-gradient(163deg, #8a84e6 0%, #2a00cc 100%);
-    transform: translateY(-2px);
-}
-
-.button2 {
-    padding: 0.8em;
-    border-radius: 5px;
-    border: none;
-    outline: none;
-    transition: .4s ease-in-out;
-    background-image: linear-gradient(163deg, #a7a2f8 0%, #3700ff 100%);
-    color: rgb(0, 0, 0);
-    font-weight: bold;
-    flex: 1;
-    cursor: pointer;
-}
-
-.button2:hover {
-    background-image: linear-gradient(163deg, #8a84e6 0%, #2a00cc 100%);
+.button1:hover, .button2:hover {
+    background-color: #5a4fbf;
     transform: translateY(-2px);
 }
 
 .card {
-    background-image: linear-gradient(163deg, #a7a2f8 0%, #3700ff 100%);
-    border-radius: 22px;
-    transition: all .3s;
+    background-color: #695FD6;
+    border-radius: 12px;
+    transition: all 0.3s ease;
     padding: 2px;
 }
 
 .card2 {
-    border-radius: 20px;
-    transition: all .2s;
-    background-color: #171717;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    background-color: #1f2937;
 }
 
 .card2:hover {
@@ -161,5 +162,30 @@ body {
 }
 
 .card:hover {
-    box-shadow: 0px 0px 30px 1px rgba(167, 162, 248, 0.30);
+    box-shadow: 0 0 20px rgba(105, 95, 214, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .signup-container {
+        padding: 16px;
+        align-items: flex-start; /* Align to top on mobile */
+    }
+
+    .form {
+        padding: 1.5em;
+    }
+
+    .company-fields {
+        grid-template-columns: 1fr; /* Stack fields on mobile */
+    }
+
+    .form .btn {
+        flex-direction: column;
+    }
+
+    .button1, .button2 {
+        width: 100%;
+        padding: 0.8em 1.5em;
+    }
 }

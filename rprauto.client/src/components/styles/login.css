@@ -1,124 +1,165 @@
-/* From Uiverse.io by Phelix652 */ 
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #111827;
+    font-family: Arial, sans-serif;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    margin-top: 64px; /* Account for navbar height */
+}
+
 .form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-left: 2em;
-  padding-right: 2em;
-  padding-bottom: 0.4em;
-  background-color: #171717;
-  border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 2em;
+    background-color: #1f2937;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 #heading {
-  text-align: center;
-  margin: 2em;
-  color: rgb(0, 255, 200);
-  font-size: 1.2em;
+    text-align: center;
+    margin: 1em 0;
+    color: #695FD6;
+    font-size: 1.5em;
+    font-weight: bold;
 }
 
 .field {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5em;
-  border-radius: 25px;
-  padding: 0.6em;
-  border: none;
-  outline: none;
-  color: white;
-  background-color: #171717;
-  box-shadow: inset 2px 5px 10px rgb(5, 5, 5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    border-radius: 8px;
+    padding: 0.8em;
+    border: 1px solid rgba(105, 95, 214, 0.3);
+    outline: none;
+    color: white;
+    background-color: #111827;
+    transition: all 0.3s ease;
+}
+
+.field:focus-within {
+    border-color: #695FD6;
+    box-shadow: 0 0 0 2px rgba(105, 95, 214, 0.2);
 }
 
 .input-icon {
-  height: 1.3em;
-  width: 1.3em;
-  fill: rgb(0, 255, 200);
+    height: 1.3em;
+    width: 1.3em;
+    fill: #695FD6;
 }
 
 .input-field {
-  background: none;
-  border: none;
-  outline: none;
-  width: 100%;
-  color: rgb(0, 255, 200);
+    background: none;
+    border: none;
+    outline: none;
+    width: 100%;
+    color: #fff;
+    font-size: 0.95em;
+}
+
+.input-field::placeholder {
+    color: #9ca3af;
+}
+
+.logInBtn, .signUpBtn, .forgotPasswordBtn {
+    padding: 0.8em 1.5em;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    transition: all 0.3s ease;
+    background-color: #695FD6;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+}
+
+.logInBtn:hover, .signUpBtn:hover, .forgotPasswordBtn:hover {
+    background-color: #5a4fbf;
+    transform: translateY(-2px);
+}
+
+.signUpBtn {
+    background-color: transparent;
+    border: 1px solid #695FD6;
+    color: #695FD6;
+}
+
+.signUpBtn:hover {
+    background-color: rgba(105, 95, 214, 0.1);
+}
+
+.forgotPasswordBtn {
+    margin-top: 1em;
+    background-color: transparent;
+    color: #9ca3af;
+    font-size: 0.9em;
+}
+
+.forgotPasswordBtn:hover {
+    color: #695FD6;
+    background-color: transparent;
+    transform: none;
 }
 
 .form .btn {
-  display: flex;
-  justify-content: center;
-  flex-direction: row;
-  margin-top: 2.5em;
-}
-
-.button1 {
-  padding: 0.5em;
-  padding-left: 1.1em;
-  padding-right: 1.1em;
-  border-radius: 5px;
-  margin-right: 0.5em;
-  border: none;
-  outline: none;
-  transition: .4s ease-in-out;
-  background-image: linear-gradient(163deg, #00ff75 0%, #a70ec9 100%);
-  color: rgb(0, 0, 0);
-}
-
-.button1:hover {
-  background-image: linear-gradient(163deg, #00642f 0%, #13034b 100%);
-  color: rgb(0, 255, 200);
-}
-
-.button2 {
-  padding: 0.5em;
-  padding-left: 2.3em;
-  padding-right: 2.3em;
-  border-radius: 5px;
-  border: none;
-  outline: none;
-  transition: .4s ease-in-out;
-  background-image: linear-gradient(163deg, #00ff75 0%, #b416c3 100%);
-  color: rgb(0, 0, 0);
-}
-
-.button2:hover {
-  background-image: linear-gradient(163deg, #00642f 0%, #13034b 100%);
-  color: rgb(0, 255, 200);
-}
-
-.button3 {
-  margin-bottom: 3em;
-  padding: 0.5em;
-  border-radius: 5px;
-  border: none;
-  outline: none;
-  transition: .4s ease-in-out;
-  background-image: linear-gradient(163deg, #00ff75 0%, #d70de2 100%);
-  color: rgb(0, 0, 0);
-}
-
-.button3:hover {
-  background-image: linear-gradient(163deg, #a00000fa 0%, #d10050 100%);
-  color: rgb(255, 255, 255);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 2em;
 }
 
 .card {
-  background-image: linear-gradient(163deg, #00ff75 0%, #8800ff 100%);
-  border-radius: 22px;
-  transition: all .3s;
+    background-color: #695FD6;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    padding: 2px;
 }
 
 .card2 {
-  border-radius: 0;
-  transition: all .2s;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    background-color: #1f2937;
 }
 
 .card2:hover {
-  transform: scale(0.98);
-  border-radius: 20px;
+    transform: scale(0.98);
 }
 
 .card:hover {
-  box-shadow: 0px 0px 30px 1px rgba(0, 255, 117, 0.30);
+    box-shadow: 0 0 20px rgba(105, 95, 214, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .login-container {
+        padding: 16px;
+    }
+
+    .form {
+        padding: 1.5em;
+    }
+
+    .logInBtn, .signUpBtn, .forgotPasswordBtn {
+        padding: 0.7em 1.2em;
+    }
+
+    .form .btn {
+        flex-direction: column;
+    }
+
+    .button1, .button2 {
+        width: 100%;
+    }
 }
