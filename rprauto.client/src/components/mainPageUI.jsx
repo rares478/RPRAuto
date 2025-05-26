@@ -1,4 +1,4 @@
-﻿﻿import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import "./styles/mainPage.css";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
