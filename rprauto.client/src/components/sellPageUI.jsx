@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { submitListing } from './sellService';
+import { submitListing } from '../functionality/sellFun';
 
 const SellVehicle = () => {
     const navigate = useNavigate();
