@@ -19,7 +19,9 @@ const SignUp = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
     
+        // Validate all fields
         if (!validateName(firstName)) {
             setError('First name must start with a capital letter and contain only letters.');
             return;
@@ -30,13 +32,13 @@ const SignUp = () => {
             return;
         }
     
-        if (phone && !validatePhone(phone)) {
-            setError('Phone number must start with 07, 02, or 03 and contain 10 digits.');
+        if (!validatePassword(password)) {
+            setError('Password must contain at least one uppercase letter and one number.');
             return;
         }
     
-        if (!validatePassword(password)) {
-            setError('Password must contain at least one uppercase letter and one number.');
+        if (phone && !validatePhone(phone)) {
+            setError('Phone number must start with 07, 02, or 03 and contain 10 digits.');
             return;
         }
     
@@ -78,6 +80,7 @@ const SignUp = () => {
                 <div className="card2">
                     <form className="form" onSubmit={handleSubmit}>
                         <p id="heading">Create Account</p>
+                        {error && <div className="error-message">{error}</div>}
                         <div className="field">
                             <input
                                 type="text"
@@ -169,8 +172,23 @@ const SignUp = () => {
                         )}
 
                         <div className="btn">
-                            <button type="submit" className="button1">Sign Up</button>
-                            <button type="button" className="button2" onClick={() => navigate('/')}>Cancel</button>
+                            <button 
+                                type="submit" 
+                                className="button1"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleSubmit(e);
+                                }}
+                            >
+                                Sign Up
+                            </button>
+                            <button 
+                                type="button" 
+                                className="button2" 
+                                onClick={() => navigate('/')}
+                            >
+                                Cancel
+                            </button>
                         </div>
                     </form>
                 </div>

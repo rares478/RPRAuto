@@ -6,12 +6,12 @@ export async function registerHandle(firstName, email, password, phone, isCompan
         password: password,
         firstName: firstName,
         lastName: '', // Required by server but not used in our form
-        phoneNumber: phone,
+        phoneNumber: phone || '', // Make sure it's not undefined
         address: '', // Required by server but not used in our form
         city: '', // Required by server but not used in our form
         country: '', // Required by server but not used in our form
         isCompany: isCompany,
-        companyCUI: cui
+        companyCUI: isCompany ? cui : null // Only include CUI if it's a company account
     };
 
     try {
