@@ -88,7 +88,7 @@ const SellForm = () => {
                 Year: parseInt(formData.year),
                 Mileage: parseInt(formData.mileage),
                 Color: formData.color || '',
-                GearboxType: formData.gearbox ? formData.gearbox.toUpperCase() : '',
+                GearboxType: formData.gearbox || 'Any',
                 FuelType: formData.fuelType ? formData.fuelType.toUpperCase() : '',
                 BodyType: formData.bodyType ? formData.bodyType.toUpperCase() : '',
                 EngineSize: formData.engine ? parseFloat(formData.engine) : 0,
@@ -96,45 +96,27 @@ const SellForm = () => {
                 Pictures: imagePreviews.map(preview => preview.url)
             };
 
-            if (formData.listingType === 'auction') {
-                if (!formData.minBid || !formData.instantBuy || !formData.endDate) {
-                    setError('Please fill in all auction fields');
-                    return;
-                }
-
-                // Create bid
-                const bidData = {
-                    Title: `${formData.make} ${formData.model} ${formData.year}`,
-                    TopBid: parseFloat(formData.price),
-                    MinBid: parseFloat(formData.minBid),
-                    InstantBuy: parseFloat(formData.instantBuy),
-                    Car: carData,
-                    EndAt: new Date(formData.endDate).toISOString(),
-                    Description: formData.description
-                };
-
-                const bidResponse = await fetch('https://rprauto.onrender.com/bid', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(bidData)
-                });
-
-                if (!bidResponse.ok) {
-                    const errorData = await bidResponse.json();
-                    throw new Error(errorData.message || 'Failed to create auction');
-                }
-            }
-
             if (formData.listingType === 'buy-now') {
                 // Create regular listing
                 const listingData = {
-                    Car: carData,
-                    Price: parseFloat(formData.price),
-                    Description: formData.description,
-                    Status: 'Active'
+                    request: {
+                        Car: {
+                            Make: carData.Make,
+                            Model: carData.Model,
+                            Year: carData.Year,
+                            Mileage: carData.Mileage,
+                            Color: carData.Color,
+                            GearboxType: carData.GearboxType,
+                            FuelType: carData.FuelType,
+                            BodyType: carData.BodyType,
+                            EngineSize: carData.EngineSize || 0,
+                            HorsePower: carData.HorsePower || 0,
+                            Pictures: carData.Pictures
+                        },
+                        Price: parseFloat(formData.price),
+                        Description: formData.description,
+                        Status: 'Active'
+                    }
                 };
 
                 const listingResponse = await fetch('https://rprauto.onrender.com/listing', {
@@ -149,6 +131,52 @@ const SellForm = () => {
                 if (!listingResponse.ok) {
                     const errorData = await listingResponse.json();
                     throw new Error(errorData.message || 'Failed to create listing');
+                }
+            }
+
+            if (formData.listingType === 'auction') {
+                if (!formData.minBid || !formData.instantBuy || !formData.endDate) {
+                    setError('Please fill in all auction fields');
+                    return;
+                }
+
+                // Create bid
+                const bidData = {
+                    request: {
+                        Title: `${formData.make} ${formData.model} ${formData.year}`,
+                        TopBid: parseFloat(formData.price),
+                        MinBid: parseFloat(formData.minBid),
+                        InstantBuy: parseFloat(formData.instantBuy),
+                        Car: {
+                            Make: carData.Make,
+                            Model: carData.Model,
+                            Year: carData.Year,
+                            Mileage: carData.Mileage,
+                            Color: carData.Color,
+                            GearboxType: carData.GearboxType,
+                            FuelType: carData.FuelType,
+                            BodyType: carData.BodyType,
+                            EngineSize: carData.EngineSize || 0,
+                            HorsePower: carData.HorsePower || 0,
+                            Pictures: carData.Pictures
+                        },
+                        EndAt: new Date(formData.endDate).toISOString(),
+                        Description: formData.description
+                    }
+                };
+
+                const bidResponse = await fetch('https://rprauto.onrender.com/bid', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(bidData)
+                });
+
+                if (!bidResponse.ok) {
+                    const errorData = await bidResponse.json();
+                    throw new Error(errorData.message || 'Failed to create auction');
                 }
             }
 
@@ -360,10 +388,9 @@ const SellForm = () => {
                         onChange={handleInputChange}
                     >
                         <option value="">Select gearbox</option>
-                        <option value="manual">Manual</option>
-                        <option value="automatic">Automatic</option>
-                        <option value="semi-automatic">Semi-Automatic</option>
-                        <option value="cvt">CVT</option>
+                        <option value="Manual">Manual</option>
+                        <option value="Automatic">Automatic</option>
+                        <option value="Any">Any</option>
                     </select>
                 </div>
             </div>
