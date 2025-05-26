@@ -108,11 +108,16 @@ function MainPage() {
                             <>
                                 <a href="/signin" style={{ display: "inline" }}>Sign In</a>
                                 <a href="/register" style={{ display: "inline" }}>Register</a>
+                                <a href="/account" style={{ display: "none" }}>My Account</a>
                             </>
                         )}
                         {isAuthenticated && (
-                            <a href="/account" style={{ display: "inline" }}>My Account</a>
-                        )}
+                              <>
+                                <a href="/signin" style={{ display: "none" }}>Sign In</a>
+                                <a href="/register" style={{ display: "none" }}>Register</a>
+                                <a href="/account" style={{ display: "inline" }}>My Account</a>
+                              </>                        
+                         )}
                     </div>
                 </div>
             </nav>
