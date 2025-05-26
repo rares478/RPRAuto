@@ -1,12 +1,12 @@
 import Cookies from 'js-cookie';
 
-export async function verifyUserHandle(email, password) {
+export async function verifyUserHandle() {
     try {
         const token = Cookies.get('authToken');
 
         if (!token) return false;
 
-        const response = await fetch('/login/validate', {
+        const response = await fetch('https://rprauto.onrender.com/auth/validate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

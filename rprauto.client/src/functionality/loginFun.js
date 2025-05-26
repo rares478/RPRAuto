@@ -7,7 +7,7 @@ export async function loginHandle(email, password) {
     };
 
     try {
-        const response = await fetch('https://rprauto.onrender.com/login', {
+        const response = await fetch('https://rprauto.onrender.com/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
