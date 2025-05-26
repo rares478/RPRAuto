@@ -101,7 +101,7 @@ function MainPage() {
                     <div className="nav-brand">
                         <a href="/">RPR Auto</a>
                     </div>
-                    <div className="nav-button">
+                    <div className="nav-links">
                         <a href="/" class="nav-link active" onClick={(e) => { e.preventDefault(); navigate("/"); }}>
                             Home
                         </a>
