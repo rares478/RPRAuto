@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using RPRAuto.Server.Interfaces;
+using RPRAuto.Server.Models.Car;
 
 namespace RPRAuto.Server.Models.Listing;
 
@@ -26,6 +27,7 @@ public class Listing : IListing
     public decimal Price { get; set; }
 
     [BsonElement("car")]
+    [JsonPropertyName("Car")]
     public ICar Car { get; set; } = new Car.Car();
     
     [BsonElement("status")]
