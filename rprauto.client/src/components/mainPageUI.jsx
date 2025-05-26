@@ -63,13 +63,29 @@ function MainPage() {
 
      // Fetch cars data from your API
      useEffect(() => {
-          // Replace this with your actual API call
           const fetchCars = async () => {
                try {
-                    const response = await fetch('/api/cars');
+                    const response = await fetch('/listing?page=1&pageSize=3');
                     const data = await response.json();
-                    setCars(data.map(car => ({
-                         ...car,
+                    setCars(data.Listings.map(listing => ({
+                         id: listing._id,
+                         make: listing.Car.Make,
+                         model: listing.Car.Model,
+                         year: listing.Car.Year,
+                         price: listing.Price,
+                         description: listing.Description,
+                         images: listing.Car.Images || [],
+                         specs: {
+                              "Mileage": listing.Car.Mileage,
+                              "Engine": listing.Car.EngineSize,
+                              "Power": listing.Car.HorsePower,
+                              "Fuel": listing.Car.FuelType,
+                              "Gearbox": listing.Car.GearboxType,
+                              "Body": listing.Car.BodyType,
+                              "Color": listing.Car.Color,
+                              "Doors": listing.Car.Doors
+                         },
+                         phoneNumber: listing.User?.Personal?.PhoneNumber || "N/A",
                          isFlipped: false,
                          showPhone: false
                     })));

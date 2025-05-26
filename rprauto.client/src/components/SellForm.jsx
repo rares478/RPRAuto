@@ -17,10 +17,16 @@ const SellForm = () => {
         description: '',
         contactName: 'John Doe',
         phone: '+1 (555) 123-4567',
-        location: ''
+        location: '',
+        endDate: '',
+        minBid: '',
+        instantBuy: '',
+        imageUrls: ''
     });
 
     const [imagePreviews, setImagePreviews] = useState([]);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -43,9 +49,100 @@ const SellForm = () => {
         setImagePreviews(prev => prev.filter(preview => preview.id !== id));
     };
 
-    const handleSubmit = (e) => {
+    const addImageUrl = () => {
+        if (!formData.imageUrls.trim()) return;
+        
+        const urls = formData.imageUrls.split(',').map(url => url.trim()).filter(url => url);
+        const newPreviews = urls.map(url => ({
+            id: Math.random().toString(36).substr(2, 9),
+            url: url
+        }));
+        
+        setImagePreviews(prev => [...prev, ...newPreviews]);
+        setFormData(prev => ({ ...prev, imageUrls: '' }));
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
+        setError('');
+        setSuccess('');
+
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('Please log in to create a listing');
+                return;
+            }
+
+            // Convert form data to match server model
+            const carData = {
+                Make: formData.make,
+                Model: formData.model,
+                Year: parseInt(formData.year),
+                Mileage: parseInt(formData.mileage),
+                Color: formData.color,
+                GearboxType: formData.gearbox.toUpperCase(),
+                FuelType: formData.fuelType.toUpperCase(),
+                BodyType: formData.bodyType.toUpperCase(),
+                EngineSize: parseFloat(formData.engine),
+                HorsePower: parseInt(formData.engine.split('L')[0]) * 100, // Rough estimate
+                Pictures: imagePreviews.map(preview => preview.url)
+            };
+
+            if (formData.listingType === 'auction') {
+                // Create bid
+                const bidData = {
+                    Title: `${formData.make} ${formData.model} ${formData.year}`,
+                    TopBid: parseFloat(formData.price),
+                    MinBid: parseFloat(formData.minBid),
+                    InstantBuy: parseFloat(formData.instantBuy),
+                    Car: carData,
+                    EndAt: new Date(formData.endDate).toISOString(),
+                    Description: formData.description
+                };
+
+                const bidResponse = await fetch('https://rprauto.onrender.com/bid', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(bidData)
+                });
+
+                if (!bidResponse.ok) {
+                    throw new Error('Failed to create auction');
+                }
+            }
+
+            if (formData.listingType === 'buy-now') {
+                // Create regular listing
+                const listingData = {
+                    Car: carData,
+                    Price: parseFloat(formData.price),
+                    Description: formData.description,
+                    Status: 'Active'
+                };
+
+                const listingResponse = await fetch('https://rprauto.onrender.com/listing', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(listingData)
+                });
+
+                if (!listingResponse.ok) {
+                    throw new Error('Failed to create listing');
+                }
+            }
+
+            setSuccess('Your listing has been created successfully!');
+            clearForm();
+        } catch (error) {
+            setError(error.message || 'An error occurred while creating the listing');
+        }
     };
 
     const clearForm = () => {
@@ -64,7 +161,11 @@ const SellForm = () => {
             description: '',
             contactName: 'John Doe',
             phone: '+1 (555) 123-4567',
-            location: ''
+            location: '',
+            endDate: '',
+            minBid: '',
+            instantBuy: '',
+            imageUrls: ''
         });
         setImagePreviews([]);
     };
@@ -174,10 +275,53 @@ const SellForm = () => {
                         <option value="">Select type</option>
                         <option value="buy-now">Buy Now</option>
                         <option value="auction">Auction</option>
-                        <option value="both">Both</option>
                     </select>
                 </div>
             </div>
+
+            {(formData.listingType === 'auction') && (
+                <>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Minimum Bid *</label>
+                            <input 
+                                type="number" 
+                                className="form-input" 
+                                name="minBid"
+                                value={formData.minBid}
+                                onChange={handleInputChange}
+                                placeholder="e.g., 50000" 
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Instant Buy Price *</label>
+                            <input 
+                                type="number" 
+                                className="form-input" 
+                                name="instantBuy"
+                                value={formData.instantBuy}
+                                onChange={handleInputChange}
+                                placeholder="e.g., 80000" 
+                                required
+                            />
+                        </div>
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Auction End Date *</label>
+                            <input 
+                                type="datetime-local" 
+                                className="form-input" 
+                                name="endDate"
+                                value={formData.endDate}
+                                onChange={handleInputChange}
+                                required
+                            />
+                        </div>
+                    </div>
+                </>
+            )}
 
             <div className="form-row">
                 <div className="form-group">
@@ -290,6 +434,32 @@ const SellForm = () => {
                 />
             </div>
 
+            <div className="form-row full">
+                <div className="form-group">
+                    <label>Or add image URLs</label>
+                    <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                        <input 
+                            type="text" 
+                            className="form-input" 
+                            name="imageUrls"
+                            value={formData.imageUrls}
+                            onChange={handleInputChange}
+                            placeholder="Enter image URLs separated by commas"
+                            style={{ flex: 1 }}
+                        />
+                        <button 
+                            type="button" 
+                            className="btn btn-outline"
+                            onClick={addImageUrl}
+                            style={{ whiteSpace: 'nowrap' }}
+                        >
+                            Add URLs
+                        </button>
+                    </div>
+                    <small>Enter multiple URLs separated by commas</small>
+                </div>
+            </div>
+
             <div className="image-preview">
                 {imagePreviews.map(preview => (
                     <div key={preview.id} className="preview-item">
@@ -346,6 +516,8 @@ const SellForm = () => {
             </div>
 
             <div style={{ marginTop: '32px' }}>
+                {error && <div className="error-message">{error}</div>}
+                {success && <div className="success-message">{success}</div>}
                 <button type="submit" className="btn btn-primary" style={{ marginRight: '12px' }}>
                     <i className="fas fa-plus"></i>
                     List My Vehicle
