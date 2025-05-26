@@ -1,150 +1,308 @@
-﻿import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+﻿import React, { useState, useEffect } from "react";
+import "./styles/mainPage.css";
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
-// styles
-import './styles/mainPage.css';
+function MainPage() {
+     const [cars, setCars] = useState([]);
+     const [currentSlide, setCurrentSlide] = useState({});
 
-// handler functions
-import { verifyUserHandle } from '../functionality/authFun';
+     // Function to handle slide changes
+     const changeSlide = (carId, direction, event) => {
+          event.stopPropagation();
+          setCurrentSlide(prev => ({
+               ...prev,
+               [carId]: ((prev[carId] || 0) + direction + 3) % 3
+          }));
+     };
 
-const MainPage = () => {
-    const navigate = useNavigate();
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+     // Function to handle direct slide selection
+     const goToSlide = (carId, index, event) => {
+          event.stopPropagation();
+          setCurrentSlide(prev => ({
+               ...prev,
+               [carId]: index
+          }));
+     };
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const valid = await verifyUserHandle();
-                setIsAuthenticated(valid);
-            } catch (err) {
-                setIsAuthenticated(false);
-            }
-        };
-        checkAuth();
-    }, []);
+     // Function to handle card flip
+     const flipCard = (carId, event) => {
+          if (event) {
+               event.stopPropagation();
+          }
+          
+          if (event && (
+               event.target.classList.contains('nav-arrow') ||
+               event.target.classList.contains('dot') ||
+               event.target.classList.contains('btn') ||
+               event.target.closest('.nav-arrow') ||
+               event.target.closest('.dot') ||
+               event.target.closest('.btn') ||
+               event.target.closest('.flip-indicator')
+          )) {
+               return;
+          }
+          
+          setCars(prev => prev.map(car => 
+               car.id === carId ? { ...car, isFlipped: !car.isFlipped } : car
+          ));
+     };
+
+     // Function to show phone number
+     const showPhoneNumber = (carId, phoneNumber, event) => {
+          event.stopPropagation();
+          setCars(prev => prev.map(car => 
+               car.id === carId ? { ...car, showPhone: true } : car
+          ));
+          
+          setTimeout(() => {
+               setCars(prev => prev.map(car => 
+                    car.id === carId ? { ...car, showPhone: false } : car
+               ));
+          }, 3000);
+     };
+
+     // Fetch cars data from your API
+     useEffect(() => {
+          const fetchCars = async () => {
+               try {
+                    const response = await fetch('/listing?page=1&pageSize=3');
+                    const data = await response.json();
+                    setCars(data.Listings.map(listing => ({
+                         id: listing._id,
+                         make: listing.Car.Make,
+                         model: listing.Car.Model,
+                         year: listing.Car.Year,
+                         price: listing.Price,
+                         description: listing.Description,
+                         images: listing.Car.Images || [],
+                         specs: {
+                              "Mileage": listing.Car.Mileage,
+                              "Engine": listing.Car.EngineSize,
+                              "Power": listing.Car.HorsePower,
+                              "Fuel": listing.Car.FuelType,
+                              "Gearbox": listing.Car.GearboxType,
+                              "Body": listing.Car.BodyType,
+                              "Color": listing.Car.Color,
+                              "Doors": listing.Car.Doors
+                         },
+                         phoneNumber: listing.User?.Personal?.PhoneNumber || "N/A",
+                         isFlipped: false,
+                         showPhone: false
+                    })));
+               } catch (error) {
+                    console.error('Error fetching cars:', error);
+               }
+          };
+          
+          fetchCars();
+     }, []);
 
     return (
-        <div className="main-container">
-            {/* Top buttons */}
-            <div className="buttons-container">
-                {/* Left buttons */}
-                <div className="left-buttons">
-                    <div className="radio-wrapper">
-                        <input type="radio" id="value-1" name="btn" className="input" />
-                        <label className="btn" htmlFor="value-1">
-                            AUCTIONS
-                        </label>
+          <div className="main-container">
+               {/* Hero Section */}
+               <section className="hero">
+                    <div className="container">
+                         <div className="hero-content">
+                              <h1>Find Your Dream Car</h1>
+                              <p>Buy, sell, and bid on premium vehicles in our trusted marketplace</p>
+                              <div className="search-bar">
+                                   <input type="text" placeholder="Search by make, model, or year..." />
+                                   <button className="btn btn-primary">
+                                        <i className="fas fa-search"></i>
+                                        Search
+                                   </button>
+                              </div>
+                         </div>
                     </div>
-                    <div className="radio-wrapper">
-                        <input type="radio" id="value-2" name="btn" className="input" defaultChecked />
-                        <label className="btn" htmlFor="value-2" onClick={() => navigate('/market')}>
-                            MARKET
-                        </label>
+               </section>
+
+               {/* Stats Section */}
+               <section className="stats">
+                    <div className="container">
+                         <div className="stats-grid">
+                              <div className="stat-item">
+                                   <div className="stat-icon">
+                                        <i className="fas fa-users"></i>
+                                   </div>
+                                   <h3>50K+</h3>
+                                   <p>Active Users</p>
+                              </div>
+                              <div className="stat-item">
+                                   <div className="stat-icon">
+                                        <i className="fas fa-award"></i>
+                                   </div>
+                                   <h3>15K+</h3>
+                                   <p>Cars Sold</p>
+                              </div>
+                              <div className="stat-item">
+                                   <div className="stat-icon">
+                                        <i className="fas fa-clock"></i>
+                                   </div>
+                                   <h3>24/7</h3>
+                                   <p>Live Auctions</p>
+                              </div>
+                              <div className="stat-item">
+                                   <div className="stat-icon">
+                                        <i className="fas fa-chart-line"></i>
                     </div>
-                    <div className="radio-wrapper">
-                        <input type="radio" id="value-3" name="btn" className="input" />
-                        <label className="btn" htmlFor="value-3">
-                            LOCATION
-                        </label>
+                                   <h3>98%</h3>
+                                   <p>Satisfaction Rate</p>
                     </div>
                 </div>
+                    </div>
+               </section>
 
-                {/* Right buttons - based on auth status */}
-                <div className="right-buttons">
-                    {isAuthenticated ? (
-                        <div className="radio-wrapper">
-                            <input type="radio" id="profile" name="btn-right" className="input" />
-                            <label className="btn" htmlFor="profile" onClick={() => navigate('/profile')}>
-                                PROFILE
-                            </label>
+               {/* Featured Cars Section */}
+               <section className="featured-cars">
+                    <div className="container">
+                         <div className="section-header">
+                              <h2>Featured Vehicles</h2>
+                              <p>Discover premium cars from trusted sellers</p>
+                    </div>
+
+                         <div className="cars-grid">
+                              {cars.map(car => (
+                                   <div key={car.id} className="car-card-container">
+                                        <div className={`car-card ${car.isFlipped ? 'flipped' : ''}`} onClick={(e) => flipCard(car.id, e)}>
+                                             <div className="car-card-front">
+                                                  <div className="car-slideshow">
+                                                       {car.images.map((image, index) => (
+                                                            <div key={index} className={`slide ${currentSlide[car.id] === index ? 'active' : ''}`}>
+                                                                 <div className="car-photo" style={{ backgroundImage: `url(${image})` }}></div>
+                    </div>
+                                                       ))}
+                                                       
+                                                       <div className="nav-arrow prev" onClick={(e) => changeSlide(car.id, -1, e)}>❮</div>
+                                                       <div className="nav-arrow next" onClick={(e) => changeSlide(car.id, 1, e)}>❯</div>
+                                                       
+                                                       <div className="slide-indicator">
+                                                            {car.images.map((_, index) => (
+                                                                 <div key={index} className={`dot ${currentSlide[car.id] === index ? 'active' : ''}`} onClick={(e) => goToSlide(car.id, index, e)}></div>
+                                                            ))}
+                </div>
+            </div>
+                                                  <div className="flip-indicator" onClick={(e) => flipCard(car.id, e)}>Flip for details</div>
+                    </div>
+                                             
+                                             <div className="car-card-back">
+                                                  <div className="car-details-container">
+                                                       <div className="car-header">
+                                                            <span className="car-title">{car.make} {car.model}</span>
+                                                            <span className="car-year">{car.year}</span>
+                </div>
+                                                       
+                                                       <div className="car-specs-column">
+                                                            {Object.entries(car.specs).slice(0, 5).map(([key, value]) => (
+                                                                 <div key={key} className="spec-row">
+                                                                      <span className="spec-label">{key}:</span>
+                                                                      <span className="spec-value">{value}</span>
+            </div>
+                                                            ))}
+                            </div>
+                                                       
+                                                       <div className="car-specs-column">
+                                                            {Object.entries(car.specs).slice(5).map(([key, value]) => (
+                                                                 <div key={key} className="spec-row">
+                                                                      <span className="spec-label">{key}:</span>
+                                                                      <span className="spec-value">{value}</span>
+                            </div>
+                                                            ))}
+                            </div>
+                                                       
+                                                       <div className="car-description">{car.description}</div>
+                                                       
+                                                       <div className="car-price-large">${car.price.toLocaleString()}</div>
+                                                       
+                                                       <div className="button-container">
+                                                            <button className={`call-button ${car.showPhone ? 'show-phone' : ''}`} onClick={(e) => showPhoneNumber(car.id, car.phoneNumber, e)}>
+                                                                 <span className="call-text">Call Now</span>
+                                                                 <span className="phone-number">{car.phoneNumber}</span>
+                                                            </button>
+                            </div>
                         </div>
-                    ) : (
-                        <>
-                            <div className="radio-wrapper">
-                                <input type="radio" id="login" name="btn-right" className="input" />
-                                <label className="btn" htmlFor="login" onClick={() => navigate('/login')}>
-                                    LOGIN
-                                </label>
-                            </div>
-                            <div className="radio-wrapper">
-                                <input type="radio" id="register" name="btn-right" className="input" />
-                                <label className="btn" htmlFor="register" onClick={() => navigate('/register')}>
-                                    REGISTER
-                                </label>
-                            </div>
-                        </>
-                    )}
-                </div>
+                                                  <div className="flip-indicator" onClick={(e) => flipCard(car.id, e)}>Flip back</div>
+                        </div>
+                    </div>
             </div>
+                              ))}
+                         </div>
 
-            {/* Search section */}
-            <div className="search-section">
-                <div className="search-container">
-                    <div className="searchBox">
-                        <input className="searchInput" type="text" placeholder="Search something" />
-                        <button className="searchButton">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="29" height="29" viewBox="0 0 29 29" fill="none">
-                                <g clipPath="url(#clip0)">
-                                    <g filter="url(#filter0_d)">
-                                        <path d="M23.7953 23.9182L19.0585 19.1814M19.0585 19.1814C19.8188 18.4211 20.4219 17.5185 20.8333 16.5251C21.2448 15.5318 21.4566 14.4671 21.4566 13.3919C21.4566 12.3167 21.2448 11.252 20.8333 10.2587C20.4219 9.2653 19.8188 8.36271 19.0585 7.60242C18.2982 6.84214 17.3956 6.23905 16.4022 5.82759C15.4089 5.41612 14.3442 5.20435 13.269 5.20435C12.1938 5.20435 11.1291 5.41612 10.1358 5.82759C9.1424 6.23905 8.23981 6.84214 7.47953 7.60242C5.94407 9.13789 5.08105 11.2204 5.08105 13.3919C5.08105 15.5634 5.94407 17.6459 7.47953 19.1814C9.01499 20.7168 11.0975 21.5799 13.269 21.5799C15.4405 21.5799 17.523 20.7168 19.0585 19.1814Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </g>
-                                </g>
-                                <defs>
-                                    <filter id="filter0_d" x="-0.418947" y="3.70435" width="29.3879" height="29.3879">
-                                        <feFlood floodOpacity="0" result="BackgroundImageFix" />
-                                        <feColorMatrix in="SourceAlpha" type="matrix"
-                                            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-                                        <feOffset dy="4" />
-                                        <feGaussianBlur stdDeviation="2" />
-                                        <feComposite in2="hardAlpha" operator="out" />
-                                        <feColorMatrix type="matrix"
-                                            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0" />
-                                        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
-                                        <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
-                                    </filter>
-                                    <clipPath id="clip0">
-                                        <rect width="28.469" height="28.469" fill="white" transform="translate(0.264648 0.526367)" />
-                                    </clipPath>
-                                </defs>
-                            </svg>
-                        </button>
+                         <div className="section-footer">
+                              <button className="btn btn-outline">View All Vehicles</button>
+                        </div>
+                    </div>
+               </section>
+
+               {/* How It Works Section */}
+               <section className="how-it-works">
+                    <div className="container">
+                         <div className="section-header">
+                              <h2>How It Works</h2>
+                              <p>Simple steps to buy or sell your vehicle</p>
+                         </div>
+
+                         <div className="steps-grid">
+                              <div className="step-item">
+                                   <div className="step-number">1</div>
+                                   <h3>Browse & Search</h3>
+                                   <p>Explore thousands of verified vehicles or use our advanced search to find exactly what you need.</p>
+                              </div>
+                              <div className="step-item">
+                                   <div className="step-number">2</div>
+                                   <h3>Bid or Buy</h3>
+                                   <p>Participate in live auctions or purchase vehicles instantly with our Buy Now option.</p>
+                              </div>
+                              <div className="step-item">
+                                   <div className="step-number">3</div>
+                                   <h3>Secure Transaction</h3>
+                                   <p>Complete your purchase with our secure payment system and arrange delivery or pickup.</p>
+                              </div>
+                        </div>
+                    </div>
+               </section>
+
+               {/* Footer */}
+               <footer className="footer">
+                    <div className="container">
+                         <div className="footer-grid">
+                              <div className="footer-section">
+                                   <h3>RPR Auto</h3>
+                                   <p>The premier destination for buying and selling premium vehicles through auctions and direct sales.</p>
+                              </div>
+                              <div className="footer-section">
+                                   <h4>Quick Links</h4>
+                                   <ul>
+                                        <li><a href="/marketplace">Marketplace</a></li>
+                                        <li><a href="/auctions">Live Auctions</a></li>
+                                        <li><a href="/account">My Account</a></li>
+                                        <li><a href="/about">About Us</a></li>
+                                   </ul>
+                              </div>
+                              <div className="footer-section">
+                                   <h4>Support</h4>
+                                   <ul>
+                                        <li><a href="/help">Help Center</a></li>
+                                        <li><a href="/contact">Contact Us</a></li>
+                                        <li><a href="/terms">Terms of Service</a></li>
+                                        <li><a href="/privacy">Privacy Policy</a></li>
+                                   </ul>
+                              </div>
+                              <div className="footer-section">
+                                   <h4>Contact Info</h4>
+                                   <div className="contact-info">
+                                        <p>1-800-RPR-AUTO</p>
+                                        <p>support@rprauto.com</p>
+                                        <p>123 Car Street, Auto City, AC 12345</p>
+                        </div>
                     </div>
                 </div>
-                <div className="purple-line"></div>
+                         <div className="footer-bottom">
+                              <p>&copy; 2024 RPR Auto. All rights reserved.</p>
             </div>
-
-            {/* Content container */}
-            <div className="content-container">
-                <div className="card-3d-container">
-                    <div className="card-3d">
-                        <div><img src="unu.png" alt="Image 1" /></div>
-                        <div><img src="doi.png" alt="Image 2" /></div>
-                        <div><img src="trei.png" alt="Image 3" /></div>
-                        <div><img src="patru.png" alt="Image 4" /></div>
-                        <div><img src="cinci.png" alt="Image 5" /></div>
                     </div>
-
-                    {/* Radio Tiles from Uiverse */}
-                    <div className="radio-inputs">
-                        <label>
-                            <input className="radio-input" type="radio" name="engine" />
-                            <span className="radio-tile">
-                                <span className="radio-icon"></span>
-                                <span className="radio-label">Bicycle</span>
-                            </span>
-                        </label>
-                        <label>
-                            <input className="radio-input" type="radio" name="engine" defaultChecked />
-                            <span className="radio-tile">
-                                <span className="radio-icon"></span>
-                                <span className="radio-label">Car</span>
-                            </span>
-                        </label>
-                    </div>
-                </div>
-            </div>
+               </footer>
         </div>
     );
-};
+}
 
 export default MainPage;

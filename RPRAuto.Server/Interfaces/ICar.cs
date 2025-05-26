@@ -6,7 +6,7 @@ public interface ICar
     string Model { get; set; }
     int Year { get; set; }
     string Description { get; set; }
-    bool IsManual { get; set; }
+    Models.Enums.GearboxType GearboxType { get; set; }
     string Color { get; set; }
     int Doors { get; set; }
     Models.Enums.FuelType FuelType { get; set; }

@@ -73,7 +73,6 @@ public class AuthController : ControllerBase
 
             await _userRepository.CreateAsync(user);
 
-            // Generate JWT token
             var token = GenerateJwtToken(user);
 
             return Ok(new AuthResponse { Status = 200, Message = "Registration successful", Token = token });
@@ -107,7 +106,6 @@ public class AuthController : ControllerBase
             if (!user.VerifyPassword(request.Password))
                 throw new ValidationException("Invalid email or password");
 
-            // Generate JWT token
             var token = GenerateJwtToken(user);
 
             return Ok(new AuthResponse { Message = "Login successful", Token = token });

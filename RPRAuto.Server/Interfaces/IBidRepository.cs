@@ -12,4 +12,5 @@ public interface IBidRepository : IRepository<Bid>
     Task<bool> HasUserBidOnListingAsync(ObjectId userId, ObjectId listingId);
     Task UpdateBidStatusAsync(ObjectId id, BidStatus status);
     Task<IEnumerable<Bid>> GetLatestBidsAsync(int count);
+    Task<(IEnumerable<Bid> Bids, long TotalCount)> GetBidsByPageAsync(int page, int pageSize);
 } 

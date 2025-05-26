@@ -57,4 +57,20 @@ public class BidRepository : MongoRepository<Bid>, IBidRepository
             .Set(b => b.Status, status);
         await _collection.UpdateOneAsync(filter, update);
     }
+
+    public async Task<(IEnumerable<Bid> Bids, long TotalCount)> GetBidsByPageAsync(int page, int pageSize)
+    {
+        var filter = Builders<Bid>.Filter.Eq(b => b.Status, BidStatus.Active);
+        var sort = Builders<Bid>.Sort.Descending(b => b.CreatedAt);
+        
+        var totalCount = await _collection.CountDocumentsAsync(filter);
+        
+        var bids = await _collection.Find(filter)
+            .Sort(sort)
+            .Skip((page - 1) * pageSize)
+            .Limit(pageSize)
+            .ToListAsync();
+            
+        return (bids, totalCount);
+    }
 } 

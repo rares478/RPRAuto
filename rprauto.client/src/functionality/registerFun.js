@@ -2,13 +2,16 @@ import Cookies from 'js-cookie';
 
 export async function registerHandle(firstName, email, password, phone, isCompany, companyName, cui) {
     const registerData = {
-        firstName: firstName,
         email: email,
         password: password,
-        phoneNumber: phone,
+        firstName: firstName,
+        lastName: '',
+        phoneNumber: phone || '',
+        address: '',
+        city: '',
+        country: '',
         isCompany: isCompany,
-        companyName: companyName,
-        companyCUI: cui
+        companyCUI: isCompany ? cui : null 
     };
 
     try {
@@ -22,8 +25,7 @@ export async function registerHandle(firstName, email, password, phone, isCompan
 
         const data = await response.json();
 
-        console.log(data);
-        if (data.status === 200) {
+        if (response.ok) {
             Cookies.set("authToken", data.token, { expires: 60, secure: true, sameSite: 'strict' });
             return { success: true }
         } else {
@@ -31,6 +33,7 @@ export async function registerHandle(firstName, email, password, phone, isCompan
         }
     } catch (error) {
         console.error('Error:', error);
+        return { success: false, message: 'An error occurred during registration' }
     }  
 }
 

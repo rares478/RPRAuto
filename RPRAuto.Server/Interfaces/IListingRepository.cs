@@ -15,4 +15,5 @@ public interface IListingRepository : IRepository<Listing>
     Task<IEnumerable<Listing>> GetByYearRangeAsync(int minYear, int maxYear);
     Task UpdateStatusAsync(ObjectId id, ListingStatus status);
     Task<IEnumerable<Listing>> SearchAsync(FilterDefinition<Listing> filter);
+    Task<(IEnumerable<Listing> Listings, long TotalCount)> GetListingsByPageAsync(int page, int pageSize);
 } 

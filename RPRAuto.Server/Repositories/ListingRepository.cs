@@ -66,4 +66,20 @@ public class ListingRepository : MongoRepository<Listing>, IListingRepository
     {
         return await _collection.Find(filter).ToListAsync();
     }
+
+    public async Task<(IEnumerable<Listing> Listings, long TotalCount)> GetListingsByPageAsync(int page, int pageSize)
+    {
+        var filter = Builders<Listing>.Filter.Eq(l => l.Status, ListingStatus.Active);
+        var sort = Builders<Listing>.Sort.Descending(l => l.CreatedAt);
+        
+        var totalCount = await _collection.CountDocumentsAsync(filter);
+        
+        var listings = await _collection.Find(filter)
+            .Sort(sort)
+            .Skip((page - 1) * pageSize)
+            .Limit(pageSize)
+            .ToListAsync();
+            
+        return (listings, totalCount);
+    }
 } 

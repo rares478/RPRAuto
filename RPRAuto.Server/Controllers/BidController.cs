@@ -4,6 +4,8 @@ using RPRAuto.Server.Interfaces;
 using RPRAuto.Server.Models.Bid;
 using RPRAuto.Server.Exceptions;
 using RPRAuto.Server.Models.Enums;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -23,10 +25,33 @@ public class BidController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetBids()
+    public async Task<IActionResult> GetBids(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 30)
     {
-        var bids = await _bidRepository.GetLatestBidsAsync(30);
-        return Ok(bids);
+        if (page < 1)
+            throw new ValidationException("Page number must be greater than 0");
+        
+        if (pageSize < 1)
+            throw new ValidationException("Page size must be greater than 0");
+
+        var (bids, totalCount) = await _bidRepository.GetBidsByPageAsync(page, pageSize);
+        
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        
+        return Ok(new
+        {
+            Bids = bids,
+            Pagination = new
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+                HasNextPage = page < totalPages,
+                HasPreviousPage = page > 1
+            }
+        });
     }
 
     [HttpPost]
@@ -130,26 +155,20 @@ public class BidController : ControllerBase
         if (bid.UserId == userId)
             throw new ValidationException("Cannot place bid on your own bid");
 
-        // Check if user has already bid
         if (bid.Bids.ContainsKey(userId))
             throw new ValidationException("You have already placed a bid");
 
-        // Check if bid amount meets minimum requirements
         if (request.Amount < bid.MinBid)
             throw new ValidationException($"Bid amount must be at least {bid.MinBid}");
 
-        // Check if bid amount is higher than current top bid
         if (bid.TopBid > 0 && request.Amount <= bid.TopBid)
             throw new ValidationException($"Bid amount must be higher than current top bid of {bid.TopBid}");
 
-        // Add the bid
         bid.Bids[userId] = request.Amount;
         bid.TopBid = request.Amount;
 
-        // Check for instant buy
         if (bid.InstantBuy > 0 && request.Amount >= bid.InstantBuy)
         {
-            // Handle instant buy logic
             bid.EndAt = DateTime.UtcNow;
         }
 
@@ -159,7 +178,7 @@ public class BidController : ControllerBase
 
     private ObjectId GetUserIdFromToken()
     {
-        var userIdClaim = User.FindFirst("userId");
+        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
         if (userIdClaim == null || !ObjectId.TryParse(userIdClaim.Value, out var userId))
             throw new UnauthorizedException("Invalid user token");
 
