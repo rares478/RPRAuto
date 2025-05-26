@@ -26,4 +26,4 @@ public class ListingCreateRequest
 
     [JsonPropertyName("EndAt")]
     public DateTime EndAt { get; set; }
-} 
+}
