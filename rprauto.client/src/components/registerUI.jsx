@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './styles/signup.css';
 
-const SignupPage = () => {
+const Register = () => {
     const [isCompany, setIsCompany] = useState(false);
 
     const toggleCompanyField = (show) => {
