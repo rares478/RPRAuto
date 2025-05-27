@@ -88,21 +88,24 @@ const Market = () => {
       setLoading(true);
       let queryParams = new URLSearchParams();
       
-      if (filters.make) queryParams.append('make', filters.make);
-      if (filters.model) queryParams.append('model', filters.model);
-      if (filters.gearbox) queryParams.append('gearbox', filters.gearbox);
-      if (filters.color) queryParams.append('color', filters.color);
-      if (filters.doors) queryParams.append('doors', filters.doors);
-      if (filters.fuel) queryParams.append('fuel', filters.fuel);
-      if (filters.engine) queryParams.append('engine', filters.engine);
-      if (filters.power) queryParams.append('power', filters.power);
-      if (filters.mileage) queryParams.append('mileage', filters.mileage);
+      if (filters.make) queryParams.append('Make', filters.make);
+      if (filters.model) queryParams.append('Model', filters.model);
+      if (filters.gearbox) queryParams.append('GearboxType', filters.gearbox);
+      if (filters.color) queryParams.append('Color', filters.color);
+      if (filters.doors) queryParams.append('Doors', filters.doors);
+      if (filters.fuel) queryParams.append('FuelType', filters.fuel);
+      if (filters.engine) queryParams.append('EngineSize', filters.engine);
+      if (filters.power) queryParams.append('HorsePower', filters.power);
+      if (filters.mileage) queryParams.append('Mileage', filters.mileage);
       
       const response = await fetch(`https://rprauto.onrender.com/listing/search?${queryParams.toString()}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
       
       const formattedCars = data.map(listing => ({
-        id: listing._id,
+        id: listing.Id?.Timestamp?.toString(),
         title: `${listing.Car.Make} ${listing.Car.Model}`,
         year: listing.Car.Year,
         make: listing.Car.Make,
