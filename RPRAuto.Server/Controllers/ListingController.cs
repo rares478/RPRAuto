@@ -5,7 +5,8 @@ using RPRAuto.Server.Models.Listing;
 using RPRAuto.Server.Exceptions;
 using RPRAuto.Server.Models.Enums;
 using MongoDB.Driver;
-using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using RPRAuto.Server.Models.Car;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -43,28 +44,64 @@ public class ListingController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateListing([FromBody] ListingCreateRequest request)
     {
-        var userId = GetUserIdFromToken();
-        var user = await _userRepository.GetByIdAsync(userId);
-        if (user == null)
-            throw new NotFoundException("User not found");
-
-        var listing = new Listing
+        _logger.LogInformation("=== CreateListing Request Debug ===");
+        _logger.LogInformation("Raw request data: {@Request}", request);
+        
+        try 
         {
-            UserId = userId,
-            Title = $"{request.Car.Make} {request.Car.Model} {request.Car.Year}",
-            Car = request.Car,
-            Price = request.Price,
-            Description = request.Description,
-            Status = ListingStatus.Active,
-            CreatedAt = DateTime.UtcNow
-        };
+            var userId = GetUserIdFromToken();
+            _logger.LogInformation("UserId from token: {UserId}", userId);
+            
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogError("User not found for ID: {UserId}", userId);
+                throw new NotFoundException("User not found");
+            }
+            _logger.LogInformation("User found: {UserId}", userId);
 
-        await _listingRepository.CreateAsync(listing);
+            _logger.LogInformation("Car data from request: {@Car}", request.Car);
+            var listing = new Listing
+            {
+                UserId = userId,
+                Title = request.Title ?? $"{request.Car.Make} {request.Car.Model} {request.Car.Year}",
+                Car = new Car
+                {
+                    Make = request.Car.Make,
+                    Model = request.Car.Model,
+                    Year = request.Car.Year,
+                    Mileage = request.Car.Mileage,
+                    Color = request.Car.Color,
+                    GearboxType = request.Car.GearboxType,
+                    FuelType = request.Car.FuelType,
+                    BodyType = request.Car.BodyType,
+                    EngineSize = request.Car.EngineSize,
+                    HorsePower = request.Car.HorsePower,
+                    Pictures = request.Car.Pictures
+                },
+                Price = request.Price,
+                Description = request.Description,
+                Status = request.Status,
+                CreatedAt = DateTime.UtcNow
+            };
+            _logger.LogInformation("Created listing object: {@Listing}", listing);
 
-        user.Listings.Add(listing.Id);
-        await _userRepository.UpdateAsync(userId, user);
+            await _listingRepository.CreateAsync(listing);
+            _logger.LogInformation("Listing saved to database with ID: {ListingId}", listing.Id);
 
-        return Ok(new { message = "Listing created successfully", listingId = listing.Id });
+            user.Listings.Add(listing.Id);
+            await _userRepository.UpdateAsync(userId, user);
+            _logger.LogInformation("User's listings updated");
+
+            _logger.LogInformation("=== CreateListing Request Complete ===");
+            return Ok(new { message = "Listing created successfully", listingId = listing.Id.ToString() });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating listing: {Message}", ex.Message);
+            _logger.LogError("Stack trace: {StackTrace}", ex.StackTrace);
+            throw;
+        }
     }
 
     [HttpPut("{id}")]
@@ -188,52 +225,123 @@ public class ListingController : ControllerBase
         [FromQuery] int? power = null,
         [FromQuery] int? mileage = null)
     {
-        var filter = Builders<Listing>.Filter.Eq(l => l.Status, ListingStatus.Active);
+        try
+        {
+            _logger.LogInformation("Starting search with parameters: make={Make}, model={Model}, price={Price}, year={Year}", 
+                make, model, price, year);
 
-        if (!string.IsNullOrEmpty(make))
-            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Make, new BsonRegularExpression(make, "i"));
+            // Build the filter using BsonDocument
+            var filter = new BsonDocument
+            {
+                { "status", 0 }  // Active listings only
+            };
 
-        if (!string.IsNullOrEmpty(model))
-            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Model, new BsonRegularExpression(model, "i"));
+            // Add make filter if provided
+            if (!string.IsNullOrEmpty(make))
+            {
+                filter.Add("car.make", new BsonRegularExpression(make, "i"));
+            }
 
-        if (price.HasValue)
-            filter &= Builders<Listing>.Filter.Eq(l => l.Price, price.Value);
+            // Add model filter if provided
+            if (!string.IsNullOrEmpty(model))
+            {
+                filter.Add("car.model", new BsonRegularExpression(model, "i"));
+            }
 
-        if (year.HasValue)
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.Year, year.Value);
+            // Add price filter if provided
+            if (price.HasValue)
+            {
+                filter.Add("price", price.Value);
+            }
 
-        if (!string.IsNullOrEmpty(gearbox) && gearbox != "Any")
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.GearboxType.ToString(), gearbox);
+            // Add year filter if provided
+            if (year.HasValue)
+            {
+                filter.Add("car.year", year.Value);
+            }
 
-        if (!string.IsNullOrEmpty(body) && body != "Any")
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.BodyType.ToString(), body);
+            // Add gearbox filter if provided
+            if (!string.IsNullOrEmpty(gearbox) && gearbox != "Any")
+            {
+                filter.Add("car.gearboxType", gearbox);
+            }
 
-        if (!string.IsNullOrEmpty(color))
-            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Color, new BsonRegularExpression(color, "i"));
+            // Add body type filter if provided
+            if (!string.IsNullOrEmpty(body) && body != "Any")
+            {
+                filter.Add("car.bodyType", body);
+            }
 
-        if (doors.HasValue)
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.Doors, doors.Value);
+            // Add color filter if provided
+            if (!string.IsNullOrEmpty(color))
+            {
+                filter.Add("car.color", new BsonRegularExpression(color, "i"));
+            }
 
-        if (!string.IsNullOrEmpty(fuel))
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.FuelType.ToString(), fuel);
+            // Add doors filter if provided
+            if (doors.HasValue)
+            {
+                filter.Add("car.doors", doors.Value);
+            }
 
-        if (engine.HasValue)
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.EngineSize, engine.Value);
+            // Add fuel type filter if provided
+            if (!string.IsNullOrEmpty(fuel))
+            {
+                filter.Add("car.fuelType", fuel);
+            }
 
-        if (power.HasValue)
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.HorsePower, power.Value);
+            // Add engine size filter if provided
+            if (engine.HasValue)
+            {
+                filter.Add("car.engineSize", engine.Value);
+            }
 
-        if (mileage.HasValue)
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.Mileage, mileage.Value);
+            // Add power filter if provided
+            if (power.HasValue)
+            {
+                filter.Add("car.horsePower", power.Value);
+            }
 
-        var listings = await _listingRepository.SearchAsync(filter);
-        return Ok(listings);
+            // Add mileage filter if provided
+            if (mileage.HasValue)
+            {
+                filter.Add("car.mileage", mileage.Value);
+            }
+
+            try
+            {
+                _logger.LogInformation("Executing search with filter: {Filter}", filter.ToString());
+                var listings = await _listingRepository.SearchAsync(filter);
+                _logger.LogInformation("Search completed successfully. Found {Count} listings", listings.Count());
+                return Ok(listings);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing search query: {Message}\nStackTrace: {StackTrace}", ex.Message, ex.StackTrace);
+                throw;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in SearchListings: {Message}\nStackTrace: {StackTrace}", ex.Message, ex.StackTrace);
+            return StatusCode(500, new 
+            { 
+                errorCode = "INTERNAL_SERVER_ERROR", 
+                message = "An unexpected error occurred.", 
+                details = ex.Message,
+                stackTrace = ex.StackTrace,
+                innerException = ex.InnerException?.Message
+            });
+        }
     }
 
     private ObjectId GetUserIdFromToken()
     {
-        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
+        var authHeader = Request.Headers["Authorization"].ToString();
         _logger.LogInformation("=== Token Debug Info ===");
+        _logger.LogInformation("Raw Authorization header: {AuthHeader}", authHeader);
+        
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         _logger.LogInformation("UserIdClaim: {UserIdClaim}", userIdClaim?.Value ?? "null");
         _logger.LogInformation("All Claims: {Claims}", string.Join(", ", User.Claims.Select(c => $"{c.Type}: {c.Value}")));
         

@@ -150,6 +150,30 @@ public class AuthController : ControllerBase
         }
     }
 
+    [HttpGet("role")]
+    public ActionResult<AuthResponse> GetUserRole()
+    {
+        try
+        {
+            _logger.LogInformation("Getting user role from token");
+            var roleClaim = User.FindFirst(ClaimTypes.Role);
+            if (roleClaim == null)
+            {
+                _logger.LogWarning("No role claim found in token");
+                throw new UnauthorizedException("No role claim found in token");
+            }
+
+            _logger.LogInformation($"Role claim found: {roleClaim.Value}");
+            var role = (int)Enum.Parse<UserRole>(roleClaim.Value);
+            return Ok(new { role });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user role");
+            return Unauthorized(new AuthResponse { Message = "Invalid token" });
+        }
+    }
+
     private string GenerateJwtToken(User user)
     {
         var rsa = EnvLoader.GetRsaPrivateKey();

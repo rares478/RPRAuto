@@ -6,6 +6,7 @@ const AuctionCard = ({ auction }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState('');
   const [bidAmount, setBidAmount] = useState('');
+  const [showDetails, setShowDetails] = useState(false);
   const minIncrement = 1250; // This should come from the auction data
 
   useEffect(() => {
@@ -47,15 +48,10 @@ const AuctionCard = ({ auction }) => {
     setCurrentSlide(slideIndex);
   };
 
-  const flipCard = (e) => {
-    e.stopPropagation();
-    setIsFlipped(!isFlipped);
-  };
-
   const handleBidSubmit = async (e) => {
     e.stopPropagation();
     const bidValue = parseFloat(bidAmount);
-    const minBid = auction.currentBid + minIncrement;
+    const minBid = Math.max(auction.currentBid + minIncrement, auction.minBid);
 
     if (isNaN(bidValue)) {
       alert('Please enter a valid bid amount');
@@ -68,28 +64,31 @@ const AuctionCard = ({ auction }) => {
     }
 
     try {
-      // TODO: Replace with actual bid API endpoint
-      const response = await fetch('https://rprauto.onrender.com/auction/bid', {
+      const response = await fetch(`https://rprauto.onrender.com/bid/${auction.id}/place`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          auctionId: auction.id,
-          bidAmount: bidValue
+          amount: bidValue
         })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to place bid');
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to place bid');
       }
 
       // Update local state or trigger a refresh
       setBidAmount('');
       alert(`Bid of $${bidValue.toLocaleString()} placed successfully!`);
+      
+      // Refresh the bid data
+      window.location.reload();
     } catch (error) {
       console.error('Error placing bid:', error);
-      alert('Failed to place bid. Please try again.');
+      alert(error.message || 'Failed to place bid. Please try again.');
     }
   };
 
@@ -116,84 +115,110 @@ const AuctionCard = ({ auction }) => {
                 ></div>
               ))}
             </div>
+
+            <div className="basic-info-overlay">
+              <div className="basic-info-title">{auction.title}</div>
+              <div className="basic-info-time">
+                <i className="fas fa-clock"></i>
+                {timeRemaining}
+              </div>
+            </div>
+
+            <button 
+              className="show-details-button"
+              onClick={() => setShowDetails(true)}
+            >
+              Show Details
+            </button>
           </div>
 
-          <div className="front-details">
-            <div className="car-header">
-              <div>
-                <h1 className="car-title">{auction.title}</h1>
-                <p className="car-year">{auction.year}</p>
-              </div>
-              <div className="time-remaining">
-                <i className="fas fa-clock"></i> {timeRemaining}
-              </div>
+          <div className={`details-panel ${showDetails ? 'show' : ''}`}>
+            <div className="details-header">
+              <div className="details-title">{auction.title}</div>
+              <button 
+                className="close-details"
+                onClick={() => setShowDetails(false)}
+              >
+                ×
+              </button>
             </div>
-            
-            <div className="car-specs">
-              <div className="spec-item">
-                <div className="spec-icon"><i className="fas fa-tachometer-alt"></i></div>
-                <div className="spec-text">
-                  <span className="spec-label">Power</span>
-                  <span className="spec-value">{auction.power} hp</span>
+
+            <div className="front-details">
+              <div className="car-header">
+                <div>
+                  <h1 className="car-title">{auction.title}</h1>
+                  <p className="car-year">{auction.year}</p>
+                </div>
+                <div className="time-remaining">
+                  <i className="fas fa-clock"></i> {timeRemaining}
                 </div>
               </div>
-              <div className="spec-item">
-                <div className="spec-icon"><i className="fas fa-bolt"></i></div>
-                <div className="spec-text">
-                  <span className="spec-label">Engine</span>
-                  <span className="spec-value">{auction.engine}L</span>
+              
+              <div className="car-specs">
+                <div className="spec-item">
+                  <div className="spec-icon"><i className="fas fa-tachometer-alt"></i></div>
+                  <div className="spec-text">
+                    <span className="spec-label">Power</span>
+                    <span className="spec-value">{auction.power} hp</span>
+                  </div>
+                </div>
+                <div className="spec-item">
+                  <div className="spec-icon"><i className="fas fa-bolt"></i></div>
+                  <div className="spec-text">
+                    <span className="spec-label">Engine</span>
+                    <span className="spec-value">{auction.engine}L</span>
+                  </div>
+                </div>
+                <div className="spec-item">
+                  <div className="spec-icon"><i className="fas fa-road"></i></div>
+                  <div className="spec-text">
+                    <span className="spec-label">Mileage</span>
+                    <span className="spec-value">{auction.mileage} mi</span>
+                  </div>
+                </div>
+                <div className="spec-item">
+                  <div className="spec-icon"><i className="fas fa-cogs"></i></div>
+                  <div className="spec-text">
+                    <span className="spec-label">Transmission</span>
+                    <span className="spec-value">{auction.gearbox}</span>
+                  </div>
+                </div>
+                <div className="spec-item">
+                  <div className="spec-icon"><i className="fas fa-gas-pump"></i></div>
+                  <div className="spec-text">
+                    <span className="spec-label">Fuel Type</span>
+                    <span className="spec-value">{auction.fuelType}</span>
+                  </div>
+                </div>
+                <div className="spec-item">
+                  <div className="spec-icon"><i className="fas fa-palette"></i></div>
+                  <div className="spec-text">
+                    <span className="spec-label">Color</span>
+                    <span className="spec-value">{auction.color}</span>
+                  </div>
                 </div>
               </div>
-              <div className="spec-item">
-                <div className="spec-icon"><i className="fas fa-road"></i></div>
-                <div className="spec-text">
-                  <span className="spec-label">Mileage</span>
-                  <span className="spec-value">{auction.mileage} mi</span>
+              
+              <div className="current-bid">
+                <div className="bid-label">CURRENT BID</div>
+                <div className="bid-amount">${auction.currentBid.toLocaleString()}</div>
+                <div className="bid-label">{auction.bidHistory.length} bids so far</div>
+              </div>
+              
+              <button className="bid-button" onClick={() => setIsFlipped(true)}>PLACE A BID</button>
+              
+              <div className="seller-info">
+                <div className="seller-avatar">
+                  {auction.seller.name.split(' ').map(n => n[0]).join('')}
                 </div>
-              </div>
-              <div className="spec-item">
-                <div className="spec-icon"><i className="fas fa-cogs"></i></div>
-                <div className="spec-text">
-                  <span className="spec-label">Transmission</span>
-                  <span className="spec-value">{auction.gearbox}</span>
+                <div>
+                  <span className="seller-label">Sold by</span>
+                  <span className="seller-name">{auction.seller.name}</span>
                 </div>
-              </div>
-              <div className="spec-item">
-                <div className="spec-icon"><i className="fas fa-gas-pump"></i></div>
-                <div className="spec-text">
-                  <span className="spec-label">Fuel Type</span>
-                  <span className="spec-value">{auction.fuelType}</span>
-                </div>
-              </div>
-              <div className="spec-item">
-                <div className="spec-icon"><i className="fas fa-palette"></i></div>
-                <div className="spec-text">
-                  <span className="spec-label">Color</span>
-                  <span className="spec-value">{auction.color}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="current-bid">
-              <div className="bid-label">CURRENT BID</div>
-              <div className="bid-amount">${auction.currentBid.toLocaleString()}</div>
-              <div className="bid-label">{auction.bidHistory.length} bids so far</div>
-            </div>
-            
-            <button className="bid-button" onClick={flipCard}>PLACE A BID</button>
-            
-            <div className="seller-info">
-              <div className="seller-avatar">
-                {auction.seller.name.split(' ').map(n => n[0]).join('')}
-              </div>
-              <div>
-                <span className="seller-label">Sold by</span>
-                <span className="seller-name">{auction.seller.name}</span>
               </div>
             </div>
           </div>
         </div>
-        <div className="flip-indicator" onClick={flipCard}>Bidding Details</div>
       </div>
 
       <div className="card-back">
@@ -244,11 +269,9 @@ const AuctionCard = ({ auction }) => {
           </button>
         </div>
         
-        <button className="back-button" onClick={flipCard}>
+        <button className="back-button" onClick={() => setIsFlipped(false)}>
           BACK TO CAR DETAILS
         </button>
-        
-        <div className="flip-indicator" onClick={flipCard}>Bidding Details</div>
       </div>
     </div>
   );

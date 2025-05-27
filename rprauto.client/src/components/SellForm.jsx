@@ -78,7 +78,15 @@ const SellForm = () => {
             }
 
             // Validate required fields
-            if (!formData.make || !formData.model || !formData.year || !formData.mileage || !formData.price || !formData.listingType || !formData.description) {
+            if (
+                !formData.make ||
+                !formData.model ||
+                !formData.year ||
+                !formData.mileage ||
+                !formData.listingType ||
+                !formData.description ||
+                (formData.listingType === 'buy-now' && !formData.price)
+            ) {
                 setError('Please fill in all required fields');
                 return;
             }
@@ -135,13 +143,15 @@ const SellForm = () => {
                 // Create bid
                 const bidData = {
                     Title: `${formData.make} ${formData.model} ${formData.year}`,
-                    TopBid: parseFloat(formData.price),
-                    MinBid: parseFloat(formData.minBid),
-                    InstantBuy: parseFloat(formData.instantBuy),
+                    TopBid: 0,
+                    MinBid: parseInt(formData.minBid, 10),
+                    InstantBuy: parseInt(formData.instantBuy, 10),
                     Car: carData,
                     EndAt: new Date(formData.endDate).toISOString(),
                     Description: formData.description
                 };
+
+                const payload = { request: bidData };
 
                 const bidResponse = await fetch('https://rprauto.onrender.com/bid', {
                     method: 'POST',
@@ -149,7 +159,7 @@ const SellForm = () => {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token.trim()}`
                     },
-                    body: JSON.stringify(bidData)
+                    body: JSON.stringify(payload)
                 });
 
                 if (!bidResponse.ok) {
@@ -275,18 +285,20 @@ const SellForm = () => {
             </div>
 
             <div className="form-row">
-                <div className="form-group">
-                    <label>Price *</label>
-                    <input 
-                        type="number" 
-                        className="form-input" 
-                        name="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 75000" 
-                        required
-                    />
-                </div>
+                {formData.listingType !== 'auction' && (
+                    <div className="form-group">
+                        <label>Price *</label>
+                        <input 
+                            type="number" 
+                            className="form-input" 
+                            name="price"
+                            value={formData.price}
+                            onChange={handleInputChange}
+                            placeholder="e.g., 75000" 
+                            required={formData.listingType === 'buy-now'}
+                        />
+                    </div>
+                )}
                 <div className="form-group">
                     <label>Listing Type *</label>
                     <select 

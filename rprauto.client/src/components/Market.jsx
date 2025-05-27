@@ -30,44 +30,38 @@ const Market = () => {
     fetchCars();
   }, []);
 
-  // Initialize price range CSS variables
-  useEffect(() => {
-    const maxRange = 200000;
-    const minPercent = (filters.priceMin / maxRange) * 100;
-    const maxPercent = (filters.priceMax / maxRange) * 100;
-    
-    const priceRangeElement = document.querySelector('.price-range');
-    if (priceRangeElement) {
-      priceRangeElement.style.setProperty('--min-percent', `${minPercent}%`);
-      priceRangeElement.style.setProperty('--max-percent', `${maxPercent}%`);
-    }
-  }, []);
-
   const fetchCars = async () => {
     try {
       setLoading(true);
       const response = await fetch('https://rprauto.onrender.com/listing?page=1&pageSize=30');
       const data = await response.json();
       
-      const formattedCars = data.Listings.map(listing => ({
-        id: listing.Id?.Timestamp?.toString(),
-        title: `${listing.Car.Make} ${listing.Car.Model}`,
-        year: listing.Car.Year,
-        make: listing.Car.Make,
-        model: listing.Car.Model,
-        gearbox: listing.Car.GearboxType,
-        color: listing.Car.Color,
-        doors: listing.Car.Doors,
-        fuelType: listing.Car.FuelType,
-        engine: listing.Car.EngineSize,
-        power: listing.Car.HorsePower,
-        mileage: listing.Car.Mileage,
-        bodyType: listing.Car.BodyType,
-        price: listing.Price,
-        description: listing.Description,
-        images: listing.Car.Pictures || [],
-        phone: listing.User?.Personal?.PhoneNumber || "N/A"
-      }));
+      const formattedCars = data.Listings.map(listing => {
+        // Ensure we have valid images array
+        const images = Array.isArray(listing.Car.Pictures) && listing.Car.Pictures.length > 0 
+          ? listing.Car.Pictures 
+          : ['/placeholder-car.jpg']; // Add a placeholder image if no images exist
+
+        return {
+          id: listing.Id,
+          title: `${listing.Car.Make} ${listing.Car.Model}`,
+          year: listing.Car.Year,
+          make: listing.Car.Make,
+          model: listing.Car.Model,
+          gearbox: listing.Car.GearboxType,
+          color: listing.Car.Color,
+          doors: listing.Car.Doors,
+          fuelType: listing.Car.FuelType,
+          engine: listing.Car.EngineSize,
+          power: listing.Car.HorsePower,
+          mileage: listing.Car.Mileage,
+          bodyType: listing.Car.BodyType,
+          price: listing.Price,
+          description: listing.Description,
+          images: images,
+          phone: listing.User?.Personal?.PhoneNumber || "N/A"
+        };
+      });
 
       setCars(formattedCars);
       
@@ -94,68 +88,53 @@ const Market = () => {
       ...prev,
       [name]: value
     }));
-
-    // Update CSS variables for price range slider
-    if (name === 'priceMin' || name === 'priceMax') {
-      const minValue = name === 'priceMin' ? value : filters.priceMin;
-      const maxValue = name === 'priceMax' ? value : filters.priceMax;
-      const maxRange = 500000; // This should match the max value in your range inputs
-      
-      const minPercent = (minValue / maxRange) * 100;
-      const maxPercent = (maxValue / maxRange) * 100;
-      
-      const priceRangeElement = document.querySelector('.price-range');
-      if (priceRangeElement) {
-        priceRangeElement.style.setProperty('--min-percent', `${minPercent}%`);
-        priceRangeElement.style.setProperty('--max-percent', `${maxPercent}%`);
-      }
-    }
   };
 
-  const handlePriceRangeChange = (e) => {
-    const { name, value } = e.target;
-    const newValue = parseInt(value);
-    
-    if (name === 'priceMin' && newValue > filters.priceMax) {
-      return; // Don't allow min to exceed max
-    }
-    if (name === 'priceMax' && newValue < filters.priceMin) {
-      return; // Don't allow max to be less than min
-    }
-    
-    setFilters(prev => {
-      const newFilters = { ...prev, [name]: newValue };
+  const applyFilters = async () => {
+    try {
+      setLoading(true);
+      let queryParams = new URLSearchParams();
       
-      // Update the range visualization
-      const priceRange = document.querySelector('.price-range');
-      if (priceRange) {
-        const minPercent = (newFilters.priceMin / 500000) * 100;
-        const maxPercent = (newFilters.priceMax / 500000) * 100;
-        priceRange.style.setProperty('--min-percent', `${minPercent}%`);
-        priceRange.style.setProperty('--max-percent', `${maxPercent}%`);
-      }
+      if (filters.make) queryParams.append('make', filters.make);
+      if (filters.model) queryParams.append('model', filters.model);
+      if (filters.gearbox) queryParams.append('gearbox', filters.gearbox);
+      if (filters.color) queryParams.append('color', filters.color);
+      if (filters.doors) queryParams.append('doors', filters.doors);
+      if (filters.fuel) queryParams.append('fuel', filters.fuel);
+      if (filters.engine) queryParams.append('engine', filters.engine);
+      if (filters.power) queryParams.append('power', filters.power);
+      if (filters.mileage) queryParams.append('mileage', filters.mileage);
       
-      return newFilters;
-    });
-  };
+      const response = await fetch(`https://rprauto.onrender.com/listing/search?${queryParams.toString()}`);
+      const data = await response.json();
+      
+      const formattedCars = data.map(listing => ({
+        id: listing._id,
+        title: `${listing.Car.Make} ${listing.Car.Model}`,
+        year: listing.Car.Year,
+        make: listing.Car.Make,
+        model: listing.Car.Model,
+        gearbox: listing.Car.GearboxType,
+        color: listing.Car.Color,
+        doors: listing.Car.Doors,
+        fuelType: listing.Car.FuelType,
+        engine: listing.Car.EngineSize,
+        power: listing.Car.HorsePower,
+        mileage: listing.Car.Mileage,
+        bodyType: listing.Car.BodyType,
+        price: listing.Price,
+        description: listing.Description,
+        images: listing.Car.Pictures || [],
+        phone: listing.User?.Personal?.PhoneNumber || "N/A"
+      }));
 
-  const applyFilters = () => {
-    const queryParams = new URLSearchParams();
-    
-    if (filters.make) queryParams.append('make', filters.make.toLowerCase());
-    if (filters.model) queryParams.append('model', filters.model.toLowerCase());
-    if (filters.priceMin) queryParams.append('price', filters.priceMin);
-    if (filters.yearFrom) queryParams.append('year', filters.yearFrom);
-    if (filters.gearboxType !== 'Any') queryParams.append('gearbox', filters.gearboxType);
-    if (filters.bodyType !== 'Any') queryParams.append('body', filters.bodyType);
-    if (filters.color) queryParams.append('color', filters.color.toLowerCase());
-    if (filters.doors) queryParams.append('doors', filters.doors);
-    if (filters.fuelType !== 'Any') queryParams.append('fuel', filters.fuelType);
-    if (filters.engineSize) queryParams.append('engine', filters.engineSize);
-    if (filters.horsePower) queryParams.append('power', filters.horsePower);
-    if (filters.mileage) queryParams.append('mileage', filters.mileage);
-
-    fetchCars(queryParams);
+      setCars(formattedCars);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error applying filters:', error);
+      setError('Failed to apply filters. Please try again.');
+      setLoading(false);
+    }
   };
 
   const clearFilters = () => {
@@ -262,7 +241,7 @@ const Market = () => {
                       max="500000"
                       value={filters.priceMin}
                       name="priceMin"
-                      onChange={handlePriceRangeChange}
+                      onChange={handleFilterChange}
                       className="slider"
                     />
                     <input
@@ -271,7 +250,7 @@ const Market = () => {
                       max="500000"
                       value={filters.priceMax}
                       name="priceMax"
-                      onChange={handlePriceRangeChange}
+                      onChange={handleFilterChange}
                       className="slider"
                     />
                   </div>
@@ -498,47 +477,56 @@ const Market = () => {
                   >
                     <div className="car-card-front">
                       <div className="car-slideshow">
-                        {car.images.map((image, index) => (
-                          <div
-                            key={index}
-                            className={`slide ${currentSlides[car.id] === index ? 'active' : ''}`}
-                          >
+                        {car.images.map((image, index) => {
+                          // Ensure the image URL is properly formatted
+                          const imageUrl = image.startsWith('http') ? image : `https://rprauto.onrender.com${image}`;
+                          return (
                             <div
-                              className="car-photo"
-                              style={{ backgroundImage: `url(${image})` }}
-                            ></div>
-                          </div>
-                        ))}
+                              key={index}
+                              className={`slide ${currentSlides[car.id] === index ? 'active' : ''}`}
+                            >
+                              <div
+                                className="car-photo"
+                                style={{ 
+                                  backgroundImage: `url(${imageUrl})`,
+                                  backgroundSize: 'cover',
+                                  backgroundPosition: 'center'
+                                }}
+                              ></div>
+                            </div>
+                          );
+                        })}
                         
-                        <div
-                          className="nav-arrow prev"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            changeSlide(car.id, -1, e);
-                          }}
-                        >
-                          ❮
-                        </div>
-                        <div
-                          className="nav-arrow next"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            changeSlide(car.id, 1, e);
-                          }}
-                        >
-                          ❯
-                        </div>
+                        {car.images.length > 1 && (
+                          <>
+                            <div
+                              className="nav-arrow prev"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                changeSlide(car.id, -1, e);
+                              }}
+                            >
+                              ❮
+                            </div>
+                            <div
+                              className="nav-arrow next"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                changeSlide(car.id, 1, e);
+                              }}
+                            >
+                              ❯
+                            </div>
+                          </>
+                        )}
                         
                         <div className="slide-indicator">
                           {car.images.map((_, index) => (
                             <div
                               key={index}
                               className={`dot ${currentSlides[car.id] === index ? 'active' : ''}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                goToSlide(car.id, index, e);
-                              }}
-                            ></div>
+                              onClick={(e) => goToSlide(car.id, index, e)}
+                            />
                           ))}
                         </div>
                       </div>

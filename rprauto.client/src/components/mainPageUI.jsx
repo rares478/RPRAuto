@@ -80,7 +80,7 @@ function MainPage() {
                     // Get 3 random cars from the listings
                     const randomCars = data.Listings
                          .map(listing => ({
-                              id: listing.Id?.Timestamp?.toString(),
+                              id: listing.Id,
                               make: listing.Car.Make,
                               model: listing.Car.Model,
                               year: listing.Car.Year,
@@ -115,7 +115,7 @@ function MainPage() {
      }, []);
 
     return (
-          <div className="main-container">
+          <div className="main-page">
                {/* Hero Section */}
                <section className="hero">
                     <div className="container">

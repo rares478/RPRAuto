@@ -6,6 +6,7 @@ using RPRAuto.Server.Exceptions;
 using RPRAuto.Server.Models.Enums;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -15,13 +16,16 @@ public class BidController : ControllerBase
 {
     private readonly IBidRepository _bidRepository;
     private readonly IUserRepository _userRepository;
+    private readonly ILogger<BidController> _logger;
 
     public BidController(
         IBidRepository bidRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        ILogger<BidController> logger)
     {
         _bidRepository = bidRepository;
         _userRepository = userRepository;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -55,28 +59,86 @@ public class BidController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateBid([FromBody] BidCreateRequest request)
+    public async Task<IActionResult> CreateBid([FromBody] BidCreateRequestWrapper wrapper)
     {
-        var userId = GetUserIdFromToken();
-        var user = await _userRepository.GetByIdAsync(userId);
-        if (user == null)
-            throw new NotFoundException("User not found");
-
-        var bid = new Bid
+        _logger.LogInformation("=== CreateBid Request Debug ===");
+        _logger.LogInformation("Raw request data: {@Request}", wrapper.Request);
+        _logger.LogInformation("Title: {Title}", wrapper.Request.Title);
+        _logger.LogInformation("MinBid: {MinBid}", wrapper.Request.MinBid);
+        _logger.LogInformation("InstantBuy: {InstantBuy}", wrapper.Request.InstantBuy);
+        _logger.LogInformation("EndAt: {EndAt}", wrapper.Request.EndAt);
+        _logger.LogInformation("Car Make: {Make}", wrapper.Request.Car.Make);
+        _logger.LogInformation("Car Model: {Model}", wrapper.Request.Car.Model);
+        _logger.LogInformation("Car Year: {Year}", wrapper.Request.Car.Year);
+        _logger.LogInformation("Car Mileage: {Mileage}", wrapper.Request.Car.Mileage);
+        _logger.LogInformation("Car Color: {Color}", wrapper.Request.Car.Color);
+        _logger.LogInformation("Car GearboxType: {GearboxType}", wrapper.Request.Car.GearboxType);
+        _logger.LogInformation("Car FuelType: {FuelType}", wrapper.Request.Car.FuelType);
+        _logger.LogInformation("Car BodyType: {BodyType}", wrapper.Request.Car.BodyType);
+        _logger.LogInformation("Car EngineSize: {EngineSize}", wrapper.Request.Car.EngineSize);
+        _logger.LogInformation("Car HorsePower: {HorsePower}", wrapper.Request.Car.HorsePower);
+        _logger.LogInformation("Car Doors: {Doors}", wrapper.Request.Car.Doors);
+        _logger.LogInformation("Car Description: {Description}", wrapper.Request.Car.Description);
+        
+        try 
         {
-            UserId = userId,
-            Title = request.Title,
-            TopBid = request.TopBid,
-            MinBid = request.MinBid,
-            InstantBuy = request.InstantBuy,
-            Car = request.Car,
-            CreatedAt = DateTime.UtcNow,
-            EndAt = request.EndAt,
-            Bids = new Dictionary<ObjectId, decimal>()
-        };
+            var userId = GetUserIdFromToken();
+            _logger.LogInformation("UserId from token: {UserId}", userId);
+            
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogError("User not found for ID: {UserId}", userId);
+                throw new NotFoundException("User not found");
+            }
+            _logger.LogInformation("User found: {UserId}", userId);
 
-        await _bidRepository.CreateAsync(bid);
-        return Ok(new { message = "Bid created successfully", bidId = bid.Id });
+            _logger.LogInformation("Car data from request: {@Car}", wrapper.Request.Car);
+            var bid = new Bid
+            {
+                UserId = userId,
+                Title = wrapper.Request.Title ?? $"{wrapper.Request.Car.Make} {wrapper.Request.Car.Model} {wrapper.Request.Car.Year}",
+                TopBid = 0,
+                MinBid = wrapper.Request.MinBid,
+                InstantBuy = wrapper.Request.InstantBuy,
+                Car = new RPRAuto.Server.Models.Car.Car
+                {
+                    Make = wrapper.Request.Car.Make,
+                    Model = wrapper.Request.Car.Model,
+                    Year = wrapper.Request.Car.Year,
+                    Mileage = wrapper.Request.Car.Mileage,
+                    Color = wrapper.Request.Car.Color,
+                    GearboxType = wrapper.Request.Car.GearboxType,
+                    FuelType = wrapper.Request.Car.FuelType,
+                    BodyType = wrapper.Request.Car.BodyType,
+                    EngineSize = wrapper.Request.Car.EngineSize,
+                    HorsePower = wrapper.Request.Car.HorsePower,
+                    Pictures = wrapper.Request.Car.Pictures,
+                    Doors = wrapper.Request.Car.Doors,
+                    Description = wrapper.Request.Car.Description
+                },
+                CreatedAt = DateTime.UtcNow,
+                EndAt = wrapper.Request.EndAt,
+                Bids = new Dictionary<ObjectId, decimal>()
+            };
+            _logger.LogInformation("Created bid object: {@Bid}", bid);
+
+            await _bidRepository.CreateAsync(bid);
+            _logger.LogInformation("Bid saved to database with ID: {BidId}", bid.Id);
+
+            user.Bids.Add(bid.Id);
+            await _userRepository.UpdateAsync(userId, user);
+            _logger.LogInformation("User's bids updated");
+
+            _logger.LogInformation("=== CreateBid Request Complete ===");
+            return Ok(new { message = "Bid created successfully", bidId = bid.Id });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating bid: {Message}", ex.Message);
+            _logger.LogError("Stack trace: {StackTrace}", ex.StackTrace);
+            throw;
+        }
     }
 
     [HttpGet("{id}")]
@@ -178,10 +240,28 @@ public class BidController : ControllerBase
 
     private ObjectId GetUserIdFromToken()
     {
-        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
+        var authHeader = Request.Headers["Authorization"].ToString();
+        _logger.LogInformation("=== Token Debug Info ===");
+        _logger.LogInformation("Raw Authorization header: {AuthHeader}", authHeader);
+        
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        _logger.LogInformation("UserIdClaim: {UserIdClaim}", userIdClaim?.Value ?? "null");
+        _logger.LogInformation("All Claims: {Claims}", string.Join(", ", User.Claims.Select(c => $"{c.Type}: {c.Value}")));
+        
         if (userIdClaim == null || !ObjectId.TryParse(userIdClaim.Value, out var userId))
+        {
+            _logger.LogError("Token validation failed:");
+            _logger.LogError("- UserIdClaim is null: {IsNull}", userIdClaim == null);
+            if (userIdClaim != null)
+            {
+                _logger.LogError("- UserIdClaim value: {Value}", userIdClaim.Value);
+                _logger.LogError("- Could parse as ObjectId: {CanParse}", ObjectId.TryParse(userIdClaim.Value, out _));
+            }
             throw new UnauthorizedException("Invalid user token");
+        }
 
+        _logger.LogInformation("Successfully parsed userId: {UserId}", userId);
+        _logger.LogInformation("=====================");
         return userId;
     }
 }
