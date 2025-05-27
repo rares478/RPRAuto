@@ -11,11 +11,12 @@ const SellForm = () => {
         price: '',
         listingType: '',
         color: '',
-        gearbox: '',
+        gearboxType: '',
         fuelType: '',
         bodyType: '',
-        engine: '',
+        engineSize: '',
         description: '',
+        doors: 4,
         contactName: 'John Doe',
         phone: '+1 (555) 123-4567',
         location: '',
@@ -83,17 +84,19 @@ const SellForm = () => {
 
             // Convert form data to match server model
             const carData = {
-                Make: formData.make,
-                Model: formData.model,
-                Year: parseInt(formData.year),
-                Mileage: parseInt(formData.mileage),
-                Color: formData.color,
-                GearboxType: formData.gearbox,
-                FuelType: formData.fuelType.toUpperCase(),
-                BodyType: formData.bodyType.toUpperCase(),
-                EngineSize: formData.engine ? parseFloat(formData.engine) : 0,
-                HorsePower: formData.engine ? parseInt(formData.engine.split('L')[0]) * 100 : 0,
-                Pictures: imagePreviews.map(preview => preview.url)
+                make: formData.make,
+                model: formData.model,
+                year: parseInt(formData.year),
+                mileage: parseInt(formData.mileage),
+                color: formData.color || '',
+                gearboxType: formData.gearboxType || 'Any',
+                fuelType: formData.fuelType || 'Petrol',
+                bodyType: formData.bodyType || 'Any',
+                engineSize: formData.engineSize ? parseFloat(formData.engineSize) : 0,
+                horsePower: formData.engineSize ? parseInt(formData.engineSize.split('L')[0]) * 100 : 0,
+                pictures: imagePreviews.map(preview => preview.url),
+                doors: formData.doors,
+                description: formData.description
             };
 
             if (formData.listingType === 'buy-now') {
@@ -106,7 +109,7 @@ const SellForm = () => {
                     }
                 };
 
-                console.log('Sending listing data:', listingData); // Debug log
+                console.log('Sending listing data:', JSON.stringify(listingData, null, 2)); // Debug log with pretty print
 
                 const listingResponse = await fetch('https://rprauto.onrender.com/listing', {
                     method: 'POST',
@@ -135,19 +138,7 @@ const SellForm = () => {
                     TopBid: parseFloat(formData.price),
                     MinBid: parseFloat(formData.minBid),
                     InstantBuy: parseFloat(formData.instantBuy),
-                    Car: {
-                        Make: carData.Make,
-                        Model: carData.Model,
-                        Year: carData.Year,
-                        Mileage: carData.Mileage,
-                        Color: carData.Color,
-                        GearboxType: carData.GearboxType,
-                        FuelType: carData.FuelType,
-                        BodyType: carData.BodyType,
-                        EngineSize: carData.EngineSize || 0,
-                        HorsePower: carData.HorsePower || 0,
-                        Pictures: carData.Pictures
-                    },
+                    Car: carData,
                     EndAt: new Date(formData.endDate).toISOString(),
                     Description: formData.description
                 };
@@ -183,11 +174,12 @@ const SellForm = () => {
             price: '',
             listingType: '',
             color: '',
-            gearbox: '',
+            gearboxType: '',
             fuelType: '',
             bodyType: '',
-            engine: '',
+            engineSize: '',
             description: '',
+            doors: 4,
             contactName: 'John Doe',
             phone: '+1 (555) 123-4567',
             location: '',
@@ -370,8 +362,8 @@ const SellForm = () => {
                     <label>Gearbox</label>
                     <select 
                         className="form-input"
-                        name="gearbox"
-                        value={formData.gearbox}
+                        name="gearboxType"
+                        value={formData.gearboxType}
                         onChange={handleInputChange}
                     >
                         <option value="">Select gearbox</option>
@@ -424,12 +416,14 @@ const SellForm = () => {
                 <div className="form-group">
                     <label>Engine</label>
                     <input 
-                        type="text" 
+                        type="number" 
                         className="form-input" 
-                        name="engine"
-                        value={formData.engine}
+                        name="engineSize"
+                        value={formData.engineSize}
                         onChange={handleInputChange}
-                        placeholder="e.g., 3.0L Twin-Turbo I6"
+                        placeholder="e.g., 3.0"
+                        step="0.1"
+                        min="0"
                     />
                 </div>
             </div>
