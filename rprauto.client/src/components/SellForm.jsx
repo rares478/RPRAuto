@@ -143,13 +143,15 @@ const SellForm = () => {
                 // Create bid
                 const bidData = {
                     Title: `${formData.make} ${formData.model} ${formData.year}`,
-                    TopBid: parseFloat(formData.price),
-                    MinBid: parseFloat(formData.minBid),
-                    InstantBuy: parseFloat(formData.instantBuy),
+                    TopBid: 0,
+                    MinBid: parseInt(formData.minBid, 10),
+                    InstantBuy: parseInt(formData.instantBuy, 10),
                     Car: carData,
                     EndAt: new Date(formData.endDate).toISOString(),
                     Description: formData.description
                 };
+
+                const payload = { request: bidData };
 
                 const bidResponse = await fetch('https://rprauto.onrender.com/bid', {
                     method: 'POST',
@@ -157,7 +159,7 @@ const SellForm = () => {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token.trim()}`
                     },
-                    body: JSON.stringify(bidData)
+                    body: JSON.stringify(payload)
                 });
 
                 if (!bidResponse.ok) {
