@@ -37,7 +37,7 @@ const Market = () => {
       const data = await response.json();
       
       const formattedCars = data.Listings.map(listing => ({
-        id: listing._id,
+        id: listing.Id || listing._id,
         title: `${listing.Car.Make} ${listing.Car.Model}`,
         year: listing.Car.Year,
         make: listing.Car.Make,
@@ -56,12 +56,15 @@ const Market = () => {
         phone: listing.User?.Personal?.PhoneNumber || "N/A"
       }));
 
+      console.log('Formatted cars:', formattedCars);
       setCars(formattedCars);
       
       // Initialize current slides for each car
       const initialSlides = {};
       formattedCars.forEach(car => {
-        initialSlides[car.id] = 0;
+        if (car.id) {
+          initialSlides[car.id] = 0;
+        }
       });
       setCurrentSlides(initialSlides);
       

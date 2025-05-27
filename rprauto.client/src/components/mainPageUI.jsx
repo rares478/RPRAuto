@@ -80,7 +80,7 @@ function MainPage() {
                     // Get 3 random cars from the listings
                     const randomCars = data.Listings
                          .map(listing => ({
-                              id: listing._id,
+                              id: listing.Id || listing._id,
                               make: listing.Car.Make,
                               model: listing.Car.Model,
                               year: listing.Car.Year,
@@ -102,7 +102,11 @@ function MainPage() {
                               showPhone: false
                          }));
                     
+                    console.log('Random cars:', randomCars);
                     setCars(randomCars);
+                    
+                    // Initialize current slides for each car
+                    const initialSlides = {};
                } catch (error) {
                     console.error('Error fetching cars:', error);
                }
