@@ -7,6 +7,41 @@ function MainPage() {
      const [currentSlide, setCurrentSlide] = useState({});
      const [flippedCards, setFlippedCards] = useState({});
      const [showPhones, setShowPhones] = useState({});
+     const [siteSettings, setSiteSettings] = useState({
+          siteTitle: 'RPR Auto',
+          heroTitle: 'Find Your Dream Car',
+          heroSubtitle: 'Buy, sell, and bid on premium vehicles in our trusted marketplace',
+          activeUsers: '0',
+          carsSold: '0',
+          liveAuctions: '0',
+          satisfactionRate: '0'
+     });
+
+     useEffect(() => {
+          loadSiteSettings();
+          fetchCars();
+     }, []);
+
+     const loadSiteSettings = async () => {
+          try {
+               const response = await fetch('https://rprauto.onrender.com/api/sitesettings');
+               if (!response.ok) {
+                    throw new Error('Failed to load site settings');
+               }
+               const data = await response.json();
+               setSiteSettings({
+                    siteTitle: data.SiteTitle || 'RPR Auto',
+                    heroTitle: data.HeroTitle || 'Find Your Dream Car',
+                    heroSubtitle: data.HeroSubtitle || 'Buy, sell, and bid on premium vehicles in our trusted marketplace',
+                    activeUsers: data.ActiveUsers || '0',
+                    carsSold: data.CarsSold || '0',
+                    liveAuctions: data.LiveAuctions || '0',
+                    satisfactionRate: data.SatisfactionRate || '0'
+               });
+          } catch (error) {
+               console.error('Error loading site settings:', error);
+          }
+     };
 
      // Function to handle slide changes
      const changeSlide = (carId, direction, event) => {
@@ -71,48 +106,44 @@ function MainPage() {
      };
 
      // Fetch cars data from your API
-     useEffect(() => {
-          const fetchCars = async () => {
-               try {
-                    const response = await fetch('https://rprauto.onrender.com/listing?page=1&pageSize=3');
-                    const data = await response.json();
-                    
-                    // Get 3 random cars from the listings
-                    const randomCars = data.Listings
-                         .map(listing => ({
-                              id: listing.Id,
-                              make: listing.Car.Make,
-                              model: listing.Car.Model,
-                              year: listing.Car.Year,
-                              price: listing.Price,
-                              description: listing.Description,
-                              images: listing.Car.Pictures || [],
-                              specs: {
-                                   "Mileage": listing.Car.Mileage,
-                                   "Engine": listing.Car.EngineSize,
-                                   "Power": listing.Car.HorsePower,
-                                   "Fuel": listing.Car.FuelType,
-                                   "Gearbox": listing.Car.GearboxType,
-                                   "Body": listing.Car.BodyType,
-                                   "Color": listing.Car.Color,
-                                   "Doors": listing.Car.Doors
-                              },
-                              phoneNumber: listing.User?.Personal?.PhoneNumber || "N/A",
-                              isFlipped: false,
-                              showPhone: false
-                         }));
-                    
-                    setCars(randomCars);
-                    
-                    // Initialize current slides for each car
-                    const initialSlides = {};
-               } catch (error) {
-                    console.error('Error fetching cars:', error);
-               }
-          };
-          
-          fetchCars();
-     }, []);
+     const fetchCars = async () => {
+          try {
+               const response = await fetch('https://rprauto.onrender.com/listing?page=1&pageSize=3');
+               const data = await response.json();
+               
+               // Get 3 random cars from the listings
+               const randomCars = data.Listings
+                    .map(listing => ({
+                         id: listing.Id,
+                         make: listing.Car.Make,
+                         model: listing.Car.Model,
+                         year: listing.Car.Year,
+                         price: listing.Price,
+                         description: listing.Description,
+                         images: listing.Car.Pictures || [],
+                         specs: {
+                              "Mileage": listing.Car.Mileage,
+                              "Engine": listing.Car.EngineSize,
+                              "Power": listing.Car.HorsePower,
+                              "Fuel": listing.Car.FuelType,
+                              "Gearbox": listing.Car.GearboxType,
+                              "Body": listing.Car.BodyType,
+                              "Color": listing.Car.Color,
+                              "Doors": listing.Car.Doors
+                         },
+                         phoneNumber: listing.User?.Personal?.PhoneNumber || "N/A",
+                         isFlipped: false,
+                         showPhone: false
+                    }));
+                
+               setCars(randomCars);
+               
+               // Initialize current slides for each car
+               const initialSlides = {};
+          } catch (error) {
+               console.error('Error fetching cars:', error);
+          }
+     };
 
     return (
           <div className="main-page">
@@ -120,8 +151,8 @@ function MainPage() {
                <section className="hero">
                     <div className="container">
                          <div className="hero-content">
-                              <h1>Find Your Dream Car</h1>
-                              <p>Buy, sell, and bid on premium vehicles in our trusted marketplace</p>
+                              <h1>{siteSettings.heroTitle}</h1>
+                              <p>{siteSettings.heroSubtitle}</p>
                               <div className="search-bar">
                                    <input type="text" placeholder="Search by make, model, or year..." />
                                    <button className="btn btn-primary">
@@ -141,31 +172,31 @@ function MainPage() {
                                    <div className="stat-icon">
                                         <i className="fas fa-users"></i>
                                    </div>
-                                   <h3>50K+</h3>
+                                   <h3>{siteSettings.activeUsers}</h3>
                                    <p>Active Users</p>
                               </div>
                               <div className="stat-item">
                                    <div className="stat-icon">
                                         <i className="fas fa-award"></i>
                                    </div>
-                                   <h3>15K+</h3>
+                                   <h3>{siteSettings.carsSold}</h3>
                                    <p>Cars Sold</p>
                               </div>
                               <div className="stat-item">
                                    <div className="stat-icon">
                                         <i className="fas fa-clock"></i>
                                    </div>
-                                   <h3>24/7</h3>
+                                   <h3>{siteSettings.liveAuctions}</h3>
                                    <p>Live Auctions</p>
                               </div>
                               <div className="stat-item">
                                    <div className="stat-icon">
                                         <i className="fas fa-chart-line"></i>
-                    </div>
-                                   <h3>98%</h3>
+                                   </div>
+                                   <h3>{siteSettings.satisfactionRate}</h3>
                                    <p>Satisfaction Rate</p>
-                    </div>
-                </div>
+                              </div>
+                         </div>
                     </div>
                </section>
 

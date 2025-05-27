@@ -133,10 +133,10 @@ const OwnerPanel = ({ isOpen, onClose }) => {
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    activeUsers: settings.activeUsers,
-                    carsSold: settings.carsSold,
-                    liveAuctions: settings.liveAuctions,
-                    satisfactionRate: settings.satisfactionRate
+                    ActiveUsers: settings.activeUsers,
+                    CarsSold: settings.carsSold,
+                    LiveAuctions: settings.liveAuctions,
+                    SatisfactionRate: settings.satisfactionRate
                 })
             });
 
@@ -145,6 +145,17 @@ const OwnerPanel = ({ isOpen, onClose }) => {
                 console.error('Error response:', errorData); // Debug log
                 throw new Error(errorData.message || 'Failed to update statistics');
             }
+
+            const data = await response.json();
+            console.log('Response data:', data); // Debug log
+
+            setSettings(prev => ({
+                ...prev,
+                activeUsers: data.ActiveUsers || '0',
+                carsSold: data.CarsSold || '0',
+                liveAuctions: data.LiveAuctions || '0',
+                satisfactionRate: data.SatisfactionRate || '0'
+            }));
 
             showMessage('Site statistics updated successfully', 'success');
         } catch (error) {

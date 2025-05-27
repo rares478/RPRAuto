@@ -88,7 +88,7 @@ namespace RPRAuto.Server.Controllers
             }
         }
 
-        [Authorize(Roles = "2")] // Only owner can update settings
+        [Authorize(Roles = "2,Admin")] // Allow both owner (2) and admin roles
         [HttpPut("statistics")]
         public async Task<IActionResult> UpdateStatistics([FromBody] SiteSettings settings)
         {
@@ -105,10 +105,10 @@ namespace RPRAuto.Server.Controllers
                     return Forbid("No role claim found in token");
                 }
 
-                if (roleClaim.Value != "2")
+                if (roleClaim.Value != "2" && roleClaim.Value != "Admin")
                 {
-                    _logger.LogWarning("User does not have owner role. Current role: {Role}", roleClaim.Value);
-                    return Forbid($"User does not have owner role. Current role: {roleClaim.Value}");
+                    _logger.LogWarning("User does not have required role. Current role: {Role}", roleClaim.Value);
+                    return Forbid($"User does not have required role. Current role: {roleClaim.Value}");
                 }
 
                 _logger.LogInformation("Updating statistics with values: ActiveUsers={ActiveUsers}, CarsSold={CarsSold}, LiveAuctions={LiveAuctions}, SatisfactionRate={SatisfactionRate}",
@@ -121,8 +121,9 @@ namespace RPRAuto.Server.Controllers
                     settings.SatisfactionRate
                 );
 
+                var updatedSettings = await _siteSettingsRepository.GetSettingsAsync();
                 _logger.LogInformation("Site statistics updated successfully");
-                return Ok(new { message = "Site statistics updated successfully" });
+                return Ok(updatedSettings);
             }
             catch (Exception ex)
             {
@@ -131,7 +132,7 @@ namespace RPRAuto.Server.Controllers
             }
         }
 
-        [Authorize(Roles = "2")] // Only owner can update settings
+        [Authorize(Roles = "2,Admin")] // Only owner can update settings
         [HttpPut("maintenance")]
         public async Task<IActionResult> ToggleMaintenanceMode([FromBody] bool maintenanceMode)
         {
