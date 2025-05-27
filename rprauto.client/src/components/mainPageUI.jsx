@@ -11,9 +11,10 @@ function MainPage() {
     const [currentSlide, setCurrentSlide] = useState({});
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [isOwnerModalVisible, setIsOwnerModalVisible] = useState(false); // State for the first popup
-    const [isOwnerPanelVisible, setIsOwnerPanelVisible] = useState(false); // State for the second popup
-    const [ownerPassword, setOwnerPassword] = useState(""); // State to handle owner password input
+    const [isOwnerModalVisible, setIsOwnerModalVisible] = useState(false);
+    const [isOwnerPanelVisible, setIsOwnerPanelVisible] = useState(false);
+    const [ownerPassword, setOwnerPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState(""); 
 
     // Check authentication status
     useEffect(() => {
@@ -96,32 +97,20 @@ function MainPage() {
         }, 3000);
     };
 
-    // Function to handle owner login
-    // Function to handle showing the Owner Modal
-    const showOwnerModal = () => {
-        setIsOwnerModalVisible(true);
-    };
-
-    // Function to handle closing the Owner Modal
-    const closeOwnerModal = () => {
-        setIsOwnerModalVisible(false);
-        setOwnerPassword(""); // Clear the password input
-    };
-
-    // Function to handle closing the Owner Panel
-    const closeOwnerPanel = () => {
-        setIsOwnerPanelVisible(false);
-    };
-
-    // Function to handle Owner Login
     const handleOwnerLogin = (e) => {
         e.preventDefault();
         if (ownerPassword === "1234") {
-            setIsOwnerModalVisible(false); // Close the first popup
-            setIsOwnerPanelVisible(true); // Show the second popup
+            setIsOwnerModalVisible(false);
+            setIsOwnerPanelVisible(true);
+            setErrorMessage("");
         } else {
-            alert("Invalid password. Access denied.");
+            setErrorMessage("Invalid password. Please try again."); // Show error message
         }
+    };
+
+    // Function to close the owner panel
+    const closeOwnerPanel = () => {
+        setIsOwnerPanelVisible(false);
     };
 
     return (
@@ -146,7 +135,7 @@ function MainPage() {
                     <div class="nav-buttons">
                         {!isAuthenticated && (
                             <>
-                                <button className="nav-button" onClick={() => window.location.href = "/signin"} style={{ display: "inline" }}>
+                                <button className="nav-button" onClick={() => window.location.href = "/login"} style={{ display: "inline" }}>
                                     Sign In
                                 </button>
                                 <button className="nav-button" onClick={() => window.location.href = "/register"} style={{ display: "inline" }}>
@@ -178,11 +167,14 @@ function MainPage() {
                 </div>
             </nav>
 
-            {/* Owner Section */}
+            {/* Owner Password Modal */}
             {isOwnerModalVisible && (
                 <div className="modal">
                     <div className="modal-content">
-                        <span className="close" onClick={closeOwnerModal}>
+                        <span
+                            className="close"
+                            onClick={() => setIsOwnerModalVisible(false)}
+                        >
                             &times;
                         </span>
                         <h2>Owner Access</h2>
@@ -198,7 +190,13 @@ function MainPage() {
                                     required
                                 />
                             </div>
-                            <button type="submit" className="btn btn-primary full-width">
+                            {errorMessage && (
+                                <p className="error-message">{errorMessage}</p>
+                            )}
+                            <button
+                                type="submit"
+                                className="btn btn-primary full-width"
+                            >
                                 Access Owner Panel
                             </button>
                         </form>
@@ -206,7 +204,7 @@ function MainPage() {
                 </div>
             )}
 
-            {/* Owner Panel (2nd Popup) */}
+            {/* Owner Panel */}
             {isOwnerPanelVisible && (
                 <div className="modal owner-panel">
                     <div className="modal-content owner-content">
@@ -214,24 +212,44 @@ function MainPage() {
                             &times;
                         </span>
                         <h2>Owner Control Panel</h2>
-
                         <div className="owner-sections">
                             <div className="owner-section">
                                 <h3>
-                                    <i className="fas fa-palette"></i> Site Customization
+                                    <i className="fas fa-palette"></i> Site
+                                    Customization
                                 </h3>
                                 <div className="owner-controls">
                                     <div className="control-group">
                                         <label>Site Title</label>
-                                        <input type="text" id="siteTitle" className="form-input" defaultValue="RPR Auto" />
-                                        <button className="btn btn-sm btn-primary" onClick={() => alert("Site title updated!")}>
+                                        <input
+                                            type="text"
+                                            id="siteTitle"
+                                            className="form-input"
+                                            defaultValue="RPR Auto"
+                                        />
+                                        <button
+                                            className="btn btn-sm btn-primary"
+                                            onClick={() =>
+                                                alert("Site title updated!")
+                                            }
+                                        >
                                             Update
                                         </button>
                                     </div>
                                     <div className="control-group">
                                         <label>Hero Title</label>
-                                        <input type="text" id="heroTitle" className="form-input" defaultValue="Find Your Dream Car" />
-                                        <button className="btn btn-sm btn-primary" onClick={() => alert("Hero title updated!")}>
+                                        <input
+                                            type="text"
+                                            id="heroTitle"
+                                            className="form-input"
+                                            defaultValue="Find Your Dream Car"
+                                        />
+                                        <button
+                                            className="btn btn-sm btn-primary"
+                                            onClick={() =>
+                                                alert("Hero title updated!")
+                                            }
+                                        >
                                             Update
                                         </button>
                                     </div>
@@ -243,47 +261,14 @@ function MainPage() {
                                             className="form-input"
                                             defaultValue="Buy, sell, and bid on premium vehicles in our trusted marketplace"
                                         />
-                                        <button className="btn btn-sm btn-primary" onClick={() => alert("Hero subtitle updated!")}>
+                                        <button
+                                            className="btn btn-sm btn-primary"
+                                            onClick={() =>
+                                                alert("Hero subtitle updated!")
+                                            }
+                                        >
                                             Update
                                         </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="owner-section">
-                                <h3>
-                                    <i className="fas fa-chart-bar"></i> Site Statistics
-                                </h3>
-                                <div className="owner-controls">
-                                    <div className="stats-grid">
-                                        <div className="stat-control">
-                                            <label>Active Users</label>
-                                            <input type="text" id="activeUsers" className="form-input" defaultValue="50K+" />
-                                            <button className="btn btn-sm btn-primary" onClick={() => alert("Active users updated!")}>
-                                                Update
-                                            </button>
-                                        </div>
-                                        <div className="stat-control">
-                                            <label>Cars Sold</label>
-                                            <input type="text" id="carsSold" className="form-input" defaultValue="15K+" />
-                                            <button className="btn btn-sm btn-primary" onClick={() => alert("Cars sold updated!")}>
-                                                Update
-                                            </button>
-                                        </div>
-                                        <div className="stat-control">
-                                            <label>Live Auctions</label>
-                                            <input type="text" id="liveAuctions" className="form-input" defaultValue="24/7" />
-                                            <button className="btn btn-sm btn-primary" onClick={() => alert("Live auctions updated!")}>
-                                                Update
-                                            </button>
-                                        </div>
-                                        <div className="stat-control">
-                                            <label>Satisfaction Rate</label>
-                                            <input type="text" id="satisfactionRate" className="form-input" defaultValue="98%" />
-                                            <button className="btn btn-sm btn-primary" onClick={() => alert("Satisfaction rate updated!")}>
-                                                Update
-                                            </button>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -291,6 +276,7 @@ function MainPage() {
                     </div>
                 </div>
             )}
+        
 
             {/* Hero Section */}
             <section className="hero">

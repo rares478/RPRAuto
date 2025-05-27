@@ -21,7 +21,7 @@ function Login() {
             if (response.success) {
                 navigate('/');
             } else {
-                setError(response.message || 'Login failed. Please check your credentials.');
+                setError(response.message);
             }
         } catch (err) {
             setError('Something went wrong. Please try again.');

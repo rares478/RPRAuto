@@ -67,7 +67,7 @@ const SignUp = () => {
             if (result.success) {
                 navigate('/');
             } else {
-                setError(result.message || 'Registration failed.');
+                setError(result.message);
             }
         } catch (err) {
             setError('An unexpected error occurred.');
