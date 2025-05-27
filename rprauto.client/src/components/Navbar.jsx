@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Cookies from 'js-cookie';
 import './styles/navbar.css';
 
 const Navbar = () => {
@@ -28,20 +29,18 @@ const Navbar = () => {
         const fetchUserRole = async () => {
             if (isAuthenticated) {
                 try {
-                    const token = localStorage.getItem('authToken');
-                    // Remove any quotes or extra characters that might have been added
-                    const cleanToken = token?.replace(/^["']|["']$/g, '');
-                    console.log('Token:', cleanToken); // Debug log
+                    const token = Cookies.get('authToken');
+                    console.log('Token from cookie:', token); // Debug log
                     
-                    if (!cleanToken) {
-                        console.error('No token found in localStorage');
+                    if (!token) {
+                        console.error('No token found in cookie');
                         return;
                     }
 
                     // Ensure the token is properly formatted in the Authorization header
                     const response = await fetch('https://rprauto.onrender.com/auth/role', {
                         headers: {
-                            'Authorization': `Bearer ${cleanToken.trim()}`,
+                            'Authorization': `Bearer ${token.trim()}`,
                             'Content-Type': 'application/json'
                         }
                     });
