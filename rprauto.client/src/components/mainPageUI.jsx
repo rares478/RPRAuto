@@ -80,7 +80,7 @@ function MainPage() {
                     // Get 3 random cars from the listings
                     const randomCars = data.Listings
                          .map(listing => ({
-                              id: listing.Id || listing._id,
+                              id: String(listing.Id || listing._id),
                               make: listing.Car.Make,
                               model: listing.Car.Model,
                               year: listing.Car.Year,
