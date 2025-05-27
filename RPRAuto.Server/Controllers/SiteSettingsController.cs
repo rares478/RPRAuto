@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RPRAuto.Server.Models;
-using RPRAuto.Server.Repositories;
+using RPRAuto.Server.Interfaces;
+using System.Security.Claims;
 
 namespace RPRAuto.Server.Controllers
 {
@@ -9,11 +10,15 @@ namespace RPRAuto.Server.Controllers
     [Route("api/[controller]")]
     public class SiteSettingsController : ControllerBase
     {
-        private readonly SiteSettingsRepository _siteSettingsRepository;
+        private readonly ISiteSettingsRepository _siteSettingsRepository;
+        private readonly ILogger<SiteSettingsController> _logger;
 
-        public SiteSettingsController(SiteSettingsRepository siteSettingsRepository)
+        public SiteSettingsController(
+            ISiteSettingsRepository siteSettingsRepository, 
+            ILogger<SiteSettingsController> logger)
         {
             _siteSettingsRepository = siteSettingsRepository;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -27,33 +32,78 @@ namespace RPRAuto.Server.Controllers
         [HttpPut("customization")]
         public async Task<IActionResult> UpdateCustomization([FromBody] SiteSettings settings)
         {
-            await _siteSettingsRepository.UpdateCustomizationAsync(
-                settings.SiteTitle,
-                settings.HeroTitle,
-                settings.HeroSubtitle
-            );
-            return Ok(new { message = "Site customization updated successfully" });
+            try
+            {
+                var roleClaim = User.FindFirst(ClaimTypes.Role);
+                if (roleClaim == null || roleClaim.Value != "2")
+                {
+                    _logger.LogWarning("User does not have owner role");
+                    return Forbid();
+                }
+
+                await _siteSettingsRepository.UpdateCustomizationAsync(
+                    settings.SiteTitle,
+                    settings.HeroTitle,
+                    settings.HeroSubtitle
+                );
+                return Ok(new { message = "Site customization updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating site customization");
+                return StatusCode(500, new { message = "An error occurred while updating site customization" });
+            }
         }
 
         [Authorize(Roles = "2")] // Only owner can update settings
         [HttpPut("statistics")]
         public async Task<IActionResult> UpdateStatistics([FromBody] SiteSettings settings)
         {
-            await _siteSettingsRepository.UpdateStatisticsAsync(
-                settings.ActiveUsers,
-                settings.CarsSold,
-                settings.LiveAuctions,
-                settings.SatisfactionRate
-            );
-            return Ok(new { message = "Site statistics updated successfully" });
+            try
+            {
+                var roleClaim = User.FindFirst(ClaimTypes.Role);
+                if (roleClaim == null || roleClaim.Value != "2")
+                {
+                    _logger.LogWarning("User does not have owner role");
+                    return Forbid();
+                }
+
+                await _siteSettingsRepository.UpdateStatisticsAsync(
+                    settings.ActiveUsers,
+                    settings.CarsSold,
+                    settings.LiveAuctions,
+                    settings.SatisfactionRate
+                );
+                return Ok(new { message = "Site statistics updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating site statistics");
+                return StatusCode(500, new { message = "An error occurred while updating site statistics" });
+            }
         }
 
         [Authorize(Roles = "2")] // Only owner can update settings
         [HttpPut("maintenance")]
         public async Task<IActionResult> ToggleMaintenanceMode([FromBody] bool maintenanceMode)
         {
-            await _siteSettingsRepository.ToggleMaintenanceModeAsync(maintenanceMode);
-            return Ok(new { message = $"Maintenance mode {(maintenanceMode ? "enabled" : "disabled")} successfully" });
+            try
+            {
+                var roleClaim = User.FindFirst(ClaimTypes.Role);
+                if (roleClaim == null || roleClaim.Value != "2")
+                {
+                    _logger.LogWarning("User does not have owner role");
+                    return Forbid();
+                }
+
+                await _siteSettingsRepository.ToggleMaintenanceModeAsync(maintenanceMode);
+                return Ok(new { message = $"Maintenance mode {(maintenanceMode ? "enabled" : "disabled")} successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling maintenance mode");
+                return StatusCode(500, new { message = "An error occurred while toggling maintenance mode" });
+            }
         }
     }
 } 
