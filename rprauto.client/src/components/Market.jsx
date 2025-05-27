@@ -42,7 +42,7 @@ const Market = () => {
       const formattedCars = data.Listings.map(listing => {
         console.log('Listing:', listing);
         return {
-          id: listing.id || listing._id,
+          id: listing.Id?.Timestamp?.toString() || listing.Id?.CreationTime || listing._id,
           title: `${listing.Car.Make} ${listing.Car.Model}`,
           year: listing.Car.Year,
           make: listing.Car.Make,
