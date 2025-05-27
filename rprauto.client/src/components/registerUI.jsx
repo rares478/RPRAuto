@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './styles/signup.css';
 
 // handler functions
@@ -16,6 +17,7 @@ const SignUp = () => {
     const [error, setError] = useState('');
 
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -65,6 +67,7 @@ const SignUp = () => {
             );
     
             if (result.success) {
+                login(result.token);
                 navigate('/');
             } else {
                 setError(result.message || 'Registration failed.');
@@ -175,10 +178,6 @@ const SignUp = () => {
                             <button 
                                 type="submit" 
                                 className="button1"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    handleSubmit(e);
-                                }}
                             >
                                 Sign Up
                             </button>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './styles/login.css'; 
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 // handler functions
 import { loginHandle } from '../functionality/loginFun';
@@ -9,7 +10,7 @@ function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-
+    const { login } = useAuth();
     const navigate = useNavigate();
     
     const handleSubmit = async (e) => {
@@ -19,6 +20,7 @@ function Login() {
             const response = await loginHandle(email, password);
 
             if (response.success) {
+                login(response.token);
                 navigate('/');
             } else {
                 setError(response.message || 'Login failed. Please check your credentials.');
@@ -26,7 +28,6 @@ function Login() {
         } catch (err) {
             setError('Something went wrong. Please try again.');
         }  
-        
     };
 
     return (
@@ -35,6 +36,7 @@ function Login() {
                 <div className="card2">
                     <form className="form" onSubmit={handleSubmit}>
                         <p id="heading">Login</p>
+                        {error && <p className="error-message">{error}</p>}
 
                         <div className="field">
                             <svg viewBox="0 0 16 16" fill="currentColor" className="input-icon">
