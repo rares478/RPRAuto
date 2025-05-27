@@ -278,17 +278,17 @@ html, body {
     .marketplace-layout {
         flex-direction: column;
     }
-    
+
     .filters-sidebar {
         width: 100%;
     }
-    
+
     .filter-content {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 16px;
     }
-    
+
     .filter-card {
         max-height: none;
         overflow-y: visible;
@@ -301,15 +301,15 @@ html, body {
         gap: 16px;
         align-items: flex-start;
     }
-    
+
     .sort-dropdown select {
         width: 100%;
     }
-    
+
     .cars-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .filter-content {
         grid-template-columns: 1fr;
     }
