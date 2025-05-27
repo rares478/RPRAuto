@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -11,11 +12,13 @@ public class Listing : IListing
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     [JsonPropertyName("Id")]
+    [JsonConverter(typeof(ObjectIdConverter))]
     public ObjectId Id { get; set; }
 
     [BsonElement("userId")]
     [BsonRepresentation(BsonType.ObjectId)]
     [JsonPropertyName("UserId")]
+    [JsonConverter(typeof(ObjectIdConverter))]
     public ObjectId UserId { get; set; }
 
     [BsonElement("title")]
@@ -42,4 +45,18 @@ public class Listing : IListing
     [BsonElement("createdAt")]
     [JsonPropertyName("CreatedAt")]
     public DateTime CreatedAt { get; set; }
+}
+
+public class ObjectIdConverter : JsonConverter<ObjectId>
+{
+    public override ObjectId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return ObjectId.Parse(value);
+    }
+
+    public override void Write(Utf8JsonWriter writer, ObjectId value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.ToString());
+    }
 } 

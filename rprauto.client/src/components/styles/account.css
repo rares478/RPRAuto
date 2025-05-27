@@ -286,6 +286,147 @@ html, body {
     color: white;
 }
 
+/* Listings Grid */
+.listings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.listing-card {
+    background-color: #1f2937;
+    border: 1px solid rgba(105, 95, 214, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.listing-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.listing-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.listing-title {
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.listing-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-active {
+    background-color: #10b981;
+    color: white;
+}
+
+.status-pending {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.status-sold {
+    background-color: #ef4444;
+    color: white;
+}
+
+.listing-details {
+    margin-bottom: 20px;
+}
+
+.listing-price {
+    color: #695FD6;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.listing-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+.listing-info span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.listing-info i {
+    color: #695FD6;
+}
+
+.listing-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.listing-actions .btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    background-color: #1f2937;
+    border: 1px solid rgba(105, 95, 214, 0.2);
+    border-radius: 12px;
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: #695FD6;
+    margin-bottom: 16px;
+}
+
+.empty-state p {
+    color: #9ca3af;
+    font-size: 16px;
+    margin-bottom: 24px;
+}
+
+/* Loading State */
+.loading-state {
+    text-align: center;
+    padding: 48px 24px;
+    background-color: #1f2937;
+    border: 1px solid rgba(105, 95, 214, 0.2);
+    border-radius: 12px;
+}
+
+.loading-state i {
+    font-size: 32px;
+    color: #695FD6;
+    margin-bottom: 16px;
+}
+
+.loading-state p {
+    color: #9ca3af;
+    font-size: 16px;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
     .account-layout {
@@ -313,6 +454,22 @@ html, body {
     
     .account-layout {
         padding: 0 16px;
+    }
+    
+    .listings-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .listing-card {
+        padding: 16px;
+    }
+    
+    .listing-title {
+        font-size: 16px;
+    }
+    
+    .listing-price {
+        font-size: 20px;
     }
 }
 

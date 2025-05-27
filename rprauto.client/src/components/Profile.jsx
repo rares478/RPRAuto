@@ -15,6 +15,8 @@ function Profile() {
         activeBids: 0,
         totalSales: 0
     });
+    const [listings, setListings] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -70,6 +72,39 @@ function Profile() {
 
             const personalData = await personalResponse.json();
             console.log('Personal data:', personalData); // Debug log
+
+            // Fetch user's listings
+            const listingsResponse = await fetch(`https://rprauto.onrender.com/user/${userId}/listings`, {
+                headers: {
+                    'Authorization': `Bearer ${token.trim()}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!listingsResponse.ok) {
+                throw new Error('Failed to fetch listings');
+            }
+
+            const listingsData = await listingsResponse.json();
+            console.log('Listings data:', listingsData); // Debug log
+            setListings(listingsData);
+
+            // Fetch user's bids
+            const bidsResponse = await fetch(`https://rprauto.onrender.com/user/${userId}/bids`, {
+                headers: {
+                    'Authorization': `Bearer ${token.trim()}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!bidsResponse.ok) {
+                throw new Error('Failed to fetch bids');
+            }
+
+            const bids = await bidsResponse.json();
+            console.log('Bids:', bids); // Debug log
             
             // Update form data with fetched user data
             setFormData({
@@ -87,7 +122,10 @@ function Profile() {
                 ...prev,
                 name: `${personalData.firstName} ${personalData.lastName}`,
                 phone: personalData.phoneNumber,
-                memberSince: new Date(personalData.createdAt).getFullYear().toString()
+                memberSince: new Date(personalData.createdAt).getFullYear().toString(),
+                activeListings: listingsData.length,
+                activeBids: bids.length,
+                totalSales: listingsData.reduce((total, listing) => total + (listing.price || 0), 0)
             }));
 
         } catch (error) {
@@ -287,6 +325,59 @@ function Profile() {
                                 </div>
                                 <p style={{ color: '#9ca3af' }}>You were outbid on this auction. Current bid: $76,500</p>
                             </div>
+                        </div>
+                    )}
+
+                    {/* Listings Section */}
+                    {activeSection === 'listings' && (
+                        <div className="account-section active">
+                            <h2 className="section-title">My Listings</h2>
+                            
+                            {listings.length === 0 ? (
+                                <div className="empty-state">
+                                    <i className="fas fa-car"></i>
+                                    <p>You haven't listed any cars yet.</p>
+                                    <button 
+                                        className="btn btn-primary"
+                                        onClick={() => handleSectionChange('sell')}
+                                    >
+                                        List Your First Car
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="listings-grid">
+                                    {listings.map((listing) => (
+                                        <div key={listing._id} className="listing-card">
+                                            <div className="listing-header">
+                                                <div className="listing-title">
+                                                    {listing.make} {listing.model} {listing.year}
+                                                </div>
+                                                <div className={`listing-status status-${listing.status?.toLowerCase() || 'pending'}`}>
+                                                    {listing.status || 'Pending'}
+                                                </div>
+                                            </div>
+                                            <div className="listing-details">
+                                                <div className="listing-price">
+                                                    ${(listing.price || 0).toLocaleString()}
+                                                </div>
+                                                <div className="listing-info">
+                                                    <span><i className="fas fa-road"></i> {(listing.mileage || 0).toLocaleString()} miles</span>
+                                                    <span><i className="fas fa-gas-pump"></i> {listing.fuelType || 'N/A'}</span>
+                                                    <span><i className="fas fa-cog"></i> {listing.gearboxType || 'N/A'}</span>
+                                                </div>
+                                            </div>
+                                            <div className="listing-actions">
+                                                <button className="btn btn-outline">
+                                                    <i className="fas fa-edit"></i> Edit
+                                                </button>
+                                                <button className="btn btn-outline">
+                                                    <i className="fas fa-trash"></i> Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 

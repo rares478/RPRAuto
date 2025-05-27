@@ -94,7 +94,7 @@ public class ListingController : ControllerBase
             _logger.LogInformation("User's listings updated");
 
             _logger.LogInformation("=== CreateListing Request Complete ===");
-            return Ok(new { message = "Listing created successfully", listingId = listing.Id });
+            return Ok(new { message = "Listing created successfully", listingId = listing.Id.ToString() });
         }
         catch (Exception ex)
         {
