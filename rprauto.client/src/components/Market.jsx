@@ -464,7 +464,7 @@ const Market = () => {
                 <div key={car.id} className="car-card-container">
                   <div 
                     className={`car-card ${flippedCards[car.id] ? 'flipped' : ''}`}
-                    onClick={() => flipCard(car.id, { stopPropagation: () => {} })}
+                    onClick={(e) => flipCard(car.id, e)}
                   >
                     <div className="car-card-front">
                       <div className="car-slideshow">
@@ -482,13 +482,19 @@ const Market = () => {
                         
                         <div
                           className="nav-arrow prev"
-                          onClick={(e) => changeSlide(car.id, -1, e)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            changeSlide(car.id, -1, e);
+                          }}
                         >
                           ❮
                         </div>
                         <div
                           className="nav-arrow next"
-                          onClick={(e) => changeSlide(car.id, 1, e)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            changeSlide(car.id, 1, e);
+                          }}
                         >
                           ❯
                         </div>
@@ -498,14 +504,20 @@ const Market = () => {
                             <div
                               key={index}
                               className={`dot ${currentSlides[car.id] === index ? 'active' : ''}`}
-                              onClick={(e) => goToSlide(car.id, index, e)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                goToSlide(car.id, index, e);
+                              }}
                             ></div>
                           ))}
                         </div>
                       </div>
                       <div
                         className="flip-indicator"
-                        onClick={(e) => flipCard(car.id, e)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          flipCard(car.id, e);
+                        }}
                       >
                         Flip for details
                       </div>
@@ -584,7 +596,10 @@ const Market = () => {
                       </div>
                       <div
                         className="flip-indicator"
-                        onClick={(e) => flipCard(car.id, e)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          flipCard(car.id, e);
+                        }}
                       >
                         Flip back
                       </div>
