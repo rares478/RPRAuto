@@ -18,14 +18,18 @@ function Login() {
 
         try {
             const response = await loginHandle(email, password);
+            console.log('Login response:', response); // Debug log
 
             if (response.success) {
+                console.log('Token before login:', response.token); // Debug log
                 login(response.token);
+                console.log('Cookie after login:', document.cookie); // Debug log
                 navigate('/');
             } else {
                 setError(response.message || 'Login failed. Please check your credentials.');
             }
         } catch (err) {
+            console.error('Login error:', err); // Debug log
             setError('Something went wrong. Please try again.');
         }  
     };
