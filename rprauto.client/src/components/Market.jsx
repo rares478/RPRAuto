@@ -164,7 +164,11 @@ const Market = () => {
 
   const flipCard = (carId, e) => {
     e.stopPropagation();
-    setFlippedCards(prev => ({ ...prev, [carId]: !prev[carId] }));
+    setFlippedCards(prev => {
+      const newState = { ...prev };
+      newState[carId] = !newState[carId];
+      return newState;
+    });
   };
 
   const showPhoneNumber = (carId, e) => {
