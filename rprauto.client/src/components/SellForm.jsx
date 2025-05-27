@@ -87,10 +87,10 @@ const SellForm = () => {
                 Model: formData.model,
                 Year: parseInt(formData.year),
                 Mileage: parseInt(formData.mileage),
-                Color: formData.color || '',
-                GearboxType: formData.gearbox || 'Any',
-                FuelType: formData.fuelType ? formData.fuelType.toUpperCase() : '',
-                BodyType: formData.bodyType ? formData.bodyType.toUpperCase() : '',
+                Color: formData.color,
+                GearboxType: formData.gearbox,
+                FuelType: formData.fuelType.toUpperCase(),
+                BodyType: formData.bodyType.toUpperCase(),
                 EngineSize: formData.engine ? parseFloat(formData.engine) : 0,
                 HorsePower: formData.engine ? parseInt(formData.engine.split('L')[0]) * 100 : 0,
                 Pictures: imagePreviews.map(preview => preview.url)
@@ -100,23 +100,13 @@ const SellForm = () => {
                 // Create regular listing
                 const listingData = {
                     request: {
-                        Car: {
-                            Make: carData.Make,
-                            Model: carData.Model,
-                            Year: carData.Year,
-                            Mileage: carData.Mileage,
-                            Color: carData.Color,
-                            GearboxType: formData.gearbox || 'Any',
-                            FuelType: formData.fuelType ? formData.fuelType.toUpperCase() : 'Petrol',
-                            BodyType: formData.bodyType ? formData.bodyType.toUpperCase() : 'Any',
-                            EngineSize: carData.EngineSize || 0,
-                            HorsePower: carData.HorsePower || 0,
-                            Pictures: carData.Pictures
-                        },
+                        Car: carData,
                         Price: parseFloat(formData.price),
                         Description: formData.description
                     }
                 };
+
+                console.log('Sending listing data:', listingData); // Debug log
 
                 const listingResponse = await fetch('https://rprauto.onrender.com/listing', {
                     method: 'POST',
