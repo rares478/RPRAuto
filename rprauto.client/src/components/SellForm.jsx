@@ -15,6 +15,7 @@ const SellForm = () => {
         fuelType: '',
         bodyType: '',
         engineSize: '',
+        horsePower: '',
         description: '',
         doors: 4,
         contactName: 'John Doe',
@@ -93,7 +94,7 @@ const SellForm = () => {
                 FuelType: formData.fuelType || 'Petrol',
                 BodyType: formData.bodyType || 'Any',
                 EngineSize: formData.engineSize ? parseFloat(formData.engineSize) : 0,
-                HorsePower: formData.engineSize ? parseInt(formData.engineSize.split('L')[0]) * 100 : 0,
+                HorsePower: formData.horsePower ? parseInt(formData.horsePower) : 0,
                 Pictures: imagePreviews.map(preview => preview.url),
                 Doors: formData.doors,
                 Description: formData.description
@@ -177,6 +178,7 @@ const SellForm = () => {
             fuelType: '',
             bodyType: '',
             engineSize: '',
+            horsePower: '',
             description: '',
             doors: 4,
             contactName: 'John Doe',
@@ -411,9 +413,9 @@ const SellForm = () => {
                 </div>
             </div>
 
-            <div className="form-row full">
+            <div className="form-row">
                 <div className="form-group">
-                    <label>Engine</label>
+                    <label>Engine Size</label>
                     <input 
                         type="number" 
                         className="form-input" 
@@ -422,6 +424,18 @@ const SellForm = () => {
                         onChange={handleInputChange}
                         placeholder="e.g., 3.0"
                         step="0.1"
+                        min="0"
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Horsepower</label>
+                    <input 
+                        type="number" 
+                        className="form-input" 
+                        name="horsePower"
+                        value={formData.horsePower}
+                        onChange={handleInputChange}
+                        placeholder="e.g., 300"
                         min="0"
                     />
                 </div>
