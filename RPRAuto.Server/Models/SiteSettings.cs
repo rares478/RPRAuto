@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
@@ -9,8 +10,9 @@ namespace RPRAuto.Server.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        [JsonConverter(typeof(ObjectIdConverter))]
-        public string Id { get; set; }
+        [JsonPropertyName("Id")]
+        [JsonConverter(typeof(ObjectIdJsonConverter))]
+        public ObjectId Id { get; set; }
 
         // Site Customization
         public string SiteTitle { get; set; } = "RPR Auto";
@@ -26,5 +28,18 @@ namespace RPRAuto.Server.Models
         // Site Management
         public bool MaintenanceMode { get; set; } = false;
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+    }
+
+    public class ObjectIdJsonConverter : JsonConverter<string>
+    {
+        public override string Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            return reader.GetString();
+        }
+
+        public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value);
+        }
     }
 } 

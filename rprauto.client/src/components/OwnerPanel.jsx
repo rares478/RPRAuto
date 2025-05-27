@@ -25,21 +25,25 @@ const OwnerPanel = ({ isOpen, onClose }) => {
     const loadSettings = async () => {
         try {
             const response = await fetch('https://rprauto.onrender.com/api/sitesettings');
-            if (response.ok) {
-                const data = await response.json();
-                setSettings({
-                    siteTitle: data.siteTitle,
-                    heroTitle: data.heroTitle,
-                    heroSubtitle: data.heroSubtitle,
-                    activeUsers: data.activeUsers,
-                    carsSold: data.carsSold,
-                    liveAuctions: data.liveAuctions,
-                    satisfactionRate: data.satisfactionRate,
-                    maintenanceMode: data.maintenanceMode
-                });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to load settings');
             }
+            
+            const data = await response.json();
+            setSettings({
+                siteTitle: data.siteTitle || '',
+                heroTitle: data.heroTitle || '',
+                heroSubtitle: data.heroSubtitle || '',
+                activeUsers: data.activeUsers || '0',
+                carsSold: data.carsSold || '0',
+                liveAuctions: data.liveAuctions || '0',
+                satisfactionRate: data.satisfactionRate || '0',
+                maintenanceMode: data.maintenanceMode || false
+            });
         } catch (error) {
-            showMessage('Failed to load settings', 'error');
+            console.error('Error loading settings:', error);
+            showMessage(error.message || 'Failed to load settings', 'error');
         }
     };
 

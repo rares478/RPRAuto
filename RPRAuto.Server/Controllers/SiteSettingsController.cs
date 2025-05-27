@@ -24,8 +24,21 @@ namespace RPRAuto.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<SiteSettings>> GetSiteSettings()
         {
-            var settings = await _siteSettingsRepository.GetSettingsAsync();
-            return Ok(settings);
+            try
+            {
+                var settings = await _siteSettingsRepository.GetSettingsAsync();
+                if (settings == null)
+                {
+                    _logger.LogWarning("No site settings found");
+                    return NotFound(new { message = "Site settings not found" });
+                }
+                return Ok(settings);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving site settings");
+                return StatusCode(500, new { message = "An error occurred while retrieving site settings" });
+            }
         }
 
         [Authorize(Roles = "2")] // Only owner can update settings
