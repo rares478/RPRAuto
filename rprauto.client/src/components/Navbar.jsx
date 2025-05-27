@@ -29,15 +29,30 @@ const Navbar = () => {
             if (isAuthenticated) {
                 try {
                     const token = localStorage.getItem('authToken');
+                    // Remove any quotes or extra characters that might have been added
+                    const cleanToken = token?.replace(/^["']|["']$/g, '');
+                    console.log('Token:', cleanToken); // Debug log
+                    
+                    if (!cleanToken) {
+                        console.error('No token found in localStorage');
+                        return;
+                    }
+
+                    // Ensure the token is properly formatted in the Authorization header
                     const response = await fetch('https://rprauto.onrender.com/auth/role', {
                         headers: {
-                            'Authorization': `Bearer ${token}`
+                            'Authorization': `Bearer ${cleanToken.trim()}`,
+                            'Content-Type': 'application/json'
                         }
                     });
+                    console.log('Response status:', response.status); // Debug log
                     if (response.ok) {
                         const data = await response.json();
+                        console.log('Response data:', data); // Debug log
                         setUserRole(data.role);
-                        console.log('User role:', data.role); // Debug log
+                    } else {
+                        const errorData = await response.json();
+                        console.error('Error response:', errorData); // Debug log
                     }
                 } catch (error) {
                     console.error('Error fetching user role:', error);
