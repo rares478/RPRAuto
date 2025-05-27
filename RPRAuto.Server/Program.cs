@@ -30,6 +30,29 @@ if (!BsonClassMap.IsClassMapRegistered(typeof(Car)))
     });
 }
 
+// Register Car class for MongoDB serialization (fully qualified)
+if (!BsonClassMap.IsClassMapRegistered(typeof(RPRAuto.Server.Models.Car.Car)))
+{
+    BsonClassMap.RegisterClassMap<RPRAuto.Server.Models.Car.Car>(cm =>
+    {
+        cm.AutoMap();
+        cm.SetIsRootClass(true);
+        cm.MapProperty(c => c.Make).SetElementName("make");
+        cm.MapProperty(c => c.Model).SetElementName("model");
+        cm.MapProperty(c => c.Year).SetElementName("year");
+        cm.MapProperty(c => c.Mileage).SetElementName("mileage");
+        cm.MapProperty(c => c.Color).SetElementName("color");
+        cm.MapProperty(c => c.GearboxType).SetElementName("gearboxType");
+        cm.MapProperty(c => c.FuelType).SetElementName("fuelType");
+        cm.MapProperty(c => c.BodyType).SetElementName("bodyType");
+        cm.MapProperty(c => c.EngineSize).SetElementName("engineSize");
+        cm.MapProperty(c => c.HorsePower).SetElementName("horsePower");
+        cm.MapProperty(c => c.Pictures).SetElementName("pictures");
+        cm.MapProperty(c => c.Doors).SetElementName("doors");
+        cm.MapProperty(c => c.Description).SetElementName("description");
+    });
+}
+
 // Add services to the container.
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
