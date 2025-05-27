@@ -225,46 +225,114 @@ public class ListingController : ControllerBase
         [FromQuery] int? power = null,
         [FromQuery] int? mileage = null)
     {
-        var filter = Builders<Listing>.Filter.Eq(l => l.Status, ListingStatus.Active);
+        try
+        {
+            _logger.LogInformation("Starting search with parameters: make={Make}, model={Model}, price={Price}, year={Year}", 
+                make, model, price, year);
 
-        if (!string.IsNullOrEmpty(make))
-            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Make, new BsonRegularExpression(make, "i"));
+            // Build the filter using BsonDocument
+            var filter = new BsonDocument
+            {
+                { "status", 0 }  // Active listings only
+            };
 
-        if (!string.IsNullOrEmpty(model))
-            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Model, new BsonRegularExpression(model, "i"));
+            // Add make filter if provided
+            if (!string.IsNullOrEmpty(make))
+            {
+                filter.Add("car.make", new BsonRegularExpression(make, "i"));
+            }
 
-        if (price.HasValue)
-            filter &= Builders<Listing>.Filter.Eq(l => l.Price, price.Value);
+            // Add model filter if provided
+            if (!string.IsNullOrEmpty(model))
+            {
+                filter.Add("car.model", new BsonRegularExpression(model, "i"));
+            }
 
-        if (year.HasValue)
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.Year, year.Value);
+            // Add price filter if provided
+            if (price.HasValue)
+            {
+                filter.Add("price", price.Value);
+            }
 
-        if (!string.IsNullOrEmpty(gearbox) && gearbox != "Any")
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.GearboxType.ToString(), gearbox);
+            // Add year filter if provided
+            if (year.HasValue)
+            {
+                filter.Add("car.year", year.Value);
+            }
 
-        if (!string.IsNullOrEmpty(body) && body != "Any")
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.BodyType.ToString(), body);
+            // Add gearbox filter if provided
+            if (!string.IsNullOrEmpty(gearbox) && gearbox != "Any")
+            {
+                filter.Add("car.gearboxType", gearbox);
+            }
 
-        if (!string.IsNullOrEmpty(color))
-            filter &= Builders<Listing>.Filter.Regex(l => l.Car.Color, new BsonRegularExpression(color, "i"));
+            // Add body type filter if provided
+            if (!string.IsNullOrEmpty(body) && body != "Any")
+            {
+                filter.Add("car.bodyType", body);
+            }
 
-        if (doors.HasValue)
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.Doors, doors.Value);
+            // Add color filter if provided
+            if (!string.IsNullOrEmpty(color))
+            {
+                filter.Add("car.color", new BsonRegularExpression(color, "i"));
+            }
 
-        if (!string.IsNullOrEmpty(fuel))
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.FuelType.ToString(), fuel);
+            // Add doors filter if provided
+            if (doors.HasValue)
+            {
+                filter.Add("car.doors", doors.Value);
+            }
 
-        if (engine.HasValue)
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.EngineSize, engine.Value);
+            // Add fuel type filter if provided
+            if (!string.IsNullOrEmpty(fuel))
+            {
+                filter.Add("car.fuelType", fuel);
+            }
 
-        if (power.HasValue)
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.HorsePower, power.Value);
+            // Add engine size filter if provided
+            if (engine.HasValue)
+            {
+                filter.Add("car.engineSize", engine.Value);
+            }
 
-        if (mileage.HasValue)
-            filter &= Builders<Listing>.Filter.Eq(l => l.Car.Mileage, mileage.Value);
+            // Add power filter if provided
+            if (power.HasValue)
+            {
+                filter.Add("car.horsePower", power.Value);
+            }
 
-        var listings = await _listingRepository.SearchAsync(filter);
-        return Ok(listings);
+            // Add mileage filter if provided
+            if (mileage.HasValue)
+            {
+                filter.Add("car.mileage", mileage.Value);
+            }
+
+            try
+            {
+                _logger.LogInformation("Executing search with filter: {Filter}", filter.ToString());
+                var listings = await _listingRepository.SearchAsync(filter);
+                _logger.LogInformation("Search completed successfully. Found {Count} listings", listings.Count());
+                return Ok(listings);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing search query: {Message}\nStackTrace: {StackTrace}", ex.Message, ex.StackTrace);
+                throw;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in SearchListings: {Message}\nStackTrace: {StackTrace}", ex.Message, ex.StackTrace);
+            return StatusCode(500, new 
+            { 
+                errorCode = "INTERNAL_SERVER_ERROR", 
+                message = "An unexpected error occurred.", 
+                details = ex.Message,
+                stackTrace = ex.StackTrace,
+                innerException = ex.InnerException?.Message
+            });
+        }
     }
 
     private ObjectId GetUserIdFromToken()
