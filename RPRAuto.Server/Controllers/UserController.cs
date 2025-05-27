@@ -6,6 +6,8 @@ using RPRAuto.Server.Exceptions;
 using RPRAuto.Server.Models.Review;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -17,17 +19,20 @@ public class UserController : ControllerBase
     private readonly IListingRepository _listingRepository;
     private readonly IBidRepository _bidRepository;
     private readonly IReviewRepository _reviewRepository;
+    private readonly ILogger<UserController> _logger;
 
     public UserController(
         IUserRepository userRepository,
         IListingRepository listingRepository,
         IBidRepository bidRepository,
-        IReviewRepository reviewRepository)
+        IReviewRepository reviewRepository,
+        ILogger<UserController> logger)
     {
         _userRepository = userRepository;
         _listingRepository = listingRepository;
         _bidRepository = bidRepository;
         _reviewRepository = reviewRepository;
+        _logger = logger;
     }
 
     [HttpGet("{id}")]
@@ -127,17 +132,37 @@ public class UserController : ControllerBase
     [HttpGet("{id}/personal")]
     public async Task<IActionResult> GetPersonalDetails(string id)
     {
+        _logger.LogInformation($"GetPersonalDetails called with id: {id}");
+        
         if (!ObjectId.TryParse(id, out var objectId))
+        {
+            _logger.LogWarning($"Invalid user ID format: {id}");
             throw new ValidationException("Invalid user ID format");
+        }
 
+        _logger.LogInformation($"Parsed ObjectId: {objectId}");
+        
         var user = await _userRepository.GetByIdAsync(objectId);
         if (user == null)
+        {
+            _logger.LogWarning($"User not found with ID: {objectId}");
             throw new NotFoundException("User not found");
+        }
 
+        _logger.LogInformation($"Found user with ID: {user.UserId}");
+        
         var userId = GetUserIdFromToken();
-        if (user.UserId != userId)
+        _logger.LogInformation($"User ID from token: {userId}");
+        _logger.LogInformation($"Comparing token ID: {userId} with user ID: {user.UserId}");
+        
+        if (userId.ToString() != user.UserId.ToString())
+        {
+            _logger.LogWarning($"Unauthorized access attempt. Token ID: {userId}, User ID: {user.UserId}");
             throw new UnauthorizedException("You are not authorized to view this user's personal details");
+        }
 
+        _logger.LogInformation("Successfully authorized access to personal details");
+        
         return Ok(new
         {
             firstName = user.Personal.FirstName,
@@ -180,12 +205,30 @@ public class UserController : ControllerBase
         return Ok(review);
     }
 
-    private ObjectId GetUserIdFromToken()
+        private ObjectId GetUserIdFromToken()
     {
-        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
+        var authHeader = Request.Headers["Authorization"].ToString();
+        _logger.LogInformation("=== Token Debug Info ===");
+        _logger.LogInformation("Raw Authorization header: {AuthHeader}", authHeader);
+        
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        _logger.LogInformation("UserIdClaim: {UserIdClaim}", userIdClaim?.Value ?? "null");
+        _logger.LogInformation("All Claims: {Claims}", string.Join(", ", User.Claims.Select(c => $"{c.Type}: {c.Value}")));
+        
         if (userIdClaim == null || !ObjectId.TryParse(userIdClaim.Value, out var userId))
+        {
+            _logger.LogError("Token validation failed:");
+            _logger.LogError("- UserIdClaim is null: {IsNull}", userIdClaim == null);
+            if (userIdClaim != null)
+            {
+                _logger.LogError("- UserIdClaim value: {Value}", userIdClaim.Value);
+                _logger.LogError("- Could parse as ObjectId: {CanParse}", ObjectId.TryParse(userIdClaim.Value, out _));
+            }
             throw new UnauthorizedException("Invalid user token");
+        }
 
+        _logger.LogInformation("Successfully parsed userId: {UserId}", userId);
+        _logger.LogInformation("=====================");
         return userId;
     }
 }

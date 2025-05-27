@@ -115,7 +115,7 @@ function MainPage() {
      }, []);
 
     return (
-          <div className="main-container">
+          <div className="main-page">
                {/* Hero Section */}
                <section className="hero">
                     <div className="container">

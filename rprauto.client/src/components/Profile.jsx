@@ -1,24 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import './styles/account.css';
 import SellForm from './SellForm';
+import Cookies from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
 
 function Profile() {
     const [activeSection, setActiveSection] = useState('dashboard');
     const [userData, setUserData] = useState({
-        name: 'John Doe',
-        email: 'john.doe@email.com',
-        phone: '+1 (555) 123-4567',
-        memberSince: '2023',
-        activeListings: 3,
-        activeBids: 7,
-        totalSales: 45000
+        name: '',
+        email: '',
+        phone: '',
+        memberSince: '',
+        activeListings: 0,
+        activeBids: 0,
+        totalSales: 0
     });
     const [formData, setFormData] = useState({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@email.com',
-        phone: '+1 (555) 123-4567',
-        address: '123 Main Street, City, State 12345'
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        address: '',
+        city: '',
+        country: ''
     });
     const [imagePreviews, setImagePreviews] = useState([]);
     const [notifications, setNotifications] = useState({
@@ -28,19 +32,67 @@ function Profile() {
     });
 
     useEffect(() => {
-        // Load user data from API
+        // Load user data when component mounts
         loadUserData();
     }, []);
 
     const loadUserData = async () => {
         try {
-            // Replace with actual API call
-            // const response = await fetch('/api/user');
-            // const data = await response.json();
-            // setUserData(data);
-            console.log('Loading user data...');
+            const token = Cookies.get('authToken');
+            console.log('Token from cookie:', token); // Debug log
+
+            if (!token) {
+                showNotification('Please log in to view your profile', 'error');
+                return;
+            }
+
+            const decodedToken = jwtDecode(token);
+            console.log('Decoded token:', decodedToken); // Debug log
+            const userId = decodedToken.sub;
+            console.log('User ID from token:', userId); // Debug log
+
+            // Fetch user's personal details
+            const personalResponse = await fetch(`https://rprauto.onrender.com/user/${userId}/personal`, {
+                headers: {
+                    'Authorization': `Bearer ${token.trim()}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('Response status:', personalResponse.status); // Debug log
+
+            if (!personalResponse.ok) {
+                const errorData = await personalResponse.json();
+                console.error('Error response:', errorData); // Debug log
+                throw new Error(errorData.message || 'Failed to fetch personal details');
+            }
+
+            const personalData = await personalResponse.json();
+            console.log('Personal data:', personalData); // Debug log
+            
+            // Update form data with fetched user data
+            setFormData({
+                firstName: personalData.firstName || '',
+                lastName: personalData.lastName || '',
+                email: personalData.email || '',
+                phone: personalData.phoneNumber || '',
+                address: personalData.address || '',
+                city: personalData.city || '',
+                country: personalData.country || ''
+            });
+
+            // Update user data for dashboard
+            setUserData(prev => ({
+                ...prev,
+                name: `${personalData.firstName} ${personalData.lastName}`,
+                phone: personalData.phoneNumber,
+                memberSince: new Date(personalData.createdAt).getFullYear().toString()
+            }));
+
         } catch (error) {
             console.error('Error loading user data:', error);
+            showNotification(error.message || 'Failed to load user data', 'error');
         }
     };
 
@@ -78,10 +130,44 @@ function Profile() {
         setImagePreviews(prev => prev.filter(preview => preview.id !== id));
     };
 
-    const handleProfileSubmit = (e) => {
+    const handleProfileSubmit = async (e) => {
         e.preventDefault();
-        // Handle profile update
-        showNotification('Profile updated successfully!');
+        try {
+            const token = Cookies.get('authToken');
+            if (!token) {
+                showNotification('Please log in to update your profile', 'error');
+                return;
+            }
+
+            const decodedToken = jwtDecode(token);
+            const userId = decodedToken.sub;
+
+            const response = await fetch(`https://rprauto.onrender.com/user/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    phoneNumber: formData.phone,
+                    address: formData.address,
+                    city: formData.city,
+                    country: formData.country
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update profile');
+            }
+
+            showNotification('Profile updated successfully!');
+            loadUserData(); // Reload user data to ensure everything is in sync
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            showNotification('Failed to update profile', 'error');
+        }
     };
 
     const handleSellSubmit = (e) => {
@@ -243,8 +329,7 @@ function Profile() {
                                             className="form-input" 
                                             name="email"
                                             value={formData.email}
-                                            onChange={handleFormChange}
-                                            required 
+                                            disabled
                                         />
                                     </div>
                                     <div className="form-group">
@@ -256,6 +341,29 @@ function Profile() {
                                             value={formData.phone}
                                             onChange={handleFormChange}
                                             required 
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>City</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            name="city"
+                                            value={formData.city}
+                                            onChange={handleFormChange}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Country</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            name="country"
+                                            value={formData.country}
+                                            onChange={handleFormChange}
                                         />
                                     </div>
                                 </div>
