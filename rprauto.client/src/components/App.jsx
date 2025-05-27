@@ -7,6 +7,7 @@ import Register from "./registerUI.jsx";
 import MainPage from "./mainPageUI.jsx";
 import Market from "./Market.jsx";
 import Account from './Profile.jsx';
+import Auction from './Auction.jsx';
 
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, isLoading } = useAuth();
@@ -39,7 +40,7 @@ const App = () => {
                                     <Account />
                                 </ProtectedRoute>
                             } />
-                            <Route path="/auctions" element={<MainPage />} />
+                            <Route path="/auctions" element={<Auction />} />
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                     </main>

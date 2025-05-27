@@ -1,0 +1,157 @@
+.card.flip-wrapper {
+  perspective: 1500px;
+  width: 400px;
+  height: 600px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+}
+
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.card-front {
+  background: #fff;
+  z-index: 2;
+}
+
+.card-back {
+  background: #fff;
+  transform: rotateY(180deg);
+  z-index: 1;
+}
+
+/* Slideshow styles */
+.car-slideshow {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+  border-bottom: 1px solid #ccc;
+}
+
+.slide {
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+
+.slide.active {
+  display: block;
+}
+
+.car-photo {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+}
+
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 2rem;
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  padding: 5px 10px;
+  cursor: pointer;
+  z-index: 5;
+  border-radius: 50%;
+}
+
+.nav-arrow.prev { left: 10px; }
+.nav-arrow.next { right: 10px; }
+
+.slide-indicator {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background: #bbb;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.dot.active {
+  background: #333;
+}
+
+/* Flip indicator */
+.flip-indicator {
+  text-align: center;
+  padding: 10px;
+  background: #eee;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Details */
+.car-details-container {
+  padding: 20px;
+  color: #111;
+}
+
+.car-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.car-specs-column {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.spec-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.spec-label {
+  font-weight: bold;
+}
+
+.car-description {
+  margin: 10px 0;
+  font-size: 0.95em;
+}
+
+.car-price-large {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #a11f9f;
+  margin-top: 10px;
+}
+
+.button-container {
+  margin-top: 10px;
+  text-align: center;
+}

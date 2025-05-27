@@ -83,54 +83,23 @@ const Market = () => {
     }));
   };
 
-  const applyFilters = async () => {
-    try {
-      setLoading(true);
-      let queryParams = new URLSearchParams();
-      
-      if (filters.make) queryParams.append('make', filters.make.toLowerCase());
-      if (filters.model) queryParams.append('model', filters.model.toLowerCase());
-      if (filters.gearbox) queryParams.append('gearbox', filters.gearbox);
-      if (filters.color) queryParams.append('color', filters.color.toLowerCase());
-      if (filters.doors) queryParams.append('doors', filters.doors);
-      if (filters.fuel) queryParams.append('fuel', filters.fuel);
-      if (filters.engine) queryParams.append('engine', filters.engine);
-      if (filters.power) queryParams.append('power', filters.power);
-      if (filters.mileage) queryParams.append('mileage', filters.mileage);
-      
-      const response = await fetch(`https://rprauto.onrender.com/listing/search?${queryParams.toString()}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      
-      const formattedCars = data.map(listing => ({
-        id: listing.Id?.Timestamp?.toString(),
-        title: `${listing.Car.Make} ${listing.Car.Model}`,
-        year: listing.Car.Year,
-        make: listing.Car.Make,
-        model: listing.Car.Model,
-        gearbox: listing.Car.GearboxType,
-        color: listing.Car.Color,
-        doors: listing.Car.Doors,
-        fuelType: listing.Car.FuelType,
-        engine: listing.Car.EngineSize,
-        power: listing.Car.HorsePower,
-        mileage: listing.Car.Mileage,
-        bodyType: listing.Car.BodyType,
-        price: listing.Price,
-        description: listing.Description,
-        images: listing.Car.Pictures || [],
-        phone: listing.User?.Personal?.PhoneNumber || "N/A"
-      }));
+  const applyFilters = () => {
+    const queryParams = new URLSearchParams();
+    
+    if (filters.make) queryParams.append('make', filters.make.toLowerCase());
+    if (filters.model) queryParams.append('model', filters.model.toLowerCase());
+    if (filters.priceMin) queryParams.append('price', filters.priceMin);
+    if (filters.yearFrom) queryParams.append('year', filters.yearFrom);
+    if (filters.gearboxType !== 'Any') queryParams.append('gearbox', filters.gearboxType);
+    if (filters.bodyType !== 'Any') queryParams.append('body', filters.bodyType);
+    if (filters.color) queryParams.append('color', filters.color.toLowerCase());
+    if (filters.doors) queryParams.append('doors', filters.doors);
+    if (filters.fuelType !== 'Any') queryParams.append('fuel', filters.fuelType);
+    if (filters.engineSize) queryParams.append('engine', filters.engineSize);
+    if (filters.horsePower) queryParams.append('power', filters.horsePower);
+    if (filters.mileage) queryParams.append('mileage', filters.mileage);
 
-      setCars(formattedCars);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error applying filters:', error);
-      setError('Failed to apply filters. Please try again.');
-      setLoading(false);
-    }
+    fetchCars(queryParams);
   };
 
   const clearFilters = () => {
