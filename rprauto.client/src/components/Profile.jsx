@@ -194,7 +194,6 @@ function Profile() {
 
     const handleSectionChange = (section) => {
         setActiveSection(section);
-        window.location.hash = section;
     };
 
     const handleFormChange = (e) => {
