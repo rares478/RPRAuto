@@ -59,10 +59,26 @@ public class BidController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateBid([FromBody] BidCreateRequest request)
+    public async Task<IActionResult> CreateBid([FromBody] BidCreateRequestWrapper wrapper)
     {
         _logger.LogInformation("=== CreateBid Request Debug ===");
-        _logger.LogInformation("Raw request data: {@Request}", request);
+        _logger.LogInformation("Raw request data: {@Request}", wrapper.Request);
+        _logger.LogInformation("Title: {Title}", wrapper.Request.Title);
+        _logger.LogInformation("MinBid: {MinBid}", wrapper.Request.MinBid);
+        _logger.LogInformation("InstantBuy: {InstantBuy}", wrapper.Request.InstantBuy);
+        _logger.LogInformation("EndAt: {EndAt}", wrapper.Request.EndAt);
+        _logger.LogInformation("Car Make: {Make}", wrapper.Request.Car.Make);
+        _logger.LogInformation("Car Model: {Model}", wrapper.Request.Car.Model);
+        _logger.LogInformation("Car Year: {Year}", wrapper.Request.Car.Year);
+        _logger.LogInformation("Car Mileage: {Mileage}", wrapper.Request.Car.Mileage);
+        _logger.LogInformation("Car Color: {Color}", wrapper.Request.Car.Color);
+        _logger.LogInformation("Car GearboxType: {GearboxType}", wrapper.Request.Car.GearboxType);
+        _logger.LogInformation("Car FuelType: {FuelType}", wrapper.Request.Car.FuelType);
+        _logger.LogInformation("Car BodyType: {BodyType}", wrapper.Request.Car.BodyType);
+        _logger.LogInformation("Car EngineSize: {EngineSize}", wrapper.Request.Car.EngineSize);
+        _logger.LogInformation("Car HorsePower: {HorsePower}", wrapper.Request.Car.HorsePower);
+        _logger.LogInformation("Car Doors: {Doors}", wrapper.Request.Car.Doors);
+        _logger.LogInformation("Car Description: {Description}", wrapper.Request.Car.Description);
         
         try 
         {
@@ -77,32 +93,32 @@ public class BidController : ControllerBase
             }
             _logger.LogInformation("User found: {UserId}", userId);
 
-            _logger.LogInformation("Car data from request: {@Car}", request.Car);
+            _logger.LogInformation("Car data from request: {@Car}", wrapper.Request.Car);
             var bid = new Bid
             {
                 UserId = userId,
-                Title = request.Title,
+                Title = wrapper.Request.Title ?? $"{wrapper.Request.Car.Make} {wrapper.Request.Car.Model} {wrapper.Request.Car.Year}",
                 TopBid = 0,
-                MinBid = request.MinBid,
-                InstantBuy = request.InstantBuy,
+                MinBid = wrapper.Request.MinBid,
+                InstantBuy = wrapper.Request.InstantBuy,
                 Car = new RPRAuto.Server.Models.Car.Car
                 {
-                    Make = request.Car.Make,
-                    Model = request.Car.Model,
-                    Year = request.Car.Year,
-                    Mileage = request.Car.Mileage,
-                    Color = request.Car.Color,
-                    GearboxType = request.Car.GearboxType,
-                    FuelType = request.Car.FuelType,
-                    BodyType = request.Car.BodyType,
-                    EngineSize = request.Car.EngineSize,
-                    HorsePower = request.Car.HorsePower,
-                    Pictures = request.Car.Pictures,
-                    Doors = request.Car.Doors,
-                    Description = request.Car.Description
+                    Make = wrapper.Request.Car.Make,
+                    Model = wrapper.Request.Car.Model,
+                    Year = wrapper.Request.Car.Year,
+                    Mileage = wrapper.Request.Car.Mileage,
+                    Color = wrapper.Request.Car.Color,
+                    GearboxType = wrapper.Request.Car.GearboxType,
+                    FuelType = wrapper.Request.Car.FuelType,
+                    BodyType = wrapper.Request.Car.BodyType,
+                    EngineSize = wrapper.Request.Car.EngineSize,
+                    HorsePower = wrapper.Request.Car.HorsePower,
+                    Pictures = wrapper.Request.Car.Pictures,
+                    Doors = wrapper.Request.Car.Doors,
+                    Description = wrapper.Request.Car.Description
                 },
                 CreatedAt = DateTime.UtcNow,
-                EndAt = request.EndAt,
+                EndAt = wrapper.Request.EndAt,
                 Bids = new Dictionary<ObjectId, decimal>()
             };
             _logger.LogInformation("Created bid object: {@Bid}", bid);
