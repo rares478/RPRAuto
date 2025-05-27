@@ -30,6 +30,19 @@ const Market = () => {
     fetchCars();
   }, []);
 
+  // Initialize price range CSS variables
+  useEffect(() => {
+    const maxRange = 200000;
+    const minPercent = (filters.priceMin / maxRange) * 100;
+    const maxPercent = (filters.priceMax / maxRange) * 100;
+    
+    const priceRangeElement = document.querySelector('.price-range');
+    if (priceRangeElement) {
+      priceRangeElement.style.setProperty('--min-percent', `${minPercent}%`);
+      priceRangeElement.style.setProperty('--max-percent', `${maxPercent}%`);
+    }
+  }, []);
+
   const fetchCars = async () => {
     try {
       setLoading(true);
@@ -81,6 +94,49 @@ const Market = () => {
       ...prev,
       [name]: value
     }));
+
+    // Update CSS variables for price range slider
+    if (name === 'priceMin' || name === 'priceMax') {
+      const minValue = name === 'priceMin' ? value : filters.priceMin;
+      const maxValue = name === 'priceMax' ? value : filters.priceMax;
+      const maxRange = 500000; // This should match the max value in your range inputs
+      
+      const minPercent = (minValue / maxRange) * 100;
+      const maxPercent = (maxValue / maxRange) * 100;
+      
+      const priceRangeElement = document.querySelector('.price-range');
+      if (priceRangeElement) {
+        priceRangeElement.style.setProperty('--min-percent', `${minPercent}%`);
+        priceRangeElement.style.setProperty('--max-percent', `${maxPercent}%`);
+      }
+    }
+  };
+
+  const handlePriceRangeChange = (e) => {
+    const { name, value } = e.target;
+    const newValue = parseInt(value);
+    
+    if (name === 'priceMin' && newValue > filters.priceMax) {
+      return; // Don't allow min to exceed max
+    }
+    if (name === 'priceMax' && newValue < filters.priceMin) {
+      return; // Don't allow max to be less than min
+    }
+    
+    setFilters(prev => {
+      const newFilters = { ...prev, [name]: newValue };
+      
+      // Update the range visualization
+      const priceRange = document.querySelector('.price-range');
+      if (priceRange) {
+        const minPercent = (newFilters.priceMin / 500000) * 100;
+        const maxPercent = (newFilters.priceMax / 500000) * 100;
+        priceRange.style.setProperty('--min-percent', `${minPercent}%`);
+        priceRange.style.setProperty('--max-percent', `${maxPercent}%`);
+      }
+      
+      return newFilters;
+    });
   };
 
   const applyFilters = () => {
@@ -206,7 +262,7 @@ const Market = () => {
                       max="500000"
                       value={filters.priceMin}
                       name="priceMin"
-                      onChange={handleFilterChange}
+                      onChange={handlePriceRangeChange}
                       className="slider"
                     />
                     <input
@@ -215,7 +271,7 @@ const Market = () => {
                       max="500000"
                       value={filters.priceMax}
                       name="priceMax"
-                      onChange={handleFilterChange}
+                      onChange={handlePriceRangeChange}
                       className="slider"
                     />
                   </div>
