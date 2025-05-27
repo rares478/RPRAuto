@@ -11,10 +11,8 @@ function MainPage() {
     const [currentSlide, setCurrentSlide] = useState({});
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [isOwnerModalVisible, setIsOwnerModalVisible] = useState(false);
-    const [isOwnerPanelVisible, setIsOwnerPanelVisible] = useState(false);
-    const [ownerPassword, setOwnerPassword] = useState("");
-    const [errorMessage, setErrorMessage] = useState(""); 
+    const [isOwner, setIsOwner] = useState(false); // State to control the Owner section visibility
+    const [ownerPassword, setOwnerPassword] = useState(""); // State to handle owner password input
 
     // Check authentication status
     useEffect(() => {
@@ -97,20 +95,20 @@ function MainPage() {
         }, 3000);
     };
 
+    // Function to handle owner login
     const handleOwnerLogin = (e) => {
         e.preventDefault();
         if (ownerPassword === "1234") {
-            setIsOwnerModalVisible(false);
-            setIsOwnerPanelVisible(true);
-            setErrorMessage("");
+            setIsOwner(true);
+            setOwnerPassword("");
         } else {
-            setErrorMessage("Invalid password. Please try again."); // Show error message
+            alert("Invalid password. Access denied.");
         }
     };
 
-    // Function to close the owner panel
-    const closeOwnerPanel = () => {
-        setIsOwnerPanelVisible(false);
+    // Function to close the Owner section
+    const closeOwnerSection = () => {
+        setIsOwner(false);
     };
 
     return (
@@ -135,7 +133,7 @@ function MainPage() {
                     <div class="nav-buttons">
                         {!isAuthenticated && (
                             <>
-                                <button className="nav-button" onClick={() => window.location.href = "/login"} style={{ display: "inline" }}>
+                                <button className="nav-button" onClick={() => window.location.href = "/signin"} style={{ display: "inline" }}>
                                     Sign In
                                 </button>
                                 <button className="nav-button" onClick={() => window.location.href = "/register"} style={{ display: "inline" }}>
@@ -160,23 +158,18 @@ function MainPage() {
                            </>
                         )}
 
-                        <button className="btn btn-owner" onClick={showOwnerModal}>
+                        <button className="nav-button" onClick={() => window.location.href = "/owner"} style={{ display: "inline" }}>
                             Owner
                         </button>
                     </div>
                 </div>
             </nav>
 
-            {/* Owner Password Modal */}
-            {isOwnerModalVisible && (
-                <div className="modal">
+            {/* Owner Section */}
+            {isOwner && (
+                <div className="modal owner-panel">
                     <div className="modal-content">
-                        <span
-                            className="close"
-                            onClick={() => setIsOwnerModalVisible(false)}
-                        >
-                            &times;
-                        </span>
+                        <span className="close" onClick={closeOwnerSection}>&times;</span>
                         <h2>Owner Access</h2>
                         <form onSubmit={handleOwnerLogin}>
                             <div className="form-group">
@@ -190,93 +183,13 @@ function MainPage() {
                                     required
                                 />
                             </div>
-                            {errorMessage && (
-                                <p className="error-message">{errorMessage}</p>
-                            )}
-                            <button
-                                type="submit"
-                                className="btn btn-primary full-width"
-                            >
+                            <button type="submit" className="btn btn-primary full-width">
                                 Access Owner Panel
                             </button>
                         </form>
                     </div>
                 </div>
             )}
-
-            {/* Owner Panel */}
-            {isOwnerPanelVisible && (
-                <div className="modal owner-panel">
-                    <div className="modal-content owner-content">
-                        <span className="close" onClick={closeOwnerPanel}>
-                            &times;
-                        </span>
-                        <h2>Owner Control Panel</h2>
-                        <div className="owner-sections">
-                            <div className="owner-section">
-                                <h3>
-                                    <i className="fas fa-palette"></i> Site
-                                    Customization
-                                </h3>
-                                <div className="owner-controls">
-                                    <div className="control-group">
-                                        <label>Site Title</label>
-                                        <input
-                                            type="text"
-                                            id="siteTitle"
-                                            className="form-input"
-                                            defaultValue="RPR Auto"
-                                        />
-                                        <button
-                                            className="btn btn-sm btn-primary"
-                                            onClick={() =>
-                                                alert("Site title updated!")
-                                            }
-                                        >
-                                            Update
-                                        </button>
-                                    </div>
-                                    <div className="control-group">
-                                        <label>Hero Title</label>
-                                        <input
-                                            type="text"
-                                            id="heroTitle"
-                                            className="form-input"
-                                            defaultValue="Find Your Dream Car"
-                                        />
-                                        <button
-                                            className="btn btn-sm btn-primary"
-                                            onClick={() =>
-                                                alert("Hero title updated!")
-                                            }
-                                        >
-                                            Update
-                                        </button>
-                                    </div>
-                                    <div className="control-group">
-                                        <label>Hero Subtitle</label>
-                                        <input
-                                            type="text"
-                                            id="heroSubtitle"
-                                            className="form-input"
-                                            defaultValue="Buy, sell, and bid on premium vehicles in our trusted marketplace"
-                                        />
-                                        <button
-                                            className="btn btn-sm btn-primary"
-                                            onClick={() =>
-                                                alert("Hero subtitle updated!")
-                                            }
-                                        >
-                                            Update
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-        
 
             {/* Hero Section */}
             <section className="hero">
