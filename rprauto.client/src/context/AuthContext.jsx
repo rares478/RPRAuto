@@ -22,10 +22,11 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = (token) => {
+        // More permissive cookie settings for development
         Cookies.set("authToken", token, { 
-            expires: 120, 
-            secure: true, 
-            sameSite: 'none' 
+            expires: 120,
+            secure: window.location.protocol === 'https:',
+            sameSite: 'lax'
         });
         setIsAuthenticated(true);
     };

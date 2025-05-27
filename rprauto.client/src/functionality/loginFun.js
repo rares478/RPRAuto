@@ -18,12 +18,7 @@ export async function loginHandle(email, password) {
         const data = await response.json();
        
         if (response.ok) {
-            Cookies.set("authToken", data.token, { 
-                expires: 60, 
-                secure: true, 
-                sameSite: 'none' 
-            });
-            return { success: true }
+            return { success: true, token: data.token }
         } else {
             return { success: false, message: data.message }        
         }
