@@ -73,7 +73,22 @@ public class BidController : ControllerBase
             TopBid = 0,
             MinBid = request.MinBid,
             InstantBuy = request.InstantBuy,
-            Car = request.Car,
+            Car = new RPRAuto.Server.Models.Car.Car
+            {
+                Make = request.Car.Make,
+                Model = request.Car.Model,
+                Year = request.Car.Year,
+                Mileage = request.Car.Mileage,
+                Color = request.Car.Color,
+                GearboxType = request.Car.GearboxType,
+                FuelType = request.Car.FuelType,
+                BodyType = request.Car.BodyType,
+                EngineSize = request.Car.EngineSize,
+                HorsePower = request.Car.HorsePower,
+                Pictures = request.Car.Pictures,
+                Doors = request.Car.Doors,
+                Description = request.Car.Description
+            },
             CreatedAt = DateTime.UtcNow,
             EndAt = request.EndAt,
             Bids = new Dictionary<ObjectId, decimal>()
