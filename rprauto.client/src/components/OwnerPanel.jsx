@@ -47,10 +47,15 @@ const OwnerPanel = ({ isOpen, onClose }) => {
         setIsLoading(true);
         try {
             const token = Cookies.get('authToken');
+            if (!token) {
+                showMessage('Authentication token not found. Please log in again.', 'error');
+                return;
+            }
+
             const response = await fetch('https://rprauto.onrender.com/api/sitesettings/customization', {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': `Bearer ${token.trim()}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -63,10 +68,12 @@ const OwnerPanel = ({ isOpen, onClose }) => {
             if (response.ok) {
                 showMessage('Site customization updated successfully', 'success');
             } else {
-                throw new Error('Failed to update customization');
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update customization');
             }
         } catch (error) {
-            showMessage(error.message, 'error');
+            console.error('Error updating customization:', error);
+            showMessage(error.message || 'Failed to update customization', 'error');
         } finally {
             setIsLoading(false);
         }
@@ -76,6 +83,11 @@ const OwnerPanel = ({ isOpen, onClose }) => {
         setIsLoading(true);
         try {
             const token = Cookies.get('authToken');
+            if (!token) {
+                showMessage('Authentication token not found. Please log in again.', 'error');
+                return;
+            }
+
             const response = await fetch('https://rprauto.onrender.com/api/sitesettings/statistics', {
                 method: 'PUT',
                 headers: {
@@ -93,10 +105,12 @@ const OwnerPanel = ({ isOpen, onClose }) => {
             if (response.ok) {
                 showMessage('Site statistics updated successfully', 'success');
             } else {
-                throw new Error('Failed to update statistics');
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update statistics');
             }
         } catch (error) {
-            showMessage(error.message, 'error');
+            console.error('Error updating statistics:', error);
+            showMessage(error.message || 'Failed to update statistics', 'error');
         } finally {
             setIsLoading(false);
         }
@@ -106,6 +120,11 @@ const OwnerPanel = ({ isOpen, onClose }) => {
         setIsLoading(true);
         try {
             const token = Cookies.get('authToken');
+            if (!token) {
+                showMessage('Authentication token not found. Please log in again.', 'error');
+                return;
+            }
+
             const response = await fetch('https://rprauto.onrender.com/api/sitesettings/maintenance', {
                 method: 'PUT',
                 headers: {
@@ -119,10 +138,12 @@ const OwnerPanel = ({ isOpen, onClose }) => {
                 setSettings(prev => ({ ...prev, maintenanceMode: !prev.maintenanceMode }));
                 showMessage(`Maintenance mode ${!settings.maintenanceMode ? 'enabled' : 'disabled'} successfully`, 'success');
             } else {
-                throw new Error('Failed to toggle maintenance mode');
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to toggle maintenance mode');
             }
         } catch (error) {
-            showMessage(error.message, 'error');
+            console.error('Error toggling maintenance mode:', error);
+            showMessage(error.message || 'Failed to toggle maintenance mode', 'error');
         } finally {
             setIsLoading(false);
         }
