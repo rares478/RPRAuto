@@ -133,7 +133,7 @@ function MainPage() {
                     <div class="nav-buttons">
                         {!isAuthenticated && (
                             <>
-                                <button className="nav-button" onClick={() => window.location.href = "/signin"} style={{ display: "inline" }}>
+                                <button className="nav-button" onClick={() => window.location.href = "/login"} style={{ display: "inline" }}>
                                     Sign In
                                 </button>
                                 <button className="nav-button" onClick={() => window.location.href = "/register"} style={{ display: "inline" }}>
