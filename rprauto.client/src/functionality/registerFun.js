@@ -26,7 +26,7 @@ export async function registerHandle(firstName, email, password, phone, isCompan
         const data = await response.json();
 
         if (response.ok) {
-            return { success: true, token: data.token }
+            return { success: true, token: data.Token }
         } else {
             return { success: false, message: data.message }        
         }
