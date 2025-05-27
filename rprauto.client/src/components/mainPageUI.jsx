@@ -65,30 +65,37 @@ function MainPage() {
      useEffect(() => {
           const fetchCars = async () => {
                try {
-                    const response = await fetch('/listing?page=1&pageSize=3');
+                    const response = await fetch('https://rprauto.onrender.com/listing?page=1&pageSize=3');
                     const data = await response.json();
-                    setCars(data.Listings.map(listing => ({
-                         id: listing._id,
-                         make: listing.Car.Make,
-                         model: listing.Car.Model,
-                         year: listing.Car.Year,
-                         price: listing.Price,
-                         description: listing.Description,
-                         images: listing.Car.Images || [],
-                         specs: {
-                              "Mileage": listing.Car.Mileage,
-                              "Engine": listing.Car.EngineSize,
-                              "Power": listing.Car.HorsePower,
-                              "Fuel": listing.Car.FuelType,
-                              "Gearbox": listing.Car.GearboxType,
-                              "Body": listing.Car.BodyType,
-                              "Color": listing.Car.Color,
-                              "Doors": listing.Car.Doors
-                         },
-                         phoneNumber: listing.User?.Personal?.PhoneNumber || "N/A",
-                         isFlipped: false,
-                         showPhone: false
-                    })));
+                    
+                    // Get 3 random cars from the listings
+                    const randomCars = data.Listings
+                         .sort(() => Math.random() - 0.5)
+                         .slice(0, 3)
+                         .map(listing => ({
+                              id: listing._id,
+                              make: listing.Car.Make,
+                              model: listing.Car.Model,
+                              year: listing.Car.Year,
+                              price: listing.Price,
+                              description: listing.Description,
+                              images: listing.Car.Pictures || [],
+                              specs: {
+                                   "Mileage": listing.Car.Mileage,
+                                   "Engine": listing.Car.EngineSize,
+                                   "Power": listing.Car.HorsePower,
+                                   "Fuel": listing.Car.FuelType,
+                                   "Gearbox": listing.Car.GearboxType,
+                                   "Body": listing.Car.BodyType,
+                                   "Color": listing.Car.Color,
+                                   "Doors": listing.Car.Doors
+                              },
+                              phoneNumber: listing.User?.Personal?.PhoneNumber || "N/A",
+                              isFlipped: false,
+                              showPhone: false
+                         }));
+                    
+                    setCars(randomCars);
                } catch (error) {
                     console.error('Error fetching cars:', error);
                }
