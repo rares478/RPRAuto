@@ -26,7 +26,7 @@ html, body {
 
 body {
     font-family: Arial, sans-serif;
-    background-color: #000000;
+    background-color: #111111;
     color: #ffffff;
     line-height: 1.6;
     overflow-x: hidden; /* Prevent horizontal scroll */
@@ -570,7 +570,7 @@ body {
     position: absolute;
     backface-visibility: hidden;
     padding: 20px;
-    background: #000000;
+    background: #111111;
     box-shadow: 0 0 0 1px #695FD6,
                 0px 155px 62px rgba(0, 0, 0, 0.1), 
                 0px 87px 52px rgba(0, 0, 0, 0.2), 

@@ -4,7 +4,7 @@
     align-items: center;
     height: 100vh;
     margin: 0;
-    background: #0B1114;
+    background: #111111;
     font-family: Arial, sans-serif;
 }
 
@@ -39,7 +39,7 @@
     position: absolute;
     backface-visibility: hidden;
     padding: 20px;
-    background: #0B1114;
+    background: #111111;
     box-shadow: 0 0 0 1px #695FD6,
     0px 155px 62px rgba(0, 0, 0, 0.1),
     0px 87px 52px rgba(0, 0, 0, 0.2),

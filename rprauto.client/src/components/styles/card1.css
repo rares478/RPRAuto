@@ -1,3 +1,13 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: #111111;
+    font-family: Arial, sans-serif;
+}
+
 .card.flip-wrapper {
   perspective: 1500px;
   width: 400px;
@@ -25,15 +35,15 @@
   backface-visibility: hidden;
   border-radius: 1rem;
   overflow: hidden;
+  background: #111111;
+  border: 1px solid rgba(105, 95, 214, 0.2);
 }
 
 .card-front {
-  background: #fff;
   z-index: 2;
 }
 
 .card-back {
-  background: #fff;
   transform: rotateY(180deg);
   z-index: 1;
 }
@@ -42,9 +52,8 @@
 .car-slideshow {
   position: relative;
   width: 100%;
-  height: 300px;
+  height: 100%;
   overflow: hidden;
-  border-bottom: 1px solid #ccc;
 }
 
 .slide {
@@ -69,12 +78,18 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: 2rem;
-  background: rgba(0, 0, 0, 0.4);
-  color: white;
+  background: rgba(11, 17, 20, 0.9);
+  color: #A8A1F8;
   padding: 5px 10px;
   cursor: pointer;
   z-index: 5;
   border-radius: 50%;
+  border: 1px solid #695FD6;
+}
+
+.nav-arrow:hover {
+  background: rgba(105, 95, 214, 0.8);
+  color: white;
 }
 
 .nav-arrow.prev { left: 10px; }
@@ -92,66 +107,394 @@
 .dot {
   width: 10px;
   height: 10px;
-  background: #bbb;
+  background: rgba(168, 161, 248, 0.3);
   border-radius: 50%;
   cursor: pointer;
 }
 
 .dot.active {
-  background: #333;
+  background: #695FD6;
 }
 
-/* Flip indicator */
-.flip-indicator {
-  text-align: center;
-  padding: 10px;
-  background: #eee;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-/* Details */
-.car-details-container {
+/* Basic Info Overlay */
+.basic-info-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   padding: 20px;
-  color: #111;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7), transparent);
+  color: white;
+  z-index: 5;
 }
 
-.car-header {
+.basic-info-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.basic-info-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #A8A1F8;
+  font-size: 14px;
+}
+
+.basic-info-time i {
+  color: #695FD6;
+}
+
+/* Show Details Button */
+.show-details-button {
+  position: absolute;
+  bottom: 80px; /* Moved up to not overlap with basic info */
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #695FD6, #8B7CD8);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.car-slideshow:hover .show-details-button {
+  opacity: 1;
+}
+
+.show-details-button:hover {
+  background: linear-gradient(135deg, #5a4fbf, #7a6bc4);
+  transform: translateX(-50%) translateY(-2px);
+  box-shadow: 0 4px 12px rgba(105, 95, 214, 0.3);
+}
+
+/* Details Panel */
+.details-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  z-index: 20;
+  overflow-y: auto;
+}
+
+.details-panel.show {
+  transform: translateY(0);
+}
+
+.details-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
-  font-size: 1.2em;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid rgba(105, 95, 214, 0.2);
+}
+
+.details-title {
+  color: #A8A1F8;
+  font-size: 20px;
   font-weight: bold;
 }
 
-.car-specs-column {
+.close-details {
+  background: transparent;
+  border: none;
+  color: #A8A1F8;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.close-details:hover {
+  background: rgba(105, 95, 214, 0.1);
+  color: white;
+}
+
+/* Front card styles */
+.front-content {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  margin-bottom: 10px;
 }
 
-.spec-row {
+.front-details {
+  padding: 20px;
+  flex: 1;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 16px;
+  color: white;
+}
+
+.car-specs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.spec-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spec-icon {
+  width: 32px;
+  height: 32px;
+  background: rgba(105, 95, 214, 0.1);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #A8A1F8;
+}
+
+.spec-text {
+  display: flex;
+  flex-direction: column;
 }
 
 .spec-label {
-  font-weight: bold;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.car-description {
-  margin: 10px 0;
-  font-size: 0.95em;
+.spec-value {
+  font-size: 14px;
+  color: white;
+  font-weight: 500;
 }
 
-.car-price-large {
-  font-size: 1.5em;
-  font-weight: bold;
-  color: #a11f9f;
-  margin-top: 10px;
-}
-
-.button-container {
-  margin-top: 10px;
+.current-bid {
   text-align: center;
+  padding: 16px;
+  background: rgba(105, 95, 214, 0.1);
+  border-radius: 8px;
+}
+
+.bid-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+}
+
+.bid-amount {
+  font-size: 24px;
+  font-weight: bold;
+  color: #A8A1F8;
+}
+
+.bid-button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #695FD6, #8B7CD8);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.bid-button:hover {
+  background: linear-gradient(135deg, #5a4fbf, #7a6bc4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(105, 95, 214, 0.3);
+}
+
+.seller-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(105, 95, 214, 0.1);
+  border-radius: 6px;
+}
+
+.seller-avatar {
+  width: 40px;
+  height: 40px;
+  background: #695FD6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+}
+
+.seller-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  display: block;
+}
+
+.seller-name {
+  font-size: 14px;
+  color: white;
+  font-weight: 500;
+}
+
+/* Back card styles */
+.auction-header {
+  padding: 20px;
+  border-bottom: 1px solid rgba(105, 95, 214, 0.2);
+}
+
+.auction-title {
+  color: #A8A1F8;
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.bid-history {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.bid-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: rgba(105, 95, 214, 0.1);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.bidder-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bidder-avatar {
+  width: 32px;
+  height: 32px;
+  background: #695FD6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.bidder-name {
+  color: white;
+  font-weight: 500;
+}
+
+.bid-time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.bid-amount-small {
+  color: #A8A1F8;
+  font-weight: bold;
+}
+
+.highest-bid {
+  padding: 20px;
+  text-align: center;
+  background: rgba(105, 95, 214, 0.1);
+  border-top: 1px solid rgba(105, 95, 214, 0.2);
+}
+
+.highest-bid-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+}
+
+.highest-bid-amount {
+  font-size: 24px;
+  font-weight: bold;
+  color: #A8A1F8;
+}
+
+.highest-bidder {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
+}
+
+.bid-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bid-input {
+  width: 100%;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(105, 95, 214, 0.3);
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+}
+
+.bid-input:focus {
+  outline: none;
+  border-color: #695FD6;
+}
+
+.place-bid-button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #695FD6, #8B7CD8);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.place-bid-button:hover {
+  background: linear-gradient(135deg, #5a4fbf, #7a6bc4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(105, 95, 214, 0.3);
+}
+
+.back-button {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid rgba(105, 95, 214, 0.3);
+  border-radius: 6px;
+  color: #A8A1F8;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: rgba(105, 95, 214, 0.1);
+  border-color: #695FD6;
 }

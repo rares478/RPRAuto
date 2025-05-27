@@ -20,49 +20,59 @@ const Auction = () => {
     mileage: ''
   });
 
-  const [auctions, setAuctions] = useState([]);
+  const [bids, setBids] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchAuctions();
+    fetchBids();
   }, []);
 
-  const fetchAuctions = async () => {
+  const fetchBids = async (queryParams = new URLSearchParams()) => {
     try {
       setLoading(true);
-      // TODO: Replace with actual auction API endpoint
-      const response = await fetch('https://rprauto.onrender.com/auction?page=1&pageSize=30');
+      const response = await fetch(`https://rprauto.onrender.com/bid?${queryParams.toString()}`);
       const data = await response.json();
       
-      const formattedAuctions = data.Auctions.map(auction => ({
-        id: auction.Id?.Timestamp?.toString(),
-        title: `${auction.Car.Make} ${auction.Car.Model}`,
-        year: auction.Car.Year,
-        make: auction.Car.Make,
-        model: auction.Car.Model,
-        gearbox: auction.Car.GearboxType,
-        color: auction.Car.Color,
-        doors: auction.Car.Doors,
-        fuelType: auction.Car.FuelType,
-        engine: auction.Car.EngineSize,
-        power: auction.Car.HorsePower,
-        mileage: auction.Car.Mileage,
-        bodyType: auction.Car.BodyType,
-        currentBid: auction.CurrentBid,
-        startingPrice: auction.StartingPrice,
-        endTime: auction.EndTime,
-        description: auction.Description,
-        images: auction.Car.Pictures || [],
-        seller: auction.Seller,
-        bidHistory: auction.BidHistory || []
+      const formattedBids = data.Bids.map(bid => ({
+        id: bid.Id,
+        title: bid.Title || `${bid.Car.Make} ${bid.Car.Model}`,
+        year: bid.Car.Year,
+        make: bid.Car.Make,
+        model: bid.Car.Model,
+        gearbox: bid.Car.GearboxType,
+        color: bid.Car.Color,
+        doors: bid.Car.Doors,
+        fuelType: bid.Car.FuelType,
+        engine: bid.Car.EngineSize,
+        power: bid.Car.HorsePower,
+        mileage: bid.Car.Mileage,
+        bodyType: bid.Car.BodyType,
+        currentBid: bid.TopBid,
+        minBid: bid.MinBid,
+        instantBuy: bid.InstantBuy,
+        endTime: bid.EndAt,
+        description: bid.Car.Description,
+        images: bid.Car.Pictures || [],
+        seller: {
+          id: bid.UserId,
+          name: 'Seller' // TODO: Fetch seller name from user service
+        },
+        bidHistory: Object.entries(bid.Bids || {}).map(([userId, amount]) => ({
+          bidder: {
+            id: userId,
+            name: 'Bidder' // TODO: Fetch bidder name from user service
+          },
+          amount: amount,
+          time: new Date().toISOString() // TODO: Add timestamp to bid history
+        }))
       }));
 
-      setAuctions(formattedAuctions);
+      setBids(formattedBids);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching auctions:', error);
-      setError('Failed to load auctions. Please try again later.');
+      console.error('Error fetching bids:', error);
+      setError('Failed to load bids. Please try again later.');
       setLoading(false);
     }
   };
@@ -82,16 +92,16 @@ const Auction = () => {
     if (filters.model) queryParams.append('model', filters.model.toLowerCase());
     if (filters.priceMin) queryParams.append('price', filters.priceMin);
     if (filters.yearFrom) queryParams.append('year', filters.yearFrom);
-    if (filters.gearboxType !== 'Any') queryParams.append('gearbox', filters.gearboxType);
+    if (filters.gearbox !== 'Any') queryParams.append('gearbox', filters.gearbox);
     if (filters.bodyType !== 'Any') queryParams.append('body', filters.bodyType);
     if (filters.color) queryParams.append('color', filters.color.toLowerCase());
     if (filters.doors) queryParams.append('doors', filters.doors);
-    if (filters.fuelType !== 'Any') queryParams.append('fuel', filters.fuelType);
-    if (filters.engineSize) queryParams.append('engine', filters.engineSize);
-    if (filters.horsePower) queryParams.append('power', filters.horsePower);
+    if (filters.fuel !== 'Any') queryParams.append('fuel', filters.fuel);
+    if (filters.engine) queryParams.append('engine', filters.engine);
+    if (filters.power) queryParams.append('power', filters.power);
     if (filters.mileage) queryParams.append('mileage', filters.mileage);
 
-    fetchAuctions(queryParams);
+    fetchBids(queryParams);
   };
 
   const clearFilters = () => {
@@ -111,14 +121,14 @@ const Auction = () => {
       power: '',
       mileage: ''
     });
-    fetchAuctions();
+    fetchBids();
   };
 
   if (loading) {
     return (
       <div className="auction-container">
         <div className="container">
-          <div className="loading">Loading auctions...</div>
+          <div className="loading">Loading bids...</div>
         </div>
       </div>
     );
@@ -287,12 +297,12 @@ const Auction = () => {
             </div>
           </div>
 
-          {/* Auction Listings */}
+          {/* Bid Listings */}
           <div className="auction-listings">
-            {auctions.map(auction => (
+            {bids.map(bid => (
               <AuctionCard
-                key={auction.id}
-                auction={auction}
+                key={bid.id}
+                auction={bid}
               />
             ))}
           </div>
