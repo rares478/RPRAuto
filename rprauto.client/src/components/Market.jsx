@@ -19,93 +19,113 @@ const Market = () => {
     mileage: ''
   });
 
-  const [cars, setCars] = useState([
-    {
-      id: 1,
-      title: 'BMW M4 Competition',
-      year: '2023',
-      make: 'BMW',
-      model: 'M4 Competition',
-      gearbox: '8-Speed Automatic',
-      color: 'Alpine White',
-      doors: '2',
-      fuelType: 'Gasoline',
-      engine: '3.0L Twin-Turbo I6',
-      power: '503 hp',
-      acceleration: '3.8 sec',
-      mileage: '2,500 mi',
-      bodyType: 'Coupe',
-      price: 75000,
-      description: 'This 2023 BMW M4 Competition represents the pinnacle of BMW\'s performance engineering. With its twin-turbo inline-6 engine producing 503 horsepower, it delivers exceptional acceleration.',
-      images: [
-        'https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
-        'https://images.unsplash.com/photo-1502877338535-766e1452684a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60',
-        'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'
-      ],
-      phone: '555-BMW-CARS'
-    },
-    // Add more car objects here...
-  ]);
-
+  const [cars, setCars] = useState([]);
   const [currentSlides, setCurrentSlides] = useState({});
   const [flippedCards, setFlippedCards] = useState({});
   const [showPhones, setShowPhones] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Initialize current slides for each car
-    const initialSlides = {};
-    cars.forEach(car => {
-      initialSlides[car.id] = 0;
-    });
-    setCurrentSlides(initialSlides);
-  }, [cars]);
+    fetchCars();
+  }, []);
+
+  const fetchCars = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('https://rprauto.onrender.com/listing?page=1&pageSize=30');
+      const data = await response.json();
+      
+      const formattedCars = data.Listings.map(listing => ({
+        id: listing._id,
+        title: `${listing.Car.Make} ${listing.Car.Model}`,
+        year: listing.Car.Year,
+        make: listing.Car.Make,
+        model: listing.Car.Model,
+        gearbox: listing.Car.GearboxType,
+        color: listing.Car.Color,
+        doors: listing.Car.Doors,
+        fuelType: listing.Car.FuelType,
+        engine: listing.Car.EngineSize,
+        power: listing.Car.HorsePower,
+        mileage: listing.Car.Mileage,
+        bodyType: listing.Car.BodyType,
+        price: listing.Price,
+        description: listing.Description,
+        images: listing.Car.Pictures || [],
+        phone: listing.User?.Personal?.PhoneNumber || "N/A"
+      }));
+
+      setCars(formattedCars);
+      
+      // Initialize current slides for each car
+      const initialSlides = {};
+      formattedCars.forEach(car => {
+        initialSlides[car.id] = 0;
+      });
+      setCurrentSlides(initialSlides);
+      
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching cars:', error);
+      setError('Failed to load cars. Please try again later.');
+      setLoading(false);
+    }
+  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  const handlePriceRangeChange = (e) => {
-    const { name, value } = e.target;
-    const newValue = parseInt(value);
-    
-    if (name === 'priceMin' && newValue > filters.priceMax) {
-      return; // Don't allow min to exceed max
-    }
-    if (name === 'priceMax' && newValue < filters.priceMin) {
-      return; // Don't allow max to be less than min
-    }
-    
-    setFilters(prev => {
-      const newFilters = { ...prev, [name]: newValue };
+  const applyFilters = async () => {
+    try {
+      setLoading(true);
+      let queryParams = new URLSearchParams();
       
-      // Update the range visualization
-      const priceRange = document.querySelector('.price-range');
-      if (priceRange) {
-        const minPercent = (newFilters.priceMin / 500000) * 100;
-        const maxPercent = (newFilters.priceMax / 500000) * 100;
-        priceRange.style.setProperty('--min-percent', `${minPercent}%`);
-        priceRange.style.setProperty('--max-percent', `${maxPercent}%`);
-      }
+      if (filters.make) queryParams.append('make', filters.make);
+      if (filters.model) queryParams.append('model', filters.model);
+      if (filters.gearbox) queryParams.append('gearbox', filters.gearbox);
+      if (filters.color) queryParams.append('color', filters.color);
+      if (filters.doors) queryParams.append('doors', filters.doors);
+      if (filters.fuel) queryParams.append('fuel', filters.fuel);
+      if (filters.engine) queryParams.append('engine', filters.engine);
+      if (filters.power) queryParams.append('power', filters.power);
+      if (filters.mileage) queryParams.append('mileage', filters.mileage);
       
-      return newFilters;
-    });
-  };
+      const response = await fetch(`https://rprauto.onrender.com/listing/search?${queryParams.toString()}`);
+      const data = await response.json();
+      
+      const formattedCars = data.map(listing => ({
+        id: listing._id,
+        title: `${listing.Car.Make} ${listing.Car.Model}`,
+        year: listing.Car.Year,
+        make: listing.Car.Make,
+        model: listing.Car.Model,
+        gearbox: listing.Car.GearboxType,
+        color: listing.Car.Color,
+        doors: listing.Car.Doors,
+        fuelType: listing.Car.FuelType,
+        engine: listing.Car.EngineSize,
+        power: listing.Car.HorsePower,
+        mileage: listing.Car.Mileage,
+        bodyType: listing.Car.BodyType,
+        price: listing.Price,
+        description: listing.Description,
+        images: listing.Car.Pictures || [],
+        phone: listing.User?.Personal?.PhoneNumber || "N/A"
+      }));
 
-  // Initialize range visualization on component mount
-  useEffect(() => {
-    const priceRange = document.querySelector('.price-range');
-    if (priceRange) {
-      const minPercent = (filters.priceMin / 500000) * 100;
-      const maxPercent = (filters.priceMax / 500000) * 100;
-      priceRange.style.setProperty('--min-percent', `${minPercent}%`);
-      priceRange.style.setProperty('--max-percent', `${maxPercent}%`);
+      setCars(formattedCars);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error applying filters:', error);
+      setError('Failed to apply filters. Please try again.');
+      setLoading(false);
     }
-  }, []);
-
-  const applyFilters = () => {
-    console.log('Applying filters:', filters);
-    // Implement filter logic here
   };
 
   const clearFilters = () => {
@@ -125,6 +145,7 @@ const Market = () => {
       power: '',
       mileage: ''
     });
+    fetchCars();
   };
 
   const changeSlide = (carId, direction, e) => {
@@ -150,6 +171,26 @@ const Market = () => {
     e.stopPropagation();
     setShowPhones(prev => ({ ...prev, [carId]: !prev[carId] }));
   };
+
+  if (loading) {
+    return (
+      <div className="marketplace-container">
+        <div className="container">
+          <div className="loading">Loading cars...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="marketplace-container">
+        <div className="container">
+          <div className="error-message">{error}</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="marketplace-container">
@@ -187,7 +228,7 @@ const Market = () => {
                       max="500000"
                       value={filters.priceMin}
                       name="priceMin"
-                      onChange={handlePriceRangeChange}
+                      onChange={handleFilterChange}
                       className="slider"
                     />
                     <input
@@ -196,7 +237,7 @@ const Market = () => {
                       max="500000"
                       value={filters.priceMax}
                       name="priceMax"
-                      onChange={handlePriceRangeChange}
+                      onChange={handleFilterChange}
                       className="slider"
                     />
                   </div>
@@ -282,33 +323,23 @@ const Market = () => {
                     onChange={handleFilterChange}
                   >
                     <option value="">Select gearbox</option>
-                    <option value="manual">Manual</option>
-                    <option value="automatic">Automatic</option>
-                    <option value="semi-automatic">Semi-Automatic</option>
-                    <option value="cvt">CVT</option>
+                    <option value="Manual">Manual</option>
+                    <option value="Automatic">Automatic</option>
+                    <option value="Any">Any</option>
                   </select>
                 </div>
 
                 {/* Color */}
                 <div className="filter-group">
                   <label>Color</label>
-                  <select
-                    className="filter-select"
+                  <input
+                    type="text"
+                    className="filter-input"
                     name="color"
                     value={filters.color}
                     onChange={handleFilterChange}
-                  >
-                    <option value="">Select color</option>
-                    <option value="white">White</option>
-                    <option value="black">Black</option>
-                    <option value="silver">Silver</option>
-                    <option value="red">Red</option>
-                    <option value="blue">Blue</option>
-                    <option value="gray">Gray</option>
-                    <option value="green">Green</option>
-                    <option value="yellow">Yellow</option>
-                    <option value="orange">Orange</option>
-                  </select>
+                    placeholder="Enter color"
+                  />
                 </div>
 
                 {/* Doors */}
@@ -337,71 +368,41 @@ const Market = () => {
                     value={filters.fuel}
                     onChange={handleFilterChange}
                   >
-                    <option value="">Select fuel</option>
-                    <option value="petrol">Petrol</option>
-                    <option value="electric">Electric</option>
-                    <option value="hybrid">Hybrid</option>
-                    <option value="diesel">Diesel</option>
+                    <option value="">Select fuel type</option>
+                    <option value="Petrol">Petrol</option>
+                    <option value="Diesel">Diesel</option>
+                    <option value="Electric">Electric</option>
+                    <option value="Hybrid">Hybrid</option>
                   </select>
                 </div>
 
                 {/* Engine Size */}
                 <div className="filter-group">
                   <label>Engine Size</label>
-                  <select
-                    className="filter-select"
+                  <input
+                    type="number"
+                    className="filter-input"
                     name="engine"
                     value={filters.engine}
                     onChange={handleFilterChange}
-                  >
-                    <option value="">Select engine size</option>
-                    <option value="1.0-1.5">1.0L - 1.5L</option>
-                    <option value="1.6-2.0">1.6L - 2.0L</option>
-                    <option value="2.1-3.0">2.1L - 3.0L</option>
-                    <option value="3.1-4.0">3.1L - 4.0L</option>
-                    <option value="4.1-5.0">4.1L - 5.0L</option>
-                    <option value="5.1+">5.1L+</option>
-                  </select>
+                    placeholder="Enter engine size"
+                    step="0.1"
+                    min="0"
+                  />
                 </div>
 
-                {/* Body Type */}
+                {/* Power */}
                 <div className="filter-group">
-                  <label>Body Type</label>
-                  <select
-                    className="filter-select"
-                    name="bodyType"
-                    value={filters.bodyType}
-                    onChange={handleFilterChange}
-                  >
-                    <option value="">Select type</option>
-                    <option value="sedan">Sedan</option>
-                    <option value="coupe">Coupe</option>
-                    <option value="suv">SUV</option>
-                    <option value="convertible">Convertible</option>
-                    <option value="hatchback">Hatchback</option>
-                    <option value="wagon">Wagon</option>
-                    <option value="truck">Truck</option>
-                    <option value="van">Van</option>
-                  </select>
-                </div>
-
-                {/* Horse Power */}
-                <div className="filter-group">
-                  <label>Horse Power</label>
-                  <select
-                    className="filter-select"
+                  <label>Power (HP)</label>
+                  <input
+                    type="number"
+                    className="filter-input"
                     name="power"
                     value={filters.power}
                     onChange={handleFilterChange}
-                  >
-                    <option value="">Select power range</option>
-                    <option value="0-150">0 - 150 HP</option>
-                    <option value="151-250">151 - 250 HP</option>
-                    <option value="251-350">251 - 350 HP</option>
-                    <option value="351-450">351 - 450 HP</option>
-                    <option value="451-550">451 - 550 HP</option>
-                    <option value="551+">551+ HP</option>
-                  </select>
+                    placeholder="Enter horsepower"
+                    min="0"
+                  />
                 </div>
 
                 {/* Mileage */}
@@ -505,7 +506,7 @@ const Market = () => {
                         Flip for details
                       </div>
                     </div>
-
+                    
                     <div className="car-card-back">
                       <div className="car-details-container">
                         <div className="car-header">
@@ -543,19 +544,15 @@ const Market = () => {
                         <div className="car-specs-column">
                           <div className="spec-row">
                             <span className="spec-label">Engine:</span>
-                            <span className="spec-value">{car.engine}</span>
+                            <span className="spec-value">{car.engine}L</span>
                           </div>
                           <div className="spec-row">
                             <span className="spec-label">Power:</span>
-                            <span className="spec-value">{car.power}</span>
-                          </div>
-                          <div className="spec-row">
-                            <span className="spec-label">0-60 mph:</span>
-                            <span className="spec-value">{car.acceleration}</span>
+                            <span className="spec-value">{car.power} HP</span>
                           </div>
                           <div className="spec-row">
                             <span className="spec-label">Mileage:</span>
-                            <span className="spec-value">{car.mileage}</span>
+                            <span className="spec-value">{car.mileage.toLocaleString()} km</span>
                           </div>
                           <div className="spec-row">
                             <span className="spec-label">Body Type:</span>

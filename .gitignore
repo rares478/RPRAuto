@@ -11,6 +11,7 @@
 *.sln.docstates
 *.pem
 .env
+*.http
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -365,5 +366,3 @@ MigrationBackup/
 FodyWeavers.xsd
 
 .idea/
-
-*.http
