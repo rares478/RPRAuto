@@ -19,8 +19,8 @@ export async function loginHandle(email, password) {
         console.log('Server response:', data); // Debug log
        
         if (response.ok) {
-            console.log('Token from server:', data.token); // Debug log
-            return { success: true, token: data.token }
+            console.log('Token from server:', data.Token); // Debug log
+            return { success: true, token: data.Token }
         } else {
             return { success: false, message: data.message }        
         }
