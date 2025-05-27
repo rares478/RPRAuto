@@ -41,7 +41,7 @@ namespace RPRAuto.Server.Controllers
             }
         }
 
-        [Authorize(Roles = "2")] // Only owner can update settings
+        [Authorize(Roles = "2,Admin")] // Allow both owner (2) and admin roles
         [HttpPut("customization")]
         public async Task<IActionResult> UpdateCustomization([FromBody] SiteSettings settings)
         {
@@ -62,11 +62,11 @@ namespace RPRAuto.Server.Controllers
                     return Forbid("No role claim found in token");
                 }
 
-                // Try both string and numeric role comparison
-                if (roleClaim.Value != "2" && roleClaim.Value != "Owner")
+                // Check for valid roles
+                if (roleClaim.Value != "2" && roleClaim.Value != "Owner" && roleClaim.Value != "Admin")
                 {
-                    _logger.LogWarning("User does not have owner role. Current role: {Role}", roleClaim.Value);
-                    return Forbid($"User does not have owner role. Current role: {roleClaim.Value}");
+                    _logger.LogWarning("User does not have required role. Current role: {Role}", roleClaim.Value);
+                    return Forbid($"User does not have required role. Current role: {roleClaim.Value}");
                 }
 
                 _logger.LogInformation("Updating customization with values: SiteTitle={SiteTitle}, HeroTitle={HeroTitle}, HeroSubtitle={HeroSubtitle}",
