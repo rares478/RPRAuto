@@ -77,38 +77,31 @@ function MainPage() {
                     const response = await fetch('https://rprauto.onrender.com/listing?page=1&pageSize=3');
                     const data = await response.json();
                     
-                    console.log('Server response:', data); // Debug log
-                    console.log('First listing:', data.Listings[0]); // Debug log
-                    
                     // Get 3 random cars from the listings
                     const randomCars = data.Listings
-                         .map(listing => {
-                              console.log('Listing:', listing);
-                              return {
-                                   id: listing.Id?.Timestamp?.toString() || listing.Id?.CreationTime || listing._id,
-                                   make: listing.Car.Make,
-                                   model: listing.Car.Model,
-                                   year: listing.Car.Year,
-                                   price: listing.Price,
-                                   description: listing.Description,
-                                   images: listing.Car.Pictures || [],
-                                   specs: {
-                                        "Mileage": listing.Car.Mileage,
-                                        "Engine": listing.Car.EngineSize,
-                                        "Power": listing.Car.HorsePower,
-                                        "Fuel": listing.Car.FuelType,
-                                        "Gearbox": listing.Car.GearboxType,
-                                        "Body": listing.Car.BodyType,
-                                        "Color": listing.Car.Color,
-                                        "Doors": listing.Car.Doors
-                                   },
-                                   phoneNumber: listing.User?.Personal?.PhoneNumber || "N/A",
-                                   isFlipped: false,
-                                   showPhone: false
-                              };
-                         });
+                         .map(listing => ({
+                              id: listing.Id?.Timestamp?.toString(),
+                              make: listing.Car.Make,
+                              model: listing.Car.Model,
+                              year: listing.Car.Year,
+                              price: listing.Price,
+                              description: listing.Description,
+                              images: listing.Car.Pictures || [],
+                              specs: {
+                                   "Mileage": listing.Car.Mileage,
+                                   "Engine": listing.Car.EngineSize,
+                                   "Power": listing.Car.HorsePower,
+                                   "Fuel": listing.Car.FuelType,
+                                   "Gearbox": listing.Car.GearboxType,
+                                   "Body": listing.Car.BodyType,
+                                   "Color": listing.Car.Color,
+                                   "Doors": listing.Car.Doors
+                              },
+                              phoneNumber: listing.User?.Personal?.PhoneNumber || "N/A",
+                              isFlipped: false,
+                              showPhone: false
+                         }));
                     
-                    console.log('Random cars:', randomCars);
                     setCars(randomCars);
                     
                     // Initialize current slides for each car
@@ -191,7 +184,6 @@ function MainPage() {
                                              className={`car-card ${flippedCards[car.id] ? 'flipped' : ''}`}
                                              onClick={(e) => flipCard(car.id, e)}
                                         >
-                                             <div className="car-id">ID: {car.id}</div>
                                              <div className="car-card-front">
                                                   <div className="car-slideshow">
                                                        {car.images.map((image, index) => (

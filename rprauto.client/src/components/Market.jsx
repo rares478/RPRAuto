@@ -36,33 +36,26 @@ const Market = () => {
       const response = await fetch('https://rprauto.onrender.com/listing?page=1&pageSize=30');
       const data = await response.json();
       
-      console.log('Server response:', data);
-      console.log('First listing:', data.Listings[0]);
-      
-      const formattedCars = data.Listings.map(listing => {
-        console.log('Listing:', listing);
-        return {
-          id: listing.Id?.Timestamp?.toString() || listing.Id?.CreationTime || listing._id,
-          title: `${listing.Car.Make} ${listing.Car.Model}`,
-          year: listing.Car.Year,
-          make: listing.Car.Make,
-          model: listing.Car.Model,
-          gearbox: listing.Car.GearboxType,
-          color: listing.Car.Color,
-          doors: listing.Car.Doors,
-          fuelType: listing.Car.FuelType,
-          engine: listing.Car.EngineSize,
-          power: listing.Car.HorsePower,
-          mileage: listing.Car.Mileage,
-          bodyType: listing.Car.BodyType,
-          price: listing.Price,
-          description: listing.Description,
-          images: listing.Car.Pictures || [],
-          phone: listing.User?.Personal?.PhoneNumber || "N/A"
-        };
-      });
+      const formattedCars = data.Listings.map(listing => ({
+        id: listing.Id?.Timestamp?.toString(),
+        title: `${listing.Car.Make} ${listing.Car.Model}`,
+        year: listing.Car.Year,
+        make: listing.Car.Make,
+        model: listing.Car.Model,
+        gearbox: listing.Car.GearboxType,
+        color: listing.Car.Color,
+        doors: listing.Car.Doors,
+        fuelType: listing.Car.FuelType,
+        engine: listing.Car.EngineSize,
+        power: listing.Car.HorsePower,
+        mileage: listing.Car.Mileage,
+        bodyType: listing.Car.BodyType,
+        price: listing.Price,
+        description: listing.Description,
+        images: listing.Car.Pictures || [],
+        phone: listing.User?.Personal?.PhoneNumber || "N/A"
+      }));
 
-      console.log('Formatted cars:', formattedCars);
       setCars(formattedCars);
       
       // Initialize current slides for each car
@@ -475,7 +468,6 @@ const Market = () => {
                     className={`car-card ${flippedCards[car.id] ? 'flipped' : ''}`}
                     onClick={(e) => flipCard(car.id, e)}
                   >
-                    <div className="car-id">ID: {car.id}</div>
                     <div className="car-card-front">
                       <div className="car-slideshow">
                         {car.images.map((image, index) => (
