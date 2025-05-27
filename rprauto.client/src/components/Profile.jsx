@@ -33,9 +33,21 @@ function Profile() {
         marketing: false
     });
     const [bids, setBids] = useState([]);
+    const [userId, setUserId] = useState(null);
+    const [editingListing, setEditingListing] = useState(null);
+    const [editFormData, setEditFormData] = useState({
+        price: '',
+        description: ''
+    });
+    const [showEditModal, setShowEditModal] = useState(false);
 
     useEffect(() => {
         // Load user data when component mounts
+        const token = Cookies.get('authToken');
+        if (token) {
+            const decodedToken = jwtDecode(token);
+            setUserId(decodedToken.sub);
+        }
         loadUserData();
     }, []);
 
@@ -261,6 +273,113 @@ function Profile() {
         setImagePreviews([]);
     };
 
+    const handleDeleteListing = async (listingId) => {
+        try {
+            const token = Cookies.get('authToken');
+            if (!token) {
+                showNotification('Please log in to delete listings', 'error');
+                return;
+            }
+
+            const response = await fetch(`https://rprauto.onrender.com/listing/${listingId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token.trim()}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to delete listing');
+            }
+
+            // Remove the deleted listing from the state
+            setListings(prevListings => prevListings.filter(listing => listing.Id !== listingId));
+            
+            // Update the dashboard stats
+            setUserData(prev => ({
+                ...prev,
+                activeListings: prev.activeListings - 1
+            }));
+
+            showNotification('Listing deleted successfully');
+        } catch (error) {
+            console.error('Error deleting listing:', error);
+            showNotification(error.message || 'Failed to delete listing', 'error');
+        }
+    };
+
+    const handleEditListing = async (listingId) => {
+        try {
+            const token = Cookies.get('authToken');
+            if (!token) {
+                showNotification('Please log in to edit listings', 'error');
+                return;
+            }
+
+            const response = await fetch(`https://rprauto.onrender.com/listing/${listingId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token.trim()}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    price: parseFloat(editFormData.price),
+                    description: editFormData.description
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update listing');
+            }
+
+            // Update the listing in the state
+            setListings(prevListings => 
+                prevListings.map(listing => 
+                    listing.Id === listingId 
+                        ? { ...listing, Price: parseFloat(editFormData.price), Description: editFormData.description }
+                        : listing
+                )
+            );
+
+            // Reset edit form and close it
+            setEditingListing(null);
+            setEditFormData({ price: '', description: '' });
+
+            showNotification('Listing updated successfully');
+        } catch (error) {
+            console.error('Error updating listing:', error);
+            showNotification(error.message || 'Failed to update listing', 'error');
+        }
+    };
+
+    const handleEditFormChange = (e) => {
+        const { name, value } = e.target;
+        setEditFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const openEditForm = (listing) => {
+        setEditingListing(listing);
+        setEditFormData({
+            price: listing.Price.toString(),
+            description: listing.Description || ''
+        });
+        setShowEditModal(true);
+    };
+
+    const closeEditModal = () => {
+        setShowEditModal(false);
+        setEditingListing(null);
+        setEditFormData({ price: '', description: '' });
+    };
+
     const showNotification = (message, type = 'success') => {
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
@@ -394,32 +513,94 @@ function Profile() {
                                 <div className="listings-grid">
                                     {listings.map((listing) => (
                                         <div key={listing.Id} className="listing-card">
-                                            <div className="listing-header">
-                                                <div className="listing-title">
-                                                    {listing.Car.Make} {listing.Car.Model} {listing.Car.Year}
+                                            {editingListing === listing.Id ? (
+                                                <div className="edit-form">
+                                                    <h3>Edit Listing</h3>
+                                                    <div className="form-group">
+                                                        <label>Price ($)</label>
+                                                        <input
+                                                            type="number"
+                                                            name="price"
+                                                            value={editFormData.price}
+                                                            onChange={handleEditFormChange}
+                                                            className="form-input"
+                                                            min="0"
+                                                            step="0.01"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div className="form-group">
+                                                        <label>Description</label>
+                                                        <textarea
+                                                            name="description"
+                                                            value={editFormData.description}
+                                                            onChange={handleEditFormChange}
+                                                            className="form-input"
+                                                            rows="4"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div className="form-actions">
+                                                        <button 
+                                                            className="btn btn-primary"
+                                                            onClick={() => handleEditListing(listing.Id)}
+                                                        >
+                                                            Save Changes
+                                                        </button>
+                                                        <button 
+                                                            className="btn btn-outline"
+                                                            onClick={() => {
+                                                                setEditingListing(null);
+                                                                setEditFormData({ price: '', description: '' });
+                                                            }}
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <div className={`listing-status status-${listing.Status?.toLowerCase() || 'pending'}`}>
-                                                    {listing.Status || 'Pending'}
-                                                </div>
-                                            </div>
-                                            <div className="listing-details">
-                                                <div className="listing-price">
-                                                    ${(listing.Price || 0).toLocaleString()}
-                                                </div>
-                                                <div className="listing-info">
-                                                    <span><i className="fas fa-road"></i> {(listing.Car.Mileage || 0).toLocaleString()} miles</span>
-                                                    <span><i className="fas fa-gas-pump"></i> {listing.Car.FuelType || 'N/A'}</span>
-                                                    <span><i className="fas fa-cog"></i> {listing.Car.GearboxType || 'N/A'}</span>
-                                                </div>
-                                            </div>
-                                            <div className="listing-actions">
-                                                <button className="btn btn-outline">
-                                                    <i className="fas fa-edit"></i> Edit
-                                                </button>
-                                                <button className="btn btn-outline">
-                                                    <i className="fas fa-trash"></i> Delete
-                                                </button>
-                                            </div>
+                                            ) : (
+                                                <>
+                                                    <div className="listing-header">
+                                                        <div className="listing-title">
+                                                            {listing.Car.Make} {listing.Car.Model} {listing.Car.Year}
+                                                        </div>
+                                                        <div className={`listing-status status-${listing.Status?.toLowerCase() || 'pending'}`}>
+                                                            {listing.Status || 'Pending'}
+                                                        </div>
+                                                    </div>
+                                                    <div className="listing-details">
+                                                        <div className="listing-price">
+                                                            ${(listing.Price || 0).toLocaleString()}
+                                                        </div>
+                                                        <div className="listing-info">
+                                                            <span><i className="fas fa-road"></i> {(listing.Car.Mileage || 0).toLocaleString()} miles</span>
+                                                            <span><i className="fas fa-gas-pump"></i> {listing.Car.FuelType || 'N/A'}</span>
+                                                            <span><i className="fas fa-cog"></i> {listing.Car.GearboxType || 'N/A'}</span>
+                                                        </div>
+                                                        <div className="listing-description">
+                                                            {listing.Description}
+                                                        </div>
+                                                    </div>
+                                                    <div className="listing-actions">
+                                                        <button 
+                                                            className="btn btn-outline"
+                                                            onClick={() => openEditForm(listing)}
+                                                        >
+                                                            <i className="fas fa-edit"></i> Edit
+                                                        </button>
+                                                        <button 
+                                                            className="btn btn-outline"
+                                                            onClick={() => {
+                                                                if (window.confirm('Are you sure you want to delete this listing?')) {
+                                                                    handleDeleteListing(listing.Id);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <i className="fas fa-trash"></i> Delete
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -663,8 +844,227 @@ function Profile() {
                     )}
                 </div>
             </div>
+
+            {/* Edit Listing Modal */}
+            {showEditModal && editingListing && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h2>Edit Listing</h2>
+                            <button 
+                                className="modal-close"
+                                onClick={closeEditModal}
+                            >
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="listing-preview">
+                                <h3>{editingListing.Car.Make} {editingListing.Car.Model} {editingListing.Car.Year}</h3>
+                                <div className="car-details">
+                                    <div className="detail-row">
+                                        <span className="detail-label">Make:</span>
+                                        <span className="detail-value">{editingListing.Car.Make}</span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">Model:</span>
+                                        <span className="detail-value">{editingListing.Car.Model}</span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">Year:</span>
+                                        <span className="detail-value">{editingListing.Car.Year}</span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">Mileage:</span>
+                                        <span className="detail-value">{editingListing.Car.Mileage.toLocaleString()} miles</span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">Fuel Type:</span>
+                                        <span className="detail-value">{editingListing.Car.FuelType}</span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">Gearbox:</span>
+                                        <span className="detail-value">{editingListing.Car.GearboxType}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="edit-form">
+                                <div className="form-group">
+                                    <label>Price ($)</label>
+                                    <input
+                                        type="number"
+                                        name="price"
+                                        value={editFormData.price}
+                                        onChange={handleEditFormChange}
+                                        className="form-input"
+                                        min="0"
+                                        step="0.01"
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Description</label>
+                                    <textarea
+                                        name="description"
+                                        value={editFormData.description}
+                                        onChange={handleEditFormChange}
+                                        className="form-input"
+                                        rows="6"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button 
+                                className="btn btn-outline"
+                                onClick={closeEditModal}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                className="btn btn-primary"
+                                onClick={() => handleEditListing(editingListing.Id)}
+                            >
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
+
+// Add these styles to your CSS file
+const styles = `
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    padding: 1rem;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #fff;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.modal-body {
+    padding: 1rem;
+}
+
+.modal-footer {
+    padding: 1rem;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.listing-preview {
+    background-color: #2a2a2a;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.listing-preview h3 {
+    margin: 0 0 1rem 0;
+    color: #fff;
+}
+
+.car-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.detail-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.detail-label {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.detail-value {
+    color: #fff;
+}
+
+.edit-form {
+    margin-top: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #9ca3af;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background-color: #2a2a2a;
+    color: #fff;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #695FD6;
+}
+
+textarea.form-input {
+    resize: vertical;
+    min-height: 100px;
+}
+`;
+
+// Add the styles to the document
+const styleSheet = document.createElement("style");
+styleSheet.innerText = styles;
+document.head.appendChild(styleSheet);
 
 export default Profile; 
