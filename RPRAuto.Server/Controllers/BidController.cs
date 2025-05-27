@@ -95,6 +95,10 @@ public class BidController : ControllerBase
         };
 
         await _bidRepository.CreateAsync(bid);
+        _logger.LogInformation("Bid created successfully: {BidId}", bid.Id);
+        user.Bids.Add(bid.Id);
+        await _userRepository.UpdateAsync(userId, user);
+        _logger.LogInformation("User's bids updated");
         return Ok(new { message = "Bid created successfully", bidId = bid.Id });
     }
 
