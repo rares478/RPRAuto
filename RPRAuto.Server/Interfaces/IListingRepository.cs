@@ -16,4 +16,5 @@ public interface IListingRepository : IRepository<Listing>
     Task UpdateStatusAsync(ObjectId id, ListingStatus status);
     Task<IEnumerable<Listing>> SearchAsync(FilterDefinition<Listing> filter);
     Task<(IEnumerable<Listing> Listings, long TotalCount)> GetListingsByPageAsync(int page, int pageSize);
+    IMongoCollection<Listing> GetCollection();
 } 
