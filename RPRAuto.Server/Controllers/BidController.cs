@@ -20,10 +20,12 @@ public class BidController : ControllerBase
 
     public BidController(
         IBidRepository bidRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        ILogger<BidController> logger)
     {
         _bidRepository = bidRepository;
         _userRepository = userRepository;
+        _logger = logger;
     }
 
     [HttpGet]
