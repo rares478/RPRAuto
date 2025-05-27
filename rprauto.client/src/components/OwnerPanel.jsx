@@ -31,15 +31,17 @@ const OwnerPanel = ({ isOpen, onClose }) => {
             }
             
             const data = await response.json();
+            console.log('Loaded settings:', data); // Debug log
+            
             setSettings({
-                siteTitle: data.siteTitle || '',
-                heroTitle: data.heroTitle || '',
-                heroSubtitle: data.heroSubtitle || '',
-                activeUsers: data.activeUsers || '0',
-                carsSold: data.carsSold || '0',
-                liveAuctions: data.liveAuctions || '0',
-                satisfactionRate: data.satisfactionRate || '0',
-                maintenanceMode: data.maintenanceMode || false
+                siteTitle: data.SiteTitle || '',
+                heroTitle: data.HeroTitle || '',
+                heroSubtitle: data.HeroSubtitle || '',
+                activeUsers: data.ActiveUsers || '0',
+                carsSold: data.CarsSold || '0',
+                liveAuctions: data.LiveAuctions || '0',
+                satisfactionRate: data.SatisfactionRate || '0',
+                maintenanceMode: data.MaintenanceMode || false
             });
         } catch (error) {
             console.error('Error loading settings:', error);
@@ -56,25 +58,54 @@ const OwnerPanel = ({ isOpen, onClose }) => {
                 return;
             }
 
+            // Debug token
+            console.log('Token:', token);
+            try {
+                const tokenParts = token.split('.');
+                if (tokenParts.length === 3) {
+                    const payload = JSON.parse(atob(tokenParts[1]));
+                    console.log('Token payload:', payload);
+                }
+            } catch (e) {
+                console.error('Error parsing token:', e);
+            }
+
+            const trimmedToken = token.trim();
+            console.log('Trimmed token:', trimmedToken);
+
             const response = await fetch('https://rprauto.onrender.com/api/sitesettings/customization', {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${token.trim()}`,
-                    'Content-Type': 'application/json'
+                    'Authorization': `Bearer ${trimmedToken}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    siteTitle: settings.siteTitle,
-                    heroTitle: settings.heroTitle,
-                    heroSubtitle: settings.heroSubtitle
+                    SiteTitle: settings.siteTitle,
+                    HeroTitle: settings.heroTitle,
+                    HeroSubtitle: settings.heroSubtitle
                 })
             });
 
-            if (response.ok) {
-                showMessage('Site customization updated successfully', 'success');
-            } else {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to update customization');
+            console.log('Response status:', response.status);
+            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+            if (!response.ok) {
+                let errorMessage = 'Failed to update customization';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorMessage;
+                } catch (e) {
+                    console.error('Error parsing error response:', e);
+                    if (response.status === 403) {
+                        errorMessage = 'Access denied. Please ensure you have owner privileges.';
+                    }
+                }
+                throw new Error(errorMessage);
             }
+
+            showMessage('Site customization updated successfully', 'success');
+            await loadSettings(); // Reload settings after successful update
         } catch (error) {
             console.error('Error updating customization:', error);
             showMessage(error.message || 'Failed to update customization', 'error');
@@ -92,11 +123,14 @@ const OwnerPanel = ({ isOpen, onClose }) => {
                 return;
             }
 
+            console.log('Token:', token); // Debug log
+
             const response = await fetch('https://rprauto.onrender.com/api/sitesettings/statistics', {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+                    'Authorization': `Bearer ${token.trim()}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
                     activeUsers: settings.activeUsers,
@@ -106,12 +140,13 @@ const OwnerPanel = ({ isOpen, onClose }) => {
                 })
             });
 
-            if (response.ok) {
-                showMessage('Site statistics updated successfully', 'success');
-            } else {
+            if (!response.ok) {
                 const errorData = await response.json();
+                console.error('Error response:', errorData); // Debug log
                 throw new Error(errorData.message || 'Failed to update statistics');
             }
+
+            showMessage('Site statistics updated successfully', 'success');
         } catch (error) {
             console.error('Error updating statistics:', error);
             showMessage(error.message || 'Failed to update statistics', 'error');
