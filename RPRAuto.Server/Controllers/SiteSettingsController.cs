@@ -47,18 +47,38 @@ namespace RPRAuto.Server.Controllers
         {
             try
             {
+                _logger.LogInformation("Attempting to update site customization");
+                
+                // Log all claims for debugging
+                var claims = User.Claims.Select(c => $"{c.Type}: {c.Value}");
+                _logger.LogInformation("User claims: {Claims}", string.Join(", ", claims));
+
                 var roleClaim = User.FindFirst(ClaimTypes.Role);
-                if (roleClaim == null || roleClaim.Value != "2")
+                _logger.LogInformation("User role claim: {Role}", roleClaim?.Value);
+
+                if (roleClaim == null)
                 {
-                    _logger.LogWarning("User does not have owner role");
-                    return Forbid();
+                    _logger.LogWarning("No role claim found in token");
+                    return Forbid("No role claim found in token");
                 }
+
+                // Try both string and numeric role comparison
+                if (roleClaim.Value != "2" && roleClaim.Value != "Owner")
+                {
+                    _logger.LogWarning("User does not have owner role. Current role: {Role}", roleClaim.Value);
+                    return Forbid($"User does not have owner role. Current role: {roleClaim.Value}");
+                }
+
+                _logger.LogInformation("Updating customization with values: SiteTitle={SiteTitle}, HeroTitle={HeroTitle}, HeroSubtitle={HeroSubtitle}",
+                    settings.SiteTitle, settings.HeroTitle, settings.HeroSubtitle);
 
                 await _siteSettingsRepository.UpdateCustomizationAsync(
                     settings.SiteTitle,
                     settings.HeroTitle,
                     settings.HeroSubtitle
                 );
+
+                _logger.LogInformation("Site customization updated successfully");
                 return Ok(new { message = "Site customization updated successfully" });
             }
             catch (Exception ex)
@@ -74,12 +94,25 @@ namespace RPRAuto.Server.Controllers
         {
             try
             {
+                _logger.LogInformation("Attempting to update site statistics");
+                
                 var roleClaim = User.FindFirst(ClaimTypes.Role);
-                if (roleClaim == null || roleClaim.Value != "2")
+                _logger.LogInformation("User role claim: {Role}", roleClaim?.Value);
+
+                if (roleClaim == null)
                 {
-                    _logger.LogWarning("User does not have owner role");
-                    return Forbid();
+                    _logger.LogWarning("No role claim found in token");
+                    return Forbid("No role claim found in token");
                 }
+
+                if (roleClaim.Value != "2")
+                {
+                    _logger.LogWarning("User does not have owner role. Current role: {Role}", roleClaim.Value);
+                    return Forbid($"User does not have owner role. Current role: {roleClaim.Value}");
+                }
+
+                _logger.LogInformation("Updating statistics with values: ActiveUsers={ActiveUsers}, CarsSold={CarsSold}, LiveAuctions={LiveAuctions}, SatisfactionRate={SatisfactionRate}",
+                    settings.ActiveUsers, settings.CarsSold, settings.LiveAuctions, settings.SatisfactionRate);
 
                 await _siteSettingsRepository.UpdateStatisticsAsync(
                     settings.ActiveUsers,
@@ -87,6 +120,8 @@ namespace RPRAuto.Server.Controllers
                     settings.LiveAuctions,
                     settings.SatisfactionRate
                 );
+
+                _logger.LogInformation("Site statistics updated successfully");
                 return Ok(new { message = "Site statistics updated successfully" });
             }
             catch (Exception ex)
