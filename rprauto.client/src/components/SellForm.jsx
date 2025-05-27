@@ -84,29 +84,28 @@ const SellForm = () => {
 
             // Convert form data to match server model
             const carData = {
-                make: formData.make,
-                model: formData.model,
-                year: parseInt(formData.year),
-                mileage: parseInt(formData.mileage),
-                color: formData.color || '',
-                gearboxType: formData.gearboxType || 'Any',
-                fuelType: formData.fuelType || 'Petrol',
-                bodyType: formData.bodyType || 'Any',
-                engineSize: formData.engineSize ? parseFloat(formData.engineSize) : 0,
-                horsePower: formData.engineSize ? parseInt(formData.engineSize.split('L')[0]) * 100 : 0,
-                pictures: imagePreviews.map(preview => preview.url),
-                doors: formData.doors,
-                description: formData.description
+                Make: formData.make,
+                Model: formData.model,
+                Year: parseInt(formData.year),
+                Mileage: parseInt(formData.mileage),
+                Color: formData.color || '',
+                GearboxType: formData.gearboxType || 'Any',
+                FuelType: formData.fuelType || 'Petrol',
+                BodyType: formData.bodyType || 'Any',
+                EngineSize: formData.engineSize ? parseFloat(formData.engineSize) : 0,
+                HorsePower: formData.engineSize ? parseInt(formData.engineSize.split('L')[0]) * 100 : 0,
+                Pictures: imagePreviews.map(preview => preview.url),
+                Doors: formData.doors,
+                Description: formData.description
             };
 
             if (formData.listingType === 'buy-now') {
                 // Create regular listing
                 const listingData = {
-                    request: {
-                        Car: carData,
-                        Price: parseFloat(formData.price),
-                        Description: formData.description
-                    }
+                    car: carData,
+                    price: parseFloat(formData.price),
+                    description: formData.description,
+                    endAt: new Date().toISOString()
                 };
 
                 console.log('Sending listing data:', JSON.stringify(listingData, null, 2)); // Debug log with pretty print
