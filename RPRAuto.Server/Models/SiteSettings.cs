@@ -11,7 +11,7 @@ namespace RPRAuto.Server.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         [JsonPropertyName("Id")]
-        [JsonConverter(typeof(ObjectIdJsonConverter))]
+        [JsonConverter(typeof(ObjectIdConverter))]
         public ObjectId Id { get; set; }
 
         // Site Customization
@@ -30,16 +30,17 @@ namespace RPRAuto.Server.Models
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
     }
 
-    public class ObjectIdJsonConverter : JsonConverter<string>
+    public class ObjectIdConverter : JsonConverter<ObjectId>
+{
+    public override ObjectId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        public override string Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            return reader.GetString();
-        }
-
-        public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options)
-        {
-            writer.WriteStringValue(value);
-        }
+        var value = reader.GetString();
+        return ObjectId.Parse(value);
     }
+
+    public override void Write(Utf8JsonWriter writer, ObjectId value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.ToString());
+    }
+}
 } 
