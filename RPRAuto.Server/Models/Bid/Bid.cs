@@ -3,20 +3,37 @@ using MongoDB.Bson.Serialization.Attributes;
 using RPRAuto.Server.Interfaces;
 using RPRAuto.Server.Models.Car;
 using RPRAuto.Server.Models.Enums;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace RPRAuto.Server.Models.Bid;
+
+public class ObjectIdConverter : JsonConverter<ObjectId>
+{
+    public override ObjectId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return ObjectId.Parse(value);
+    }
+
+    public override void Write(Utf8JsonWriter writer, ObjectId value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.ToString());
+    }
+}
 
 public class Bid : IBid
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     [JsonPropertyName("Id")]
+    [JsonConverter(typeof(ObjectIdConverter))]
     public ObjectId Id { get; set; }
 
     [BsonElement("userId")]
     [BsonRepresentation(BsonType.ObjectId)]
     [JsonPropertyName("UserId")]
+    [JsonConverter(typeof(ObjectIdConverter))]
     public ObjectId UserId { get; set; }
 
     [BsonElement("title")]

@@ -32,6 +32,7 @@ function Profile() {
         smsAuctions: true,
         marketing: false
     });
+    const [bids, setBids] = useState([]);
 
     useEffect(() => {
         // Load user data when component mounts
@@ -88,7 +89,29 @@ function Profile() {
 
             const listingsData = await listingsResponse.json();
             console.log('Listings data:', listingsData); // Debug log
-            setListings(listingsData);
+
+            // Fetch detailed data for each listing
+            const detailedListings = await Promise.all(
+                listingsData.map(async (listing) => {
+                    const detailResponse = await fetch(`https://rprauto.onrender.com/listing/${listing.Id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token.trim()}`,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!detailResponse.ok) {
+                        console.error(`Failed to fetch details for listing ${listing.Id}`);
+                        return listing; // Return original listing if detail fetch fails
+                    }
+
+                    return await detailResponse.json();
+                })
+            );
+
+            console.log('Detailed listings:', detailedListings); // Debug log
+            setListings(detailedListings);
 
             // Fetch user's bids
             const bidsResponse = await fetch(`https://rprauto.onrender.com/user/${userId}/bids`, {
@@ -103,8 +126,31 @@ function Profile() {
                 throw new Error('Failed to fetch bids');
             }
 
-            const bids = await bidsResponse.json();
-            console.log('Bids:', bids); // Debug log
+            const bidsData = await bidsResponse.json();
+            console.log('Bids data:', bidsData); // Debug log
+
+            // Fetch detailed data for each bid
+            const detailedBids = await Promise.all(
+                bidsData.map(async (bid) => {
+                    const detailResponse = await fetch(`https://rprauto.onrender.com/bid/${bid.Id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token.trim()}`,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!detailResponse.ok) {
+                        console.error(`Failed to fetch details for bid ${bid.Id}`);
+                        return bid; // Return original bid if detail fetch fails
+                    }
+
+                    return await detailResponse.json();
+                })
+            );
+
+            console.log('Detailed bids:', detailedBids); // Debug log
+            setBids(detailedBids);
             
             // Update form data with fetched user data
             setFormData({
@@ -123,9 +169,9 @@ function Profile() {
                 name: `${personalData.firstName} ${personalData.lastName}`,
                 phone: personalData.phoneNumber,
                 memberSince: new Date(personalData.createdAt).getFullYear().toString(),
-                activeListings: listingsData.length,
-                activeBids: bids.length,
-                totalSales: listingsData.reduce((total, listing) => total + (listing.price || 0), 0)
+                activeListings: detailedListings.length,
+                activeBids: detailedBids.length,
+                totalSales: detailedListings.reduce((total, listing) => total + (listing.Price || 0), 0)
             }));
 
         } catch (error) {
@@ -347,23 +393,23 @@ function Profile() {
                             ) : (
                                 <div className="listings-grid">
                                     {listings.map((listing) => (
-                                        <div key={listing._id} className="listing-card">
+                                        <div key={listing.Id} className="listing-card">
                                             <div className="listing-header">
                                                 <div className="listing-title">
-                                                    {listing.make} {listing.model} {listing.year}
+                                                    {listing.Car.Make} {listing.Car.Model} {listing.Car.Year}
                                                 </div>
-                                                <div className={`listing-status status-${listing.status?.toLowerCase() || 'pending'}`}>
-                                                    {listing.status || 'Pending'}
+                                                <div className={`listing-status status-${listing.Status?.toLowerCase() || 'pending'}`}>
+                                                    {listing.Status || 'Pending'}
                                                 </div>
                                             </div>
                                             <div className="listing-details">
                                                 <div className="listing-price">
-                                                    ${(listing.price || 0).toLocaleString()}
+                                                    ${(listing.Price || 0).toLocaleString()}
                                                 </div>
                                                 <div className="listing-info">
-                                                    <span><i className="fas fa-road"></i> {(listing.mileage || 0).toLocaleString()} miles</span>
-                                                    <span><i className="fas fa-gas-pump"></i> {listing.fuelType || 'N/A'}</span>
-                                                    <span><i className="fas fa-cog"></i> {listing.gearboxType || 'N/A'}</span>
+                                                    <span><i className="fas fa-road"></i> {(listing.Car.Mileage || 0).toLocaleString()} miles</span>
+                                                    <span><i className="fas fa-gas-pump"></i> {listing.Car.FuelType || 'N/A'}</span>
+                                                    <span><i className="fas fa-cog"></i> {listing.Car.GearboxType || 'N/A'}</span>
                                                 </div>
                                             </div>
                                             <div className="listing-actions">
@@ -553,6 +599,66 @@ function Profile() {
                     {activeSection === 'sell' && (
                         <div className="account-section active">
                             <SellForm />
+                        </div>
+                    )}
+
+                    {/* Bids Section */}
+                    {activeSection === 'bids' && (
+                        <div className="account-section active">
+                            <h2 className="section-title">My Bids</h2>
+                            
+                            {bids.length === 0 ? (
+                                <div className="empty-state">
+                                    <i className="fas fa-gavel"></i>
+                                    <p>You haven't placed any bids yet.</p>
+                                    <button 
+                                        className="btn btn-primary"
+                                        onClick={() => window.location.href = '/search'}
+                                    >
+                                        Browse Auctions
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="listings-grid">
+                                    {bids.map((bid) => (
+                                        <div key={bid.Id} className="listing-card">
+                                            <div className="listing-header">
+                                                <div className="listing-title">
+                                                    {bid.Car.Make} {bid.Car.Model} {bid.Car.Year}
+                                                </div>
+                                                <div className={`listing-status status-${bid.Status?.toLowerCase() || 'pending'}`}>
+                                                    {bid.Status || 'Pending'}
+                                                </div>
+                                            </div>
+                                            <div className="listing-details">
+                                                <div className="listing-price">
+                                                    Current Bid: ${(bid.TopBid || 0).toLocaleString()}
+                                                </div>
+                                                <div className="listing-info">
+                                                    <span><i className="fas fa-road"></i> {(bid.Car.Mileage || 0).toLocaleString()} miles</span>
+                                                    <span><i className="fas fa-gas-pump"></i> {bid.Car.FuelType || 'N/A'}</span>
+                                                    <span><i className="fas fa-cog"></i> {bid.Car.GearboxType || 'N/A'}</span>
+                                                </div>
+                                                <div className="bid-info">
+                                                    <span>Your Bid: ${(bid.Bids[userId] || 0).toLocaleString()}</span>
+                                                    <span>Min Bid: ${(bid.MinBid || 0).toLocaleString()}</span>
+                                                    {bid.InstantBuy > 0 && (
+                                                        <span>Buy Now: ${(bid.InstantBuy || 0).toLocaleString()}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="listing-actions">
+                                                <button className="btn btn-outline">
+                                                    <i className="fas fa-gavel"></i> Place New Bid
+                                                </button>
+                                                <button className="btn btn-outline">
+                                                    <i className="fas fa-times"></i> Cancel Bid
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

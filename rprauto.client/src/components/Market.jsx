@@ -43,7 +43,7 @@ const Market = () => {
           : ['/placeholder-car.jpg']; // Add a placeholder image if no images exist
 
         return {
-          id: listing.Id?.Timestamp?.toString(),
+          id: listing.Id,
           title: `${listing.Car.Make} ${listing.Car.Model}`,
           year: listing.Car.Year,
           make: listing.Car.Make,
