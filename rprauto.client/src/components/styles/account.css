@@ -9,13 +9,12 @@ html, body {
 }
 
 .account-container {
-    padding: 32px 0;
+    padding-top: 84px;
+    padding-bottom: 32px;
+    width: 100vw;
     min-height: 100vh;
-    width: 100vh;
-    max-width: 1900px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
+    margin: 0;
+    box-sizing: border-box;
 }
 
 .account-layout {

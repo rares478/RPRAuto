@@ -78,7 +78,15 @@ const SellForm = () => {
             }
 
             // Validate required fields
-            if (!formData.make || !formData.model || !formData.year || !formData.mileage || !formData.price || !formData.listingType || !formData.description) {
+            if (
+                !formData.make ||
+                !formData.model ||
+                !formData.year ||
+                !formData.mileage ||
+                !formData.listingType ||
+                !formData.description ||
+                (formData.listingType === 'buy-now' && !formData.price)
+            ) {
                 setError('Please fill in all required fields');
                 return;
             }
@@ -275,18 +283,20 @@ const SellForm = () => {
             </div>
 
             <div className="form-row">
-                <div className="form-group">
-                    <label>Price *</label>
-                    <input 
-                        type="number" 
-                        className="form-input" 
-                        name="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 75000" 
-                        required
-                    />
-                </div>
+                {formData.listingType !== 'auction' && (
+                    <div className="form-group">
+                        <label>Price *</label>
+                        <input 
+                            type="number" 
+                            className="form-input" 
+                            name="price"
+                            value={formData.price}
+                            onChange={handleInputChange}
+                            placeholder="e.g., 75000" 
+                            required={formData.listingType === 'buy-now'}
+                        />
+                    </div>
+                )}
                 <div className="form-group">
                     <label>Listing Type *</label>
                     <select 

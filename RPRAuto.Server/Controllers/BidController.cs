@@ -66,7 +66,7 @@ public class BidController : ControllerBase
         {
             UserId = userId,
             Title = request.Title,
-            TopBid = request.TopBid,
+            TopBid = 0,
             MinBid = request.MinBid,
             InstantBuy = request.InstantBuy,
             Car = request.Car,
