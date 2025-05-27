@@ -82,4 +82,9 @@ public class ListingRepository : MongoRepository<Listing>, IListingRepository
             
         return (listings, totalCount);
     }
+
+    public IMongoCollection<Listing> GetCollection()
+    {
+        return _collection;
+    }
 } 
