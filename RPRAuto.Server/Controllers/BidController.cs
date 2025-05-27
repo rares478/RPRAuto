@@ -61,45 +61,68 @@ public class BidController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateBid([FromBody] BidCreateRequest request)
     {
-        var userId = GetUserIdFromToken();
-        var user = await _userRepository.GetByIdAsync(userId);
-        if (user == null)
-            throw new NotFoundException("User not found");
-
-        var bid = new Bid
+        _logger.LogInformation("=== CreateBid Request Debug ===");
+        _logger.LogInformation("Raw request data: {@Request}", request);
+        
+        try 
         {
-            UserId = userId,
-            Title = request.Title,
-            TopBid = 0,
-            MinBid = request.MinBid,
-            InstantBuy = request.InstantBuy,
-            Car = new RPRAuto.Server.Models.Car.Car
+            var userId = GetUserIdFromToken();
+            _logger.LogInformation("UserId from token: {UserId}", userId);
+            
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
             {
-                Make = request.Car.Make,
-                Model = request.Car.Model,
-                Year = request.Car.Year,
-                Mileage = request.Car.Mileage,
-                Color = request.Car.Color,
-                GearboxType = request.Car.GearboxType,
-                FuelType = request.Car.FuelType,
-                BodyType = request.Car.BodyType,
-                EngineSize = request.Car.EngineSize,
-                HorsePower = request.Car.HorsePower,
-                Pictures = request.Car.Pictures,
-                Doors = request.Car.Doors,
-                Description = request.Car.Description
-            },
-            CreatedAt = DateTime.UtcNow,
-            EndAt = request.EndAt,
-            Bids = new Dictionary<ObjectId, decimal>()
-        };
+                _logger.LogError("User not found for ID: {UserId}", userId);
+                throw new NotFoundException("User not found");
+            }
+            _logger.LogInformation("User found: {UserId}", userId);
 
-        await _bidRepository.CreateAsync(bid);
-        _logger.LogInformation("Bid created successfully: {BidId}", bid.Id);
-        user.Bids.Add(bid.Id);
-        await _userRepository.UpdateAsync(userId, user);
-        _logger.LogInformation("User's bids updated");
-        return Ok(new { message = "Bid created successfully", bidId = bid.Id });
+            _logger.LogInformation("Car data from request: {@Car}", request.Car);
+            var bid = new Bid
+            {
+                UserId = userId,
+                Title = request.Title,
+                TopBid = 0,
+                MinBid = request.MinBid,
+                InstantBuy = request.InstantBuy,
+                Car = new RPRAuto.Server.Models.Car.Car
+                {
+                    Make = request.Car.Make,
+                    Model = request.Car.Model,
+                    Year = request.Car.Year,
+                    Mileage = request.Car.Mileage,
+                    Color = request.Car.Color,
+                    GearboxType = request.Car.GearboxType,
+                    FuelType = request.Car.FuelType,
+                    BodyType = request.Car.BodyType,
+                    EngineSize = request.Car.EngineSize,
+                    HorsePower = request.Car.HorsePower,
+                    Pictures = request.Car.Pictures,
+                    Doors = request.Car.Doors,
+                    Description = request.Car.Description
+                },
+                CreatedAt = DateTime.UtcNow,
+                EndAt = request.EndAt,
+                Bids = new Dictionary<ObjectId, decimal>()
+            };
+            _logger.LogInformation("Created bid object: {@Bid}", bid);
+
+            await _bidRepository.CreateAsync(bid);
+            _logger.LogInformation("Bid saved to database with ID: {BidId}", bid.Id);
+
+            user.Bids.Add(bid.Id);
+            await _userRepository.UpdateAsync(userId, user);
+            _logger.LogInformation("User's bids updated");
+
+            _logger.LogInformation("=== CreateBid Request Complete ===");
+            return Ok(new { message = "Bid created successfully", bidId = bid.Id });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating bid: {Message}", ex.Message);
+            _logger.LogError("Stack trace: {StackTrace}", ex.StackTrace);
+            throw;
+        }
     }
 
     [HttpGet("{id}")]
