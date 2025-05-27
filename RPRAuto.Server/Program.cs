@@ -96,6 +96,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
+        /*
         policy.WithOrigins("https://rpr-auto.vercel.app")
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -104,7 +105,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("https://rpr-auto-git-pojar-rares-projects-5c5d3702.vercel.app")
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials();
+            .AllowCredentials();*/
         
         policy.AllowAnyOrigin()
             .AllowAnyHeader()
