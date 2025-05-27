@@ -37,7 +37,7 @@ const Market = () => {
       const data = await response.json();
       
       const formattedCars = data.Listings.map(listing => ({
-        id: String(listing.Id || listing._id),
+        id: listing.Id?.toString() || listing._id?.toString(),
         title: `${listing.Car.Make} ${listing.Car.Model}`,
         year: listing.Car.Year,
         make: listing.Car.Make,
