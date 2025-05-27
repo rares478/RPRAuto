@@ -6,6 +6,7 @@ using RPRAuto.Server.Exceptions;
 using RPRAuto.Server.Models.Enums;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -15,6 +16,7 @@ public class BidController : ControllerBase
 {
     private readonly IBidRepository _bidRepository;
     private readonly IUserRepository _userRepository;
+    private readonly ILogger<BidController> _logger;
 
     public BidController(
         IBidRepository bidRepository,
@@ -178,10 +180,28 @@ public class BidController : ControllerBase
 
     private ObjectId GetUserIdFromToken()
     {
-        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
+        var authHeader = Request.Headers["Authorization"].ToString();
+        _logger.LogInformation("=== Token Debug Info ===");
+        _logger.LogInformation("Raw Authorization header: {AuthHeader}", authHeader);
+        
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        _logger.LogInformation("UserIdClaim: {UserIdClaim}", userIdClaim?.Value ?? "null");
+        _logger.LogInformation("All Claims: {Claims}", string.Join(", ", User.Claims.Select(c => $"{c.Type}: {c.Value}")));
+        
         if (userIdClaim == null || !ObjectId.TryParse(userIdClaim.Value, out var userId))
+        {
+            _logger.LogError("Token validation failed:");
+            _logger.LogError("- UserIdClaim is null: {IsNull}", userIdClaim == null);
+            if (userIdClaim != null)
+            {
+                _logger.LogError("- UserIdClaim value: {Value}", userIdClaim.Value);
+                _logger.LogError("- Could parse as ObjectId: {CanParse}", ObjectId.TryParse(userIdClaim.Value, out _));
+            }
             throw new UnauthorizedException("Invalid user token");
+        }
 
+        _logger.LogInformation("Successfully parsed userId: {UserId}", userId);
+        _logger.LogInformation("=====================");
         return userId;
     }
 }
