@@ -5,14 +5,17 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 function MainPage() {
      const [cars, setCars] = useState([]);
      const [currentSlide, setCurrentSlide] = useState({});
+     const [flippedCards, setFlippedCards] = useState({});
+     const [showPhones, setShowPhones] = useState({});
 
      // Function to handle slide changes
      const changeSlide = (carId, direction, event) => {
           event.stopPropagation();
-          setCurrentSlide(prev => ({
-               ...prev,
-               [carId]: ((prev[carId] || 0) + direction + 3) % 3
-          }));
+          setCurrentSlide(prev => {
+               const car = cars.find(c => c.id === carId);
+               const newSlide = ((prev[carId] || 0) + direction + car.images.length) % car.images.length;
+               return { ...prev, [carId]: newSlide };
+          });
      };
 
      // Function to handle direct slide selection
@@ -42,22 +45,28 @@ function MainPage() {
                return;
           }
           
-          setCars(prev => prev.map(car => 
-               car.id === carId ? { ...car, isFlipped: !car.isFlipped } : car
-          ));
+          setFlippedCards(prev => {
+               const newState = { ...prev };
+               newState[carId] = !newState[carId];
+               return newState;
+          });
      };
 
      // Function to show phone number
      const showPhoneNumber = (carId, phoneNumber, event) => {
           event.stopPropagation();
-          setCars(prev => prev.map(car => 
-               car.id === carId ? { ...car, showPhone: true } : car
-          ));
+          setShowPhones(prev => {
+               const newState = { ...prev };
+               newState[carId] = true;
+               return newState;
+          });
           
           setTimeout(() => {
-               setCars(prev => prev.map(car => 
-                    car.id === carId ? { ...car, showPhone: false } : car
-               ));
+               setShowPhones(prev => {
+                    const newState = { ...prev };
+                    newState[carId] = false;
+                    return newState;
+               });
           }, 3000);
      };
 
@@ -168,25 +177,66 @@ function MainPage() {
                          <div className="cars-grid">
                               {cars.map(car => (
                                    <div key={car.id} className="car-card-container">
-                                        <div className={`car-card ${car.isFlipped ? 'flipped' : ''}`} onClick={(e) => flipCard(car.id, e)}>
+                                        <div 
+                                             className={`car-card ${flippedCards[car.id] ? 'flipped' : ''}`}
+                                             onClick={(e) => flipCard(car.id, e)}
+                                        >
+                                             <div className="car-id">ID: {car.id}</div>
                                              <div className="car-card-front">
                                                   <div className="car-slideshow">
                                                        {car.images.map((image, index) => (
-                                                            <div key={index} className={`slide ${currentSlide[car.id] === index ? 'active' : ''}`}>
-                                                                 <div className="car-photo" style={{ backgroundImage: `url(${image})` }}></div>
-                    </div>
+                                                            <div
+                                                                 key={index}
+                                                                 className={`slide ${currentSlide[car.id] === index ? 'active' : ''}`}
+                                                            >
+                                                                 <div
+                                                                      className="car-photo"
+                                                                      style={{ backgroundImage: `url(${image})` }}
+                                                                 ></div>
+                                                            </div>
                                                        ))}
                                                        
-                                                       <div className="nav-arrow prev" onClick={(e) => changeSlide(car.id, -1, e)}>❮</div>
-                                                       <div className="nav-arrow next" onClick={(e) => changeSlide(car.id, 1, e)}>❯</div>
+                                                       <div
+                                                            className="nav-arrow prev"
+                                                            onClick={(e) => {
+                                                                 e.stopPropagation();
+                                                                 changeSlide(car.id, -1, e);
+                                                            }}
+                                                       >
+                                                            ❮
+                                                       </div>
+                                                       <div
+                                                            className="nav-arrow next"
+                                                            onClick={(e) => {
+                                                                 e.stopPropagation();
+                                                                 changeSlide(car.id, 1, e);
+                                                            }}
+                                                       >
+                                                            ❯
+                                                       </div>
                                                        
                                                        <div className="slide-indicator">
                                                             {car.images.map((_, index) => (
-                                                                 <div key={index} className={`dot ${currentSlide[car.id] === index ? 'active' : ''}`} onClick={(e) => goToSlide(car.id, index, e)}></div>
+                                                                 <div
+                                                                      key={index}
+                                                                      className={`dot ${currentSlide[car.id] === index ? 'active' : ''}`}
+                                                                      onClick={(e) => {
+                                                                           e.stopPropagation();
+                                                                           goToSlide(car.id, index, e);
+                                                                      }}
+                                                                 ></div>
                                                             ))}
                 </div>
             </div>
-                                                  <div className="flip-indicator" onClick={(e) => flipCard(car.id, e)}>Flip for details</div>
+                                                  <div
+                                                       className="flip-indicator"
+                                                       onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            flipCard(car.id, e);
+                                                       }}
+                                                  >
+                                                       Flip for details
+                                                  </div>
                     </div>
                                              
                                              <div className="car-card-back">
@@ -219,13 +269,21 @@ function MainPage() {
                                                        <div className="car-price-large">${car.price.toLocaleString()}</div>
                                                        
                                                        <div className="button-container">
-                                                            <button className={`call-button ${car.showPhone ? 'show-phone' : ''}`} onClick={(e) => showPhoneNumber(car.id, car.phoneNumber, e)}>
+                                                            <button className={`call-button ${showPhones[car.id] ? 'show-phone' : ''}`} onClick={(e) => showPhoneNumber(car.id, car.phoneNumber, e)}>
                                                                  <span className="call-text">Call Now</span>
                                                                  <span className="phone-number">{car.phoneNumber}</span>
                                                             </button>
                             </div>
                         </div>
-                                                  <div className="flip-indicator" onClick={(e) => flipCard(car.id, e)}>Flip back</div>
+                                                  <div
+                                                       className="flip-indicator"
+                                                       onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            flipCard(car.id, e);
+                                                       }}
+                                                  >
+                                                       Flip back
+                                                  </div>
                         </div>
                     </div>
             </div>

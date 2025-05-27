@@ -466,6 +466,7 @@ const Market = () => {
                     className={`car-card ${flippedCards[car.id] ? 'flipped' : ''}`}
                     onClick={(e) => flipCard(car.id, e)}
                   >
+                    <div className="car-id">ID: {car.id}</div>
                     <div className="car-card-front">
                       <div className="car-slideshow">
                         {car.images.map((image, index) => (
