@@ -8,6 +8,8 @@ const AuctionCard = ({ auction }) => {
   const [timeRemaining, setTimeRemaining] = useState('');
   const [bidAmount, setBidAmount] = useState('');
   const [showDetails, setShowDetails] = useState(false);
+  const [sellerName, setSellerName] = useState(auction.seller?.name || 'Seller');
+  const [bidderNames, setBidderNames] = useState({});
   const minIncrement = 1250; // This should come from the auction data
 
   useEffect(() => {
@@ -35,6 +37,37 @@ const AuctionCard = ({ auction }) => {
 
     return () => clearInterval(interval);
   }, [auction.endTime]);
+
+  // Fetch seller name
+  useEffect(() => {
+    if (auction.seller?.id) {
+      fetch(`https://rprauto.onrender.com/user/${auction.seller.id}/public`)
+        .then(res => res.json())
+        .then(data => setSellerName(data.displayName || 'Seller'))
+        .catch(() => setSellerName('Seller'));
+    }
+  }, [auction.seller?.id]);
+
+  // Fetch bidder names
+  useEffect(() => {
+    const uniqueBidderIds = Array.from(new Set((auction.bidHistory || []).map(bid => bid.bidder.id)));
+    const names = {};
+    let isMounted = true;
+    Promise.all(uniqueBidderIds.map(id =>
+      fetch(`https://rprauto.onrender.com/user/${id}/public`)
+        .then(res => res.json())
+        .then(data => ({ id, name: data.displayName || 'Bidder' }))
+        .catch(() => ({ id, name: 'Bidder' }))
+    )).then(results => {
+      if (isMounted) {
+        results.forEach(({ id, name }) => {
+          names[id] = name;
+        });
+        setBidderNames(names);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [auction.bidHistory]);
 
   const changeSlide = (direction, e) => {
     e.stopPropagation();
@@ -298,11 +331,11 @@ const AuctionCard = ({ auction }) => {
                 
                 <div className="seller-info">
                   <div className="seller-avatar">
-                    {auction.seller.name.split(' ').map(n => n[0]).join('')}
+                    {sellerName.split(' ').map(n => n[0]).join('')}
                   </div>
                   <div>
                     <span className="seller-label">Sold by</span>
-                    <span className="seller-name">{auction.seller.name}</span>
+                    <span className="seller-name">{sellerName}</span>
                   </div>
                 </div>
               </div>
@@ -319,20 +352,23 @@ const AuctionCard = ({ auction }) => {
           </div>
           
           <div className="bid-history">
-            {auction.bidHistory.map((bid, index) => (
-              <div key={index} className="bid-item">
-                <div className="bidder-info">
-                  <div className="bidder-avatar">
-                    {bid.bidder.name.split(' ').map(n => n[0]).join('')}
+            {auction.bidHistory.map((bid, index) => {
+              const name = bidderNames[bid.bidder.id] || 'Bidder';
+              return (
+                <div key={index} className="bid-item">
+                  <div className="bidder-info">
+                    <div className="bidder-avatar">
+                      {name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <div className="bidder-name">{name}</div>
+                      <div className="bid-time">{bid.time}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="bidder-name">{bid.bidder.name}</div>
-                    <div className="bid-time">{bid.time}</div>
-                  </div>
+                  <div className="bid-amount-small">${bid.amount.toLocaleString()}</div>
                 </div>
-                <div className="bid-amount-small">${bid.amount.toLocaleString()}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           
           <div className="highest-bid">
