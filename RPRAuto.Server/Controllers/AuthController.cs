@@ -49,7 +49,6 @@ public class AuthController : ControllerBase
             // Create new user
             var user = new User
             {
-                UserId = ObjectId.GenerateNewId(),
                 PrivateData = new PrivateUserData
                 {
                     Login = new LoginDetails
@@ -88,7 +87,17 @@ public class AuthController : ControllerBase
 
             var token = GenerateJwtToken(user);
 
-            return Ok(new AuthResponse { Message = "Registration successful", Token = token });
+            return Ok(new AuthResponse 
+            { 
+                Message = "Registration successful", 
+                Token = token,
+                UserData = new LoginDetailsResponse
+                {
+                    Email = user.PrivateData.Login.Email,
+                    Role = user.Role.ToString(),
+                    CreatedAt = user.CreatedAt
+                }
+            });
         }
         catch (ValidationException ex)
         {
@@ -205,7 +214,7 @@ public class AuthController : ControllerBase
 
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Name, user.PrivateData.Login.Email),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(ClaimTypes.Role, user.Role.ToString())

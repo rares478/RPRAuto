@@ -5,7 +5,7 @@ namespace RPRAuto.Server.Interfaces;
 
 public interface IUser
 {
-    ObjectId UserId { get; set; }
+    ObjectId Id { get; set; }
     UserRole Role { get; set; }
     string? CompanyCUI { get; set; }
     List<ObjectId> Listings { get; set; }

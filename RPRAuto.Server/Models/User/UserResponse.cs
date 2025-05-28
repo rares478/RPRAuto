@@ -5,7 +5,7 @@ namespace RPRAuto.Server.Models.User;
 
 public class UserResponse
 {
-    public string UserId { get; set; } = string.Empty;
+    public string Id { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public UserRole Role { get; set; }
     public string? CompanyCUI { get; set; }

@@ -60,7 +60,7 @@ public class UserRepository : MongoRepository<User>, IUserRepository
         await _reviewsCollection.InsertOneAsync(review);
 
         var update = Builders<User>.Update.Set(u => u.Review, review.ReviewId);
-        await _collection.UpdateOneAsync(u => u.UserId == userId, update);
+        await _collection.UpdateOneAsync(u => u.Id == userId, update);
     }
 
     public async Task<bool> VerifyPasswordAsync(string email, string password)

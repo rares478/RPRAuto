@@ -46,14 +46,14 @@ public class UserController : ControllerBase
             throw new NotFoundException("User not found");
 
         var userId = GetUserIdFromToken();
-        var isOwner = user.UserId == userId;
+        var isOwner = user.Id == userId;
 
         // If the requesting user is the owner, return full data
         if (isOwner)
         {
             return Ok(new UserResponse
             {
-                UserId = user.UserId.ToString(),
+                Id = user.Id.ToString(),
                 Email = user.PrivateData.Login.Email,
                 Role = user.Role,
                 CompanyCUI = user.CompanyCUI,
@@ -69,7 +69,7 @@ public class UserController : ControllerBase
         // For other users, return only public data
         return Ok(new UserResponse
         {
-            UserId = user.UserId.ToString(),
+            Id = user.Id.ToString(),
             Role = user.Role,
             PublicData = user.PublicData,
             Listings = user.Listings.Select(l => l.ToString()).ToList(),
@@ -88,7 +88,7 @@ public class UserController : ControllerBase
             throw new NotFoundException("User not found");
 
         var userId = GetUserIdFromToken();
-        if (user.UserId != userId)
+        if (user.Id != userId)
             throw new UnauthorizedException("You are not authorized to modify this user");
 
         // Update personal data
@@ -131,7 +131,7 @@ public class UserController : ControllerBase
             throw new NotFoundException("User not found");
 
         var userId = GetUserIdFromToken();
-        if (user.UserId != userId)
+        if (user.Id != userId)
             throw new UnauthorizedException("You are not authorized to delete this user");
 
         await _userRepository.DeleteAsync(objectId);
@@ -169,7 +169,7 @@ public class UserController : ControllerBase
             throw new NotFoundException("User not found");
 
         var userId = GetUserIdFromToken();
-        if (user.UserId != userId)
+        if (user.Id != userId)
             throw new UnauthorizedException("You are not authorized to view this user's login details");
 
         return Ok(new LoginDetailsResponse
@@ -199,9 +199,9 @@ public class UserController : ControllerBase
         }
 
         var userId = GetUserIdFromToken();
-        if (user.UserId != userId)
+        if (user.Id != userId)
         {
-            _logger.LogWarning($"Unauthorized access attempt. Token ID: {userId}, User ID: {user.UserId}");
+            _logger.LogWarning($"Unauthorized access attempt. Token ID: {userId}, User ID: {user.Id}");
             throw new UnauthorizedException("You are not authorized to view this user's personal details");
         }
 

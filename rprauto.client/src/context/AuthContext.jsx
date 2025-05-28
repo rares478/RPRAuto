@@ -1,10 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};
 
 export const AuthProvider = ({ children }) => {
-    const [token, setToken] = useState(Cookies.get('token') || null);
+    const [token, setToken] = useState(Cookies.get('authToken') || null);
     const [userData, setUserData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -21,15 +30,25 @@ export const AuthProvider = ({ children }) => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(token),
+                    body: JSON.stringify(token)
                 });
 
                 if (!response.ok) {
-                    logout();
+                    throw new Error('Invalid token');
                 }
+
+                // Token is valid, decode it to get user info
+                const decodedToken = jwtDecode(token);
+                setUserData({
+                    id: decodedToken.sub,
+                    email: decodedToken.name,
+                    role: decodedToken.role
+                });
             } catch (error) {
                 console.error('Token validation error:', error);
-                logout();
+                setToken(null);
+                setUserData(null);
+                Cookies.remove('authToken');
             } finally {
                 setIsLoading(false);
             }
@@ -38,27 +57,27 @@ export const AuthProvider = ({ children }) => {
         validateToken();
     }, [token]);
 
-    const login = (newToken, user) => {
+    const login = (newToken, userData) => {
         setToken(newToken);
-        setUserData(user);
-        Cookies.set('token', newToken, { expires: 1 }); // Expires in 1 day
+        setUserData(userData);
+        Cookies.set('authToken', newToken, { expires: 1 }); // Expires in 1 day
     };
 
     const logout = () => {
         setToken(null);
         setUserData(null);
-        Cookies.remove('token');
+        Cookies.remove('authToken');
     };
 
     const value = {
         token,
         userData,
         isLoading,
-        login,
-        logout,
         isAuthenticated: !!token,
+        isAdmin: userData?.role === 'Admin',
         isCompany: userData?.role === 'Company',
-        isAdmin: userData?.role === 'Admin'
+        login,
+        logout
     };
 
     return (
@@ -66,12 +85,4 @@ export const AuthProvider = ({ children }) => {
             {!isLoading && children}
         </AuthContext.Provider>
     );
-};
-
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
 }; 

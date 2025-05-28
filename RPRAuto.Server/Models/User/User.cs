@@ -9,22 +9,13 @@ public class User : IUser
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    public string Id { get; set; }
-
-    [BsonElement("userId")]
-    public ObjectId UserId { get; set; }
+    public ObjectId Id { get; set; }
 
     [BsonElement("role")]
     public UserRole Role { get; set; }
 
     [BsonElement("companyCUI")]
     public string? CompanyCUI { get; set; }
-
-    [BsonElement("createdAt")]
-    public DateTime CreatedAt { get; set; }
-
-    [BsonElement("updatedAt")]
-    public DateTime UpdatedAt { get; set; }
 
     [BsonElement("listings")]
     public List<ObjectId> Listings { get; set; } = new();
@@ -34,6 +25,12 @@ public class User : IUser
 
     [BsonElement("review")]
     public ObjectId? Review { get; set; }
+
+    [BsonElement("createdAt")]
+    public DateTime CreatedAt { get; set; }
+
+    [BsonElement("updatedAt")]
+    public DateTime UpdatedAt { get; set; }
 
     [BsonElement("privateData")]
     public PrivateUserData PrivateData { get; set; } = new();
