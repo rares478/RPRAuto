@@ -26,7 +26,15 @@ export async function registerHandle(firstName, email, password, phone, isCompan
         const data = await response.json();
 
         if (response.ok) {
-            return { success: true, token: data.Token }
+            return { 
+                success: true, 
+                token: data.Token,
+                userData: {
+                    email: data.UserData?.Email,
+                    role: data.UserData?.Role,
+                    createdAt: data.UserData?.CreatedAt
+                }
+            }
         } else {
             return { success: false, message: data.message }        
         }

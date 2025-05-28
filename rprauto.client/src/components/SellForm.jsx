@@ -1,6 +1,25 @@
 import React, { useState } from 'react';
 import './styles/sell.css';
 import Cookies from 'js-cookie';
+import Select from 'react-select';
+import { makes, gearboxOptions, fuelOptions, getModelsForMake } from './data/carOptions';
+
+const years = Array.from({length: 15}, (_, i) => {
+    const y = (2010 + i).toString();
+    return { value: y, label: y };
+});
+const bodyTypeOptions = [
+    { value: '', label: 'Select Body Type' },
+    { value: 'Any', label: 'Any' },
+    { value: 'Sedan', label: 'Sedan' },
+    { value: 'Hatchback', label: 'Hatchback' },
+    { value: 'SUV', label: 'SUV' },
+    { value: 'Coupe', label: 'Coupe' },
+    { value: 'Convertible', label: 'Convertible' },
+    { value: 'Pickup', label: 'Pickup' },
+    { value: 'Van', label: 'Van' },
+    { value: 'Wagon', label: 'Wagon' }
+];
 
 const SellForm = () => {
     const [formData, setFormData] = useState({
@@ -117,8 +136,6 @@ const SellForm = () => {
                     endAt: new Date().toISOString()
                 };
 
-                console.log('Sending listing data:', JSON.stringify(listingData, null, 2)); // Debug log with pretty print
-
                 const listingResponse = await fetch('https://rprauto.onrender.com/listing', {
                     method: 'POST',
                     headers: {
@@ -204,6 +221,21 @@ const SellForm = () => {
         setSuccess('');
     };
 
+    // Add darkInputStyle for inputs, matching Auction
+    const darkInputStyle = {
+        background: '#181828',
+        border: '1.5px solid #23233a',
+        borderRadius: 8,
+        color: '#fff',
+        fontSize: '0.95rem',
+        padding: '6px 10px',
+        minHeight: '50px',
+        outline: 'none',
+        width: '100%',
+        boxSizing: 'border-box',
+        transition: 'border 0.2s, box-shadow 0.2s',
+    };
+
     return (
         <form className="sell-form" onSubmit={handleSubmit}>
             <h3><i className="fas fa-car"></i> Vehicle Information</h3>
@@ -211,37 +243,157 @@ const SellForm = () => {
             <div className="form-row">
                 <div className="form-group">
                     <label>Make *</label>
-                    <select 
-                        className="form-input" 
-                        name="make"
-                        value={formData.make}
-                        onChange={handleInputChange}
+                    <Select
+                        className="react-select"
+                        classNamePrefix="react-select"
+                        styles={{
+                            control: (base, state) => ({
+                                ...base,
+                                background: '#181828',
+                                border: '1.5px solid #23233a',
+                                borderRadius: 8,
+                                minHeight: 44,
+                                fontSize: '1.1rem',
+                                color: '#fff',
+                                boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                                transition: 'border 0.2s, box-shadow 0.2s',
+                            }),
+                            valueContainer: base => ({
+                                ...base,
+                                color: '#fff',
+                                padding: '8px 12px',
+                                background: '#181828',
+                            }),
+                            placeholder: base => ({
+                                ...base,
+                                color: '#bdbdf7',
+                                fontSize: '1.1rem',
+                            }),
+                            singleValue: base => ({
+                                ...base,
+                                color: '#fff',
+                                fontSize: '1.1rem',
+                            }),
+                            indicatorSeparator: base => ({
+                                ...base,
+                                background: '#23233a',
+                            }),
+                            dropdownIndicator: base => ({
+                                ...base,
+                                color: '#A8A1F8',
+                                transition: 'color 0.2s',
+                            }),
+                            menu: base => ({
+                                ...base,
+                                background: '#181828',
+                                color: '#fff',
+                                borderRadius: 8,
+                                border: '1.5px solid #23233a',
+                                zIndex: 2147483647,
+                            }),
+                            option: (base, state) => ({
+                                ...base,
+                                background: state.isSelected
+                                    ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                                    : state.isFocused
+                                    ? '#23233a'
+                                    : 'transparent',
+                                color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                                fontSize: '1.08rem',
+                                padding: '12px 16px',
+                                cursor: 'pointer',
+                                transition: 'background 0.15s, color 0.15s',
+                            }),
+                            menuList: base => ({
+                                ...base,
+                                maxHeight: 220,
+                                overflowY: 'auto',
+                                background: '#181828',
+                            }),
+                        }}
+                        menuPortalTarget={document.body}
+                        options={makes.map(make => ({ value: make, label: make }))}
+                        value={formData.make ? { value: formData.make, label: formData.make } : null}
+                        onChange={option => setFormData(prev => ({ ...prev, make: option?.value, model: '' }))}
                         required
-                    >
-                        <option value="">Select make</option>
-                        <option value="bmw">BMW</option>
-                        <option value="porsche">Porsche</option>
-                        <option value="tesla">Tesla</option>
-                        <option value="lamborghini">Lamborghini</option>
-                        <option value="mercedes">Mercedes-Benz</option>
-                        <option value="audi">Audi</option>
-                        <option value="ford">Ford</option>
-                        <option value="chevrolet">Chevrolet</option>
-                        <option value="toyota">Toyota</option>
-                        <option value="honda">Honda</option>
-                        <option value="other">Other</option>
-                    </select>
+                    />
                 </div>
                 <div className="form-group">
                     <label>Model *</label>
-                    <input 
-                        type="text" 
-                        className="form-input" 
-                        name="model"
-                        value={formData.model}
-                        onChange={handleInputChange}
-                        placeholder="e.g., M4 Competition" 
+                    <Select
+                        className="react-select"
+                        classNamePrefix="react-select"
+                        styles={{
+                            control: (base, state) => ({
+                                ...base,
+                                background: '#181828',
+                                border: '1.5px solid #23233a',
+                                borderRadius: 8,
+                                minHeight: 44,
+                                fontSize: '1.1rem',
+                                color: '#fff',
+                                boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                                transition: 'border 0.2s, box-shadow 0.2s',
+                            }),
+                            valueContainer: base => ({
+                                ...base,
+                                color: '#fff',
+                                padding: '8px 12px',
+                                background: '#181828',
+                            }),
+                            placeholder: base => ({
+                                ...base,
+                                color: '#bdbdf7',
+                                fontSize: '1.1rem',
+                            }),
+                            singleValue: base => ({
+                                ...base,
+                                color: '#fff',
+                                fontSize: '1.1rem',
+                            }),
+                            indicatorSeparator: base => ({
+                                ...base,
+                                background: '#23233a',
+                            }),
+                            dropdownIndicator: base => ({
+                                ...base,
+                                color: '#A8A1F8',
+                                transition: 'color 0.2s',
+                            }),
+                            menu: base => ({
+                                ...base,
+                                background: '#181828',
+                                color: '#fff',
+                                borderRadius: 8,
+                                border: '1.5px solid #23233a',
+                                zIndex: 2147483647,
+                            }),
+                            option: (base, state) => ({
+                                ...base,
+                                background: state.isSelected
+                                    ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                                    : state.isFocused
+                                    ? '#23233a'
+                                    : 'transparent',
+                                color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                                fontSize: '1.08rem',
+                                padding: '12px 16px',
+                                cursor: 'pointer',
+                                transition: 'background 0.15s, color 0.15s',
+                            }),
+                            menuList: base => ({
+                                ...base,
+                                maxHeight: 220,
+                                overflowY: 'auto',
+                                background: '#181828',
+                            }),
+                        }}
+                        menuPortalTarget={document.body}
+                        options={formData.make ? getModelsForMake(formData.make).map(model => ({ value: model, label: model })) : []}
+                        value={formData.model ? { value: formData.model, label: formData.model } : null}
+                        onChange={option => setFormData(prev => ({ ...prev, model: option?.value }))}
                         required
+                        isDisabled={!formData.make}
                     />
                 </div>
             </div>
@@ -249,26 +401,82 @@ const SellForm = () => {
             <div className="form-row">
                 <div className="form-group">
                     <label>Year *</label>
-                    <select 
-                        className="form-input" 
-                        name="year"
-                        value={formData.year}
-                        onChange={handleInputChange}
+                    <Select
+                        className="react-select"
+                        classNamePrefix="react-select"
+                        styles={{
+                            control: (base, state) => ({
+                                ...base,
+                                background: '#181828',
+                                border: '1.5px solid #23233a',
+                                borderRadius: 8,
+                                minHeight: 44,
+                                fontSize: '1.1rem',
+                                color: '#fff',
+                                boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                                transition: 'border 0.2s, box-shadow 0.2s',
+                            }),
+                            valueContainer: base => ({
+                                ...base,
+                                color: '#fff',
+                                padding: '8px 12px',
+                                background: '#181828',
+                            }),
+                            placeholder: base => ({
+                                ...base,
+                                color: '#bdbdf7',
+                                fontSize: '1.1rem',
+                            }),
+                            singleValue: base => ({
+                                ...base,
+                                color: '#fff',
+                                fontSize: '1.1rem',
+                            }),
+                            indicatorSeparator: base => ({
+                                ...base,
+                                background: '#23233a',
+                            }),
+                            dropdownIndicator: base => ({
+                                ...base,
+                                color: '#A8A1F8',
+                                transition: 'color 0.2s',
+                            }),
+                            menu: base => ({
+                                ...base,
+                                background: '#181828',
+                                color: '#fff',
+                                borderRadius: 8,
+                                border: '1.5px solid #23233a',
+                                zIndex: 2147483647,
+                            }),
+                            option: (base, state) => ({
+                                ...base,
+                                background: state.isSelected
+                                    ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                                    : state.isFocused
+                                    ? '#23233a'
+                                    : 'transparent',
+                                color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                                fontSize: '1.08rem',
+                                padding: '12px 16px',
+                                cursor: 'pointer',
+                                transition: 'background 0.15s, color 0.15s',
+                            }),
+                            menuList: base => ({
+                                ...base,
+                                maxHeight: 220,
+                                overflowY: 'auto',
+                                background: '#181828',
+                            }),
+                        }}
+                        menuPortalTarget={document.body}
+                        options={years}
+                        value={formData.year ? { value: formData.year, label: formData.year } : null}
+                        onChange={(selectedOption) => {
+                            setFormData(prev => ({ ...prev, year: selectedOption?.value }));
+                        }}
                         required
-                    >
-                        <option value="">Select year</option>
-                        <option value="2024">2024</option>
-                        <option value="2023">2023</option>
-                        <option value="2022">2022</option>
-                        <option value="2021">2021</option>
-                        <option value="2020">2020</option>
-                        <option value="2019">2019</option>
-                        <option value="2018">2018</option>
-                        <option value="2017">2017</option>
-                        <option value="2016">2016</option>
-                        <option value="2015">2015</option>
-                        <option value="older">Older</option>
-                    </select>
+                    />
                 </div>
                 <div className="form-group">
                     <label>Mileage *</label>
@@ -280,6 +488,7 @@ const SellForm = () => {
                         onChange={handleInputChange}
                         placeholder="e.g., 25000" 
                         required
+                        style={darkInputStyle}
                     />
                 </div>
             </div>
@@ -296,22 +505,92 @@ const SellForm = () => {
                             onChange={handleInputChange}
                             placeholder="e.g., 75000" 
                             required={formData.listingType === 'buy-now'}
+                            style={darkInputStyle}
                         />
                     </div>
                 )}
                 <div className="form-group">
                     <label>Listing Type *</label>
-                    <select 
-                        className="form-input" 
-                        name="listingType"
-                        value={formData.listingType}
-                        onChange={handleInputChange}
+                    <Select
+                        className="react-select"
+                        classNamePrefix="react-select"
+                        styles={{
+                            control: (base, state) => ({
+                                ...base,
+                                background: '#181828',
+                                border: '1.5px solid #23233a',
+                                borderRadius: 8,
+                                minHeight: 44,
+                                fontSize: '1.1rem',
+                                color: '#fff',
+                                boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                                transition: 'border 0.2s, box-shadow 0.2s',
+                            }),
+                            valueContainer: base => ({
+                                ...base,
+                                color: '#fff',
+                                padding: '8px 12px',
+                                background: '#181828',
+                            }),
+                            placeholder: base => ({
+                                ...base,
+                                color: '#bdbdf7',
+                                fontSize: '1.1rem',
+                            }),
+                            singleValue: base => ({
+                                ...base,
+                                color: '#fff',
+                                fontSize: '1.1rem',
+                            }),
+                            indicatorSeparator: base => ({
+                                ...base,
+                                background: '#23233a',
+                            }),
+                            dropdownIndicator: base => ({
+                                ...base,
+                                color: '#A8A1F8',
+                                transition: 'color 0.2s',
+                            }),
+                            menu: base => ({
+                                ...base,
+                                background: '#181828',
+                                color: '#fff',
+                                borderRadius: 8,
+                                border: '1.5px solid #23233a',
+                                zIndex: 2147483647,
+                            }),
+                            option: (base, state) => ({
+                                ...base,
+                                background: state.isSelected
+                                    ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                                    : state.isFocused
+                                    ? '#23233a'
+                                    : 'transparent',
+                                color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                                fontSize: '1.08rem',
+                                padding: '12px 16px',
+                                cursor: 'pointer',
+                                transition: 'background 0.15s, color 0.15s',
+                            }),
+                            menuList: base => ({
+                                ...base,
+                                maxHeight: 220,
+                                overflowY: 'auto',
+                                background: '#181828',
+                            }),
+                        }}
+                        menuPortalTarget={document.body}
+                        options={[
+                            { value: '', label: 'Select type' },
+                            { value: 'buy-now', label: 'Buy Now' },
+                            { value: 'auction', label: 'Auction' }
+                        ]}
+                        value={formData.listingType ? { value: formData.listingType, label: formData.listingType } : null}
+                        onChange={(selectedOption) => {
+                            setFormData(prev => ({ ...prev, listingType: selectedOption?.value }));
+                        }}
                         required
-                    >
-                        <option value="">Select type</option>
-                        <option value="buy-now">Buy Now</option>
-                        <option value="auction">Auction</option>
-                    </select>
+                    />
                 </div>
             </div>
 
@@ -328,6 +607,7 @@ const SellForm = () => {
                                 onChange={handleInputChange}
                                 placeholder="e.g., 50000" 
                                 required
+                                style={darkInputStyle}
                             />
                         </div>
                         <div className="form-group">
@@ -340,6 +620,7 @@ const SellForm = () => {
                                 onChange={handleInputChange}
                                 placeholder="e.g., 80000" 
                                 required
+                                style={darkInputStyle}
                             />
                         </div>
                     </div>
@@ -353,6 +634,7 @@ const SellForm = () => {
                                 value={formData.endDate}
                                 onChange={handleInputChange}
                                 required
+                                style={darkInputStyle}
                             />
                         </div>
                     </div>
@@ -369,59 +651,245 @@ const SellForm = () => {
                         value={formData.color}
                         onChange={handleInputChange}
                         placeholder="e.g., Alpine White"
+                        style={darkInputStyle}
                     />
                 </div>
                 <div className="form-group">
                     <label>Gearbox</label>
-                    <select 
-                        className="form-input"
-                        name="gearboxType"
-                        value={formData.gearboxType}
-                        onChange={handleInputChange}
-                    >
-                        <option value="">Select gearbox</option>
-                        <option value="Manual">Manual</option>
-                        <option value="Automatic">Automatic</option>
-                        <option value="Any">Any</option>
-                    </select>
+                    <Select
+                        className="react-select"
+                        classNamePrefix="react-select"
+                        styles={{
+                            control: (base, state) => ({
+                                ...base,
+                                background: '#181828',
+                                border: '1.5px solid #23233a',
+                                borderRadius: 8,
+                                minHeight: 44,
+                                fontSize: '1.1rem',
+                                color: '#fff',
+                                boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                                transition: 'border 0.2s, box-shadow 0.2s',
+                            }),
+                            valueContainer: base => ({
+                                ...base,
+                                color: '#fff',
+                                padding: '8px 12px',
+                                background: '#181828',
+                            }),
+                            placeholder: base => ({
+                                ...base,
+                                color: '#bdbdf7',
+                                fontSize: '1.1rem',
+                            }),
+                            singleValue: base => ({
+                                ...base,
+                                color: '#fff',
+                                fontSize: '1.1rem',
+                            }),
+                            indicatorSeparator: base => ({
+                                ...base,
+                                background: '#23233a',
+                            }),
+                            dropdownIndicator: base => ({
+                                ...base,
+                                color: '#A8A1F8',
+                                transition: 'color 0.2s',
+                            }),
+                            menu: base => ({
+                                ...base,
+                                background: '#181828',
+                                color: '#fff',
+                                borderRadius: 8,
+                                border: '1.5px solid #23233a',
+                                zIndex: 2147483647,
+                            }),
+                            option: (base, state) => ({
+                                ...base,
+                                background: state.isSelected
+                                    ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                                    : state.isFocused
+                                    ? '#23233a'
+                                    : 'transparent',
+                                color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                                fontSize: '1.08rem',
+                                padding: '12px 16px',
+                                cursor: 'pointer',
+                                transition: 'background 0.15s, color 0.15s',
+                            }),
+                            menuList: base => ({
+                                ...base,
+                                maxHeight: 220,
+                                overflowY: 'auto',
+                                background: '#181828',
+                            }),
+                        }}
+                        menuPortalTarget={document.body}
+                        options={gearboxOptions}
+                        value={formData.gearboxType ? { value: formData.gearboxType, label: formData.gearboxType } : null}
+                        onChange={(selectedOption) => {
+                            setFormData(prev => ({ ...prev, gearboxType: selectedOption?.value }));
+                        }}
+                    />
                 </div>
             </div>
 
             <div className="form-row">
                 <div className="form-group">
                     <label>Fuel Type</label>
-                    <select 
-                        className="form-input"
-                        name="fuelType"
-                        value={formData.fuelType}
-                        onChange={handleInputChange}
-                    >
-                        <option value="">Select fuel type</option>
-                        <option value="Petrol">Petrol</option>
-                        <option value="Diesel">Diesel</option>
-                        <option value="Electric">Electric</option>
-                        <option value="Hybrid">Hybrid</option>
-                    </select>
+                    <Select
+                        className="react-select"
+                        classNamePrefix="react-select"
+                        styles={{
+                            control: (base, state) => ({
+                                ...base,
+                                background: '#181828',
+                                border: '1.5px solid #23233a',
+                                borderRadius: 8,
+                                minHeight: 44,
+                                fontSize: '1.1rem',
+                                color: '#fff',
+                                boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                                transition: 'border 0.2s, box-shadow 0.2s',
+                            }),
+                            valueContainer: base => ({
+                                ...base,
+                                color: '#fff',
+                                padding: '8px 12px',
+                                background: '#181828',
+                            }),
+                            placeholder: base => ({
+                                ...base,
+                                color: '#bdbdf7',
+                                fontSize: '1.1rem',
+                            }),
+                            singleValue: base => ({
+                                ...base,
+                                color: '#fff',
+                                fontSize: '1.1rem',
+                            }),
+                            indicatorSeparator: base => ({
+                                ...base,
+                                background: '#23233a',
+                            }),
+                            dropdownIndicator: base => ({
+                                ...base,
+                                color: '#A8A1F8',
+                                transition: 'color 0.2s',
+                            }),
+                            menu: base => ({
+                                ...base,
+                                background: '#181828',
+                                color: '#fff',
+                                borderRadius: 8,
+                                border: '1.5px solid #23233a',
+                                zIndex: 2147483647,
+                            }),
+                            option: (base, state) => ({
+                                ...base,
+                                background: state.isSelected
+                                    ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                                    : state.isFocused
+                                    ? '#23233a'
+                                    : 'transparent',
+                                color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                                fontSize: '1.08rem',
+                                padding: '12px 16px',
+                                cursor: 'pointer',
+                                transition: 'background 0.15s, color 0.15s',
+                            }),
+                            menuList: base => ({
+                                ...base,
+                                maxHeight: 220,
+                                overflowY: 'auto',
+                                background: '#181828',
+                            }),
+                        }}
+                        menuPortalTarget={document.body}
+                        options={fuelOptions}
+                        value={formData.fuelType ? { value: formData.fuelType, label: formData.fuelType } : null}
+                        onChange={(selectedOption) => {
+                            setFormData(prev => ({ ...prev, fuelType: selectedOption?.value }));
+                        }}
+                    />
                 </div>
                 <div className="form-group">
                     <label>Body Type</label>
-                    <select 
-                        className="form-input"
-                        name="bodyType"
-                        value={formData.bodyType}
-                        onChange={handleInputChange}
-                    >
-                        <option value="">Select body type</option>
-                        <option value="Any">Any</option>
-                        <option value="Sedan">Sedan</option>
-                        <option value="Hatchback">Hatchback</option>
-                        <option value="SUV">SUV</option>
-                        <option value="Coupe">Coupe</option>
-                        <option value="Convertible">Convertible</option>
-                        <option value="Pickup">Pickup</option>
-                        <option value="Van">Van</option>
-                        <option value="Wagon">Wagon</option>
-                    </select>
+                    <Select
+                        className="react-select"
+                        classNamePrefix="react-select"
+                        styles={{
+                            control: (base, state) => ({
+                                ...base,
+                                background: '#181828',
+                                border: '1.5px solid #23233a',
+                                borderRadius: 8,
+                                minHeight: 44,
+                                fontSize: '1.1rem',
+                                color: '#fff',
+                                boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                                transition: 'border 0.2s, box-shadow 0.2s',
+                            }),
+                            valueContainer: base => ({
+                                ...base,
+                                color: '#fff',
+                                padding: '8px 12px',
+                                background: '#181828',
+                            }),
+                            placeholder: base => ({
+                                ...base,
+                                color: '#bdbdf7',
+                                fontSize: '1.1rem',
+                            }),
+                            singleValue: base => ({
+                                ...base,
+                                color: '#fff',
+                                fontSize: '1.1rem',
+                            }),
+                            indicatorSeparator: base => ({
+                                ...base,
+                                background: '#23233a',
+                            }),
+                            dropdownIndicator: base => ({
+                                ...base,
+                                color: '#A8A1F8',
+                                transition: 'color 0.2s',
+                            }),
+                            menu: base => ({
+                                ...base,
+                                background: '#181828',
+                                color: '#fff',
+                                borderRadius: 8,
+                                border: '1.5px solid #23233a',
+                                zIndex: 2147483647,
+                            }),
+                            option: (base, state) => ({
+                                ...base,
+                                background: state.isSelected
+                                    ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                                    : state.isFocused
+                                    ? '#23233a'
+                                    : 'transparent',
+                                color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                                fontSize: '1.08rem',
+                                padding: '12px 16px',
+                                cursor: 'pointer',
+                                transition: 'background 0.15s, color 0.15s',
+                            }),
+                            menuList: base => ({
+                                ...base,
+                                maxHeight: 220,
+                                overflowY: 'auto',
+                                background: '#181828',
+                            }),
+                        }}
+                        menuPortalTarget={document.body}
+                        options={bodyTypeOptions}
+                        value={formData.bodyType ? { value: formData.bodyType, label: formData.bodyType } : null}
+                        onChange={(selectedOption) => {
+                            setFormData(prev => ({ ...prev, bodyType: selectedOption?.value }));
+                        }}
+                    />
                 </div>
             </div>
 
@@ -437,6 +905,7 @@ const SellForm = () => {
                         placeholder="e.g., 3.0"
                         step="0.1"
                         min="0"
+                        style={darkInputStyle}
                     />
                 </div>
                 <div className="form-group">
@@ -449,6 +918,7 @@ const SellForm = () => {
                         onChange={handleInputChange}
                         placeholder="e.g., 300"
                         min="0"
+                        style={darkInputStyle}
                     />
                 </div>
             </div>
@@ -464,6 +934,7 @@ const SellForm = () => {
                         onChange={handleInputChange}
                         placeholder="Describe your vehicle's condition, features, and any additional information..." 
                         required
+                        style={darkInputStyle}
                     ></textarea>
                 </div>
             </div>
@@ -495,7 +966,7 @@ const SellForm = () => {
                             value={formData.imageUrls}
                             onChange={handleInputChange}
                             placeholder="Enter image URLs separated by commas"
-                            style={{ flex: 1 }}
+                            style={{ ...darkInputStyle, flex: 1 }}
                         />
                         <button 
                             type="button" 
@@ -535,6 +1006,7 @@ const SellForm = () => {
                         value={formData.contactName}
                         onChange={handleInputChange}
                         required
+                        style={darkInputStyle}
                     />
                 </div>
                 <div className="form-group">
@@ -546,6 +1018,7 @@ const SellForm = () => {
                         value={formData.phone}
                         onChange={handleInputChange}
                         required
+                        style={darkInputStyle}
                     />
                 </div>
             </div>
@@ -561,6 +1034,7 @@ const SellForm = () => {
                         onChange={handleInputChange}
                         placeholder="City, State" 
                         required
+                        style={darkInputStyle}
                     />
                 </div>
             </div>

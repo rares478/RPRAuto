@@ -45,7 +45,37 @@ public class UserController : ControllerBase
         if (user == null)
             throw new NotFoundException("User not found");
 
-        return Ok(user);
+        var userId = GetUserIdFromToken();
+        var isOwner = user.Id == userId;
+
+        // If the requesting user is the owner, return full data
+        if (isOwner)
+        {
+            return Ok(new UserResponse
+            {
+                Id = user.Id.ToString(),
+                Email = user.PrivateData.Login.Email,
+                Role = user.Role,
+                CompanyCUI = user.CompanyCUI,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt,
+                PrivateData = user.PrivateData,
+                PublicData = user.PublicData,
+                Listings = user.Listings.Select(l => l.ToString()).ToList(),
+                Bids = user.Bids.Select(b => b.ToString()).ToList(),
+                ReviewId = user.Review?.ToString()
+            });
+        }
+
+        // For other users, return only public data
+        return Ok(new UserResponse
+        {
+            Id = user.Id.ToString(),
+            Role = user.Role,
+            PublicData = user.PublicData,
+            Listings = user.Listings.Select(l => l.ToString()).ToList(),
+            ReviewId = user.Review?.ToString()
+        });
     }
 
     [HttpPut("{id}")]
@@ -59,17 +89,25 @@ public class UserController : ControllerBase
             throw new NotFoundException("User not found");
 
         var userId = GetUserIdFromToken();
-        if (user.UserId != userId)
+        if (user.Id != userId)
             throw new UnauthorizedException("You are not authorized to modify this user");
 
-        user.Personal.FirstName = request.FirstName;
-        user.Personal.LastName = request.LastName;
-        user.Personal.PhoneNumber = request.PhoneNumber;
-        user.Personal.Address = request.Address;
-        user.CompanyCUI = request.CompanyCUI;
-        user.Personal.City = request.City;
-        user.Personal.Country = request.Country;
+        // Update personal data
+        user.PrivateData.Personal.FirstName = request.FirstName;
+        user.PrivateData.Personal.LastName = request.LastName;
+        user.PrivateData.Personal.Address = request.Address;
 
+        // Update public data
+        user.PublicData.DisplayName = request.DisplayName;
+        user.PublicData.Avatar = request.Avatar;
+        user.PublicData.PhoneNumber = request.PhoneNumber;
+        user.PublicData.City = request.City;
+        user.PublicData.Country = request.Country;
+
+        // Update company data
+        user.CompanyCUI = request.CompanyCUI;
+
+        user.UpdatedAt = DateTime.UtcNow;
         await _userRepository.UpdateAsync(objectId, user);
         return Ok(new { message = "User updated successfully" });
     }
@@ -85,7 +123,7 @@ public class UserController : ControllerBase
             throw new NotFoundException("User not found");
 
         var userId = GetUserIdFromToken();
-        if (user.UserId != userId)
+        if (user.Id != userId)
             throw new UnauthorizedException("You are not authorized to delete this user");
 
         await _userRepository.DeleteAsync(objectId);
@@ -123,10 +161,15 @@ public class UserController : ControllerBase
             throw new NotFoundException("User not found");
 
         var userId = GetUserIdFromToken();
-        if (user.UserId != userId)
+        if (user.Id != userId)
             throw new UnauthorizedException("You are not authorized to view this user's login details");
 
-        return Ok(new { email = user.Login.Email, role = user.Role });
+        return Ok(new LoginDetailsResponse
+        {
+            Email = user.PrivateData.Login.Email,
+            Role = user.Role.ToString(),
+            CreatedAt = user.CreatedAt
+        });
     }
 
     [HttpGet("{id}/personal")]
@@ -140,8 +183,6 @@ public class UserController : ControllerBase
             throw new ValidationException("Invalid user ID format");
         }
 
-        _logger.LogInformation($"Parsed ObjectId: {objectId}");
-        
         var user = await _userRepository.GetByIdAsync(objectId);
         if (user == null)
         {
@@ -149,27 +190,20 @@ public class UserController : ControllerBase
             throw new NotFoundException("User not found");
         }
 
-        _logger.LogInformation($"Found user with ID: {user.UserId}");
-        
         var userId = GetUserIdFromToken();
-        _logger.LogInformation($"User ID from token: {userId}");
-        _logger.LogInformation($"Comparing token ID: {userId} with user ID: {user.UserId}");
-        
-        if (userId.ToString() != user.UserId.ToString())
+        if (user.Id != userId)
         {
-            _logger.LogWarning($"Unauthorized access attempt. Token ID: {userId}, User ID: {user.UserId}");
+            _logger.LogWarning($"Unauthorized access attempt. Token ID: {userId}, User ID: {user.Id}");
             throw new UnauthorizedException("You are not authorized to view this user's personal details");
         }
 
-        _logger.LogInformation("Successfully authorized access to personal details");
-        
-        return Ok(new
+        return Ok(new PersonalDetailsResponse
         {
-            firstName = user.Personal.FirstName,
-            lastName = user.Personal.LastName,
-            phoneNumber = user.Personal.PhoneNumber,
-            address = user.Personal.Address,
-            createdAt = user.CreatedAt
+            FirstName = user.PrivateData.Personal.FirstName,
+            LastName = user.PrivateData.Personal.LastName,
+            Address = user.PrivateData.Personal.Address,
+            Email = user.PrivateData.Login.Email,
+            CreatedAt = user.CreatedAt
         });
     }
 
@@ -205,7 +239,20 @@ public class UserController : ControllerBase
         return Ok(review);
     }
 
-        private ObjectId GetUserIdFromToken()
+    [HttpGet("{id}/public")]
+    public async Task<IActionResult> GetPublicProfile(string id)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+            throw new ValidationException("Invalid user ID format");
+
+        var user = await _userRepository.GetByIdAsync(objectId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+
+        return Ok(user.PublicData);
+    }
+
+    private ObjectId GetUserIdFromToken()
     {
         var authHeader = Request.Headers["Authorization"].ToString();
         _logger.LogInformation("=== Token Debug Info ===");

@@ -16,11 +16,13 @@ export async function loginHandle(email, password) {
         });
 
         const data = await response.json();
-        console.log('Server response:', data); // Debug log
        
         if (response.ok) {
-            console.log('Token from server:', data.Token); // Debug log
-            return { success: true, token: data.Token }
+            return { 
+                success: true, 
+                token: data.Token,
+                userData: data.UserData // Include user data in the response
+            }
         } else {
             return { success: false, message: data.message }        
         }

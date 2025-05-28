@@ -55,7 +55,8 @@ html, body {
 }
 
 .filter-card {
-    background-color: rgb(31, 41, 55);
+    background-color: #23233a;
+    box-shadow: 0 4px 24px 0 rgba(0,0,0,0.25);
     border: 1px solid rgba(105, 95, 214, 0.2);
     border-radius: 8px;
     height: fit-content;
@@ -67,7 +68,6 @@ html, body {
 .filter-header {
     padding: 16px;
     border-bottom: 1px solid rgba(105, 95, 214, 0.2);
-    background-color: rgb(31, 41, 55);
     border-radius: 8px 8px 0 0;
 }
 
@@ -77,10 +77,6 @@ html, body {
     display: flex;
     align-items: center;
     gap: 8px;
-}
-
-.filter-header i {
-    color: #695FD6;
 }
 
 .filter-content {
@@ -94,7 +90,7 @@ html, body {
 }
 
 .filter-group {
-    margin-bottom: 20px;
+    margin-bottom: 0;
     position: relative;
 }
 
@@ -144,7 +140,7 @@ html, body {
 
 .search-input input {
     width: 100%;
-    padding: 12px 12px 12px 40px;
+    padding: 12px 12px 12px;
     background-color: #000000;
     border: 1px solid rgba(105, 95, 214, 0.3);
     border-radius: 6px;
@@ -193,74 +189,6 @@ html, body {
     border-color: #695FD6;
 }
 
-.price-range {
-    position: relative;
-    width: 100%;
-    height: 40px;
-    margin: 10px 0;
-}
-
-.price-range input[type="range"] {
-    position: absolute;
-    width: 100%;
-    height: 5px;
-    background: none;
-    pointer-events: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-}
-
-.price-range input[type="range"]::-webkit-slider-thumb {
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #695FD6;
-    cursor: pointer;
-    margin-top: -8px;
-    pointer-events: auto;
-    -webkit-appearance: none;
-    z-index: 3;
-}
-
-.price-range input[type="range"]::-moz-range-thumb {
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #695FD6;
-    cursor: pointer;
-    pointer-events: auto;
-    border: none;
-    z-index: 3;
-}
-
-.price-range input[type="range"]::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 5px;
-    background: #374151;
-    border-radius: 3px;
-}
-
-.price-range input[type="range"]::-moz-range-track {
-    width: 100%;
-    height: 5px;
-    background: #374151;
-    border-radius: 3px;
-}
-
-/* Style for the range between the two thumbs */
-.price-range::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 5px;
-    background: #374151;
-    transform: translateY(-50%);
-    pointer-events: none;
-    z-index: 1;
-}
-
 /* Style for the active range */
 .price-range::after {
     content: '';
@@ -282,15 +210,6 @@ html, body {
 
 .price-range input[type="range"]:last-child {
     z-index: 3;
-}
-
-/* Make the track transparent for the second slider */
-.price-range input[type="range"]:last-child::-webkit-slider-runnable-track {
-    background: transparent;
-}
-
-.price-range input[type="range"]:last-child::-moz-range-track {
-    background: transparent;
 }
 
 .filter-apply, .filter-clear {

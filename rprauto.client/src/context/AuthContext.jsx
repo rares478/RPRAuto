@@ -1,52 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { verifyUserHandle } from '../functionality/authFun';
 import Cookies from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
 
-const AuthContext = createContext(null);
-
-export const AuthProvider = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const checkAuth = async () => {
-            const token = Cookies.get('authToken');
-            console.log('Initial token check:', token); // Debug log
-            if (token) {
-                const isValid = await verifyUserHandle();
-                console.log('Token validation result:', isValid); // Debug log
-                setIsAuthenticated(isValid);
-            }
-            setIsLoading(false);
-        };
-
-        checkAuth();
-    }, []);
-
-    const login = (token) => {
-        console.log('Setting token in login:', token); // Debug log
-        // More permissive cookie settings for development
-        Cookies.set("authToken", token, { 
-            expires: 120,
-            secure: window.location.protocol === 'https:',
-            sameSite: 'lax',
-            path: '/' // Add path to ensure cookie is available everywhere
-        });
-        console.log('Cookie after setting:', Cookies.get('authToken')); // Debug log
-        setIsAuthenticated(true);
-    };
-
-    const logout = () => {
-        Cookies.remove('authToken');
-        setIsAuthenticated(false);
-    };
-
-    return (
-        <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
-};
+const AuthContext = createContext();
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
@@ -54,4 +10,79 @@ export const useAuth = () => {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
+};
+
+export const AuthProvider = ({ children }) => {
+    const [token, setToken] = useState(Cookies.get('authToken') || null);
+    const [userData, setUserData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const validateToken = async () => {
+            if (!token) {
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                const response = await fetch('https://rprauto.onrender.com/auth/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(token)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Invalid token');
+                }
+
+                // Token is valid, decode it to get user info
+                const decodedToken = jwtDecode(token);
+                setUserData({
+                    id: decodedToken.sub,
+                    email: decodedToken.name,
+                    role: decodedToken.role || decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
+                });
+            } catch (error) {
+                console.error('Token validation error:', error);
+                setToken(null);
+                setUserData(null);
+                Cookies.remove('authToken');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        validateToken();
+    }, [token]);
+
+    const login = (newToken, userData) => {
+        setToken(newToken);
+        setUserData(userData);
+        Cookies.set('authToken', newToken, { expires: 1 }); // Expires in 1 day
+    };
+
+    const logout = () => {
+        setToken(null);
+        setUserData(null);
+        Cookies.remove('authToken');
+    };
+
+    const value = {
+        token,
+        userData,
+        isLoading,
+        isAuthenticated: !!token,
+        isAdmin: userData?.role === 'Admin',
+        isOwner: userData?.role === 'Owner' || userData?.role === 2 || userData?.role === '2' || userData?.role === 'Admin',
+        login,
+        logout
+    };
+
+    return (
+        <AuthContext.Provider value={value}>
+            {!isLoading && children}
+        </AuthContext.Provider>
+    );
 }; 

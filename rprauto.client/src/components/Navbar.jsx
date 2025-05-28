@@ -9,10 +9,9 @@ import './styles/navbar.css';
 const Navbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { isAuthenticated, logout, user } = useAuth();
+    const { isAuthenticated, logout, userData, isOwner } = useAuth();
     const { siteSettings } = useSiteSettings();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [userRole, setUserRole] = useState(null);
     const [isOwnerPanelOpen, setIsOwnerPanelOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -27,44 +26,6 @@ const Navbar = () => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-    // Fetch user role when authenticated
-    useEffect(() => {
-        const fetchUserRole = async () => {
-            if (isAuthenticated) {
-                try {
-                    const token = Cookies.get('authToken');
-                    console.log('Token from cookie:', token); // Debug log
-                    
-                    if (!token) {
-                        console.error('No token found in cookie');
-                        return;
-                    }
-
-                    // Ensure the token is properly formatted in the Authorization header
-                    const response = await fetch('https://rprauto.onrender.com/auth/role', {
-                        headers: {
-                            'Authorization': `Bearer ${token.trim()}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    console.log('Response status:', response.status); // Debug log
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log('Response data:', data); // Debug log
-                        setUserRole(data.role);
-                    } else {
-                        const errorData = await response.json();
-                        console.error('Error response:', errorData); // Debug log
-                    }
-                } catch (error) {
-                    console.error('Error fetching user role:', error);
-                }
-            }
-        };
-
-        fetchUserRole();
-    }, [isAuthenticated]);
 
     const handleLogout = () => {
         logout();
@@ -98,7 +59,7 @@ const Navbar = () => {
                                 className="account-button"
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             >
-                                My Account
+                                {isAuthenticated ? userData?.displayName || 'My Account' : 'My Account'}
                             </button>
                             {isDropdownOpen && (
                                 <div className="dropdown-menu">
@@ -111,7 +72,7 @@ const Navbar = () => {
                                             >
                                                 Settings
                                             </Link>
-                                            {userRole === 2 && (
+                                            {isOwner && (
                                                 <button 
                                                     className="dropdown-item"
                                                     onClick={() => {

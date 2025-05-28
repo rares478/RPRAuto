@@ -1,7 +1,10 @@
 ﻿import React, { useState, useEffect } from "react";
+import Select from 'react-select';
 import "./styles/mainPage.css";
 import ListingCard from './ListingCard';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import { useNavigate } from 'react-router-dom';
+import { makes, getModelsForMake } from './data/carOptions';
 
 function MainPage() {
      const [cars, setCars] = useState([]);
@@ -14,6 +17,10 @@ function MainPage() {
           liveAuctions: '0',
           satisfactionRate: '0'
      });
+     const [selectedMake, setSelectedMake] = useState(null);
+     const [selectedModel, setSelectedModel] = useState(null);
+     const [selectedYear, setSelectedYear] = useState(null);
+     const navigate = useNavigate();
 
      useEffect(() => {
           loadSiteSettings();
@@ -75,6 +82,21 @@ function MainPage() {
           }
      };
 
+     // Dropdown search handler
+     const handleSearch = (e) => {
+          if (e) e.preventDefault();
+          let params = new URLSearchParams();
+          if (selectedMake) params.append('make', selectedMake.value);
+          if (selectedModel) params.append('model', selectedModel.value);
+          if (selectedYear) params.append('year', selectedYear.value);
+          navigate(`/market?${params.toString()}`);
+     };
+
+     const years = Array.from({length: 15}, (_, i) => {
+          const y = (2010 + i).toString();
+          return { value: y, label: y };
+     });
+
     return (
           <div className="main-page">
                {/* Hero Section */}
@@ -84,11 +106,58 @@ function MainPage() {
                               <h1>{siteSettings.heroTitle}</h1>
                               <p>{siteSettings.heroSubtitle}</p>
                               <div className="search-bar">
-                                   <input type="text" placeholder="Search by make, model, or year..." />
-                                   <button className="btn btn-primary">
-                                        <i className="fas fa-search"></i>
-                                        Search
-                                   </button>
+                                   <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                                        <div style={{ flex: 1 }}>
+                                             <Select
+                                                  options={makes.filter(m => m).map(make => ({ value: make, label: make }))}
+                                                  value={selectedMake}
+                                                  onChange={option => {
+                                                       setSelectedMake(option);
+                                                       setSelectedModel(null);
+                                                  }}
+                                                  placeholder="Select Make"
+                                                  isClearable
+                                                  menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+                                                  styles={{
+                                                       menuPortal: base => ({ ...base, zIndex: 2147483647 })
+                                                  }}
+                                                  classNamePrefix="react-select"
+                                             />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                             <Select
+                                                  options={selectedMake ? getModelsForMake(selectedMake.value).map(model => ({ value: model, label: model })) : []}
+                                                  value={selectedModel}
+                                                  onChange={option => setSelectedModel(option)}
+                                                  placeholder="Select Model"
+                                                  isClearable
+                                                  isDisabled={!selectedMake}
+                                                  menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+                                                  styles={{
+                                                       menuPortal: base => ({ ...base, zIndex: 2147483647 })
+                                                  }}
+                                                  classNamePrefix="react-select"
+                                             />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                             <Select
+                                                  options={[{ value: '', label: 'Year From' }, ...years]}
+                                                  value={selectedYear}
+                                                  onChange={option => setSelectedYear(option)}
+                                                  placeholder="Year From"
+                                                  isClearable
+                                                  menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+                                                  styles={{
+                                                       menuPortal: base => ({ ...base, zIndex: 2147483647 })
+                                                  }}
+                                                  classNamePrefix="react-select"
+                                             />
+                                        </div>
+                                        <button className="btn btn-primary" type="submit">
+                                             <i className="fas fa-search"></i>
+                                             Search
+                                        </button>
+                                   </form>
                               </div>
                          </div>
                     </div>
@@ -145,7 +214,7 @@ function MainPage() {
                          </div>
 
                          <div className="section-footer">
-                              <button className="btn btn-outline">View All Vehicles</button>
+                              <button className="btn btn-outline" onClick={() => navigate('/market')}>View All Vehicles</button>
                          </div>
                     </div>
                </section>
@@ -189,7 +258,7 @@ function MainPage() {
                               <div className="footer-section">
                                    <h4>Quick Links</h4>
                                    <ul>
-                                        <li><a href="/marketplace">Marketplace</a></li>
+                                        <li><a href="/market">Marketplace</a></li>
                                         <li><a href="/auctions">Live Auctions</a></li>
                                         <li><a href="/account">My Account</a></li>
                                         <li><a href="/about">About Us</a></li>

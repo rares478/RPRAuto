@@ -13,7 +13,9 @@ function Profile() {
         memberSince: '',
         activeListings: 0,
         activeBids: 0,
-        totalSales: 0
+        totalSales: 0,
+        role: '',
+        isCompany: false
     });
     const [listings, setListings] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +26,8 @@ function Profile() {
         phone: '',
         address: '',
         city: '',
-        country: ''
+        country: '',
+        displayName: ''
     });
     const [imagePreviews, setImagePreviews] = useState([]);
     const [notifications, setNotifications] = useState({
@@ -40,6 +43,27 @@ function Profile() {
         description: ''
     });
     const [showEditModal, setShowEditModal] = useState(false);
+    const [passwordForm, setPasswordForm] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+    const [passwordLoading, setPasswordLoading] = useState(false);
+
+    // Add darkInputStyle for inputs, matching Auction and SellForm
+    const darkInputStyle = {
+        background: '#181828',
+        border: '1.5px solid #23233a',
+        borderRadius: 8,
+        color: '#fff',
+        fontSize: '0.95rem',
+        padding: '6px 10px',
+        minHeight: '40px',
+        outline: 'none',
+        width: '100%',
+        boxSizing: 'border-box',
+        transition: 'border 0.2s, box-shadow 0.2s',
+    };
 
     useEffect(() => {
         // Load user data when component mounts
@@ -54,7 +78,6 @@ function Profile() {
     const loadUserData = async () => {
         try {
             const token = Cookies.get('authToken');
-            console.log('Token from cookie:', token); // Debug log
 
             if (!token) {
                 showNotification('Please log in to view your profile', 'error');
@@ -62,12 +85,10 @@ function Profile() {
             }
 
             const decodedToken = jwtDecode(token);
-            console.log('Decoded token:', decodedToken); // Debug log
             const userId = decodedToken.sub;
-            console.log('User ID from token:', userId); // Debug log
 
-            // Fetch user's personal details
-            const personalResponse = await fetch(`https://rprauto.onrender.com/user/${userId}/personal`, {
+            // Fetch user's full details
+            const userResponse = await fetch(`https://rprauto.onrender.com/user/${userId}`, {
                 headers: {
                     'Authorization': `Bearer ${token.trim()}`,
                     'Accept': 'application/json',
@@ -75,16 +96,13 @@ function Profile() {
                 }
             });
 
-            console.log('Response status:', personalResponse.status); // Debug log
-
-            if (!personalResponse.ok) {
-                const errorData = await personalResponse.json();
+            if (!userResponse.ok) {
+                const errorData = await userResponse.json();
                 console.error('Error response:', errorData); // Debug log
-                throw new Error(errorData.message || 'Failed to fetch personal details');
+                throw new Error(errorData.message || 'Failed to fetch user details');
             }
 
-            const personalData = await personalResponse.json();
-            console.log('Personal data:', personalData); // Debug log
+            const userData = await userResponse.json();
 
             // Fetch user's listings
             const listingsResponse = await fetch(`https://rprauto.onrender.com/user/${userId}/listings`, {
@@ -100,7 +118,6 @@ function Profile() {
             }
 
             const listingsData = await listingsResponse.json();
-            console.log('Listings data:', listingsData); // Debug log
 
             // Fetch detailed data for each listing
             const detailedListings = await Promise.all(
@@ -122,7 +139,6 @@ function Profile() {
                 })
             );
 
-            console.log('Detailed listings:', detailedListings); // Debug log
             setListings(detailedListings);
 
             // Fetch user's bids
@@ -139,7 +155,6 @@ function Profile() {
             }
 
             const bidsData = await bidsResponse.json();
-            console.log('Bids data:', bidsData); // Debug log
 
             // Fetch detailed data for each bid
             const detailedBids = await Promise.all(
@@ -161,29 +176,32 @@ function Profile() {
                 })
             );
 
-            console.log('Detailed bids:', detailedBids); // Debug log
             setBids(detailedBids);
             
             // Update form data with fetched user data
             setFormData({
-                firstName: personalData.firstName || '',
-                lastName: personalData.lastName || '',
-                email: personalData.email || '',
-                phone: personalData.phoneNumber || '',
-                address: personalData.address || '',
-                city: personalData.city || '',
-                country: personalData.country || ''
+                firstName: userData.PrivateData.Personal.FirstName || '',
+                lastName: userData.PrivateData.Personal.LastName || '',
+                email: userData.PrivateData.Login.Email || '',
+                phone: userData.PublicData.PhoneNumber || '',
+                address: userData.PrivateData.Personal.Address || '',
+                city: userData.PublicData.City || '',
+                country: userData.PublicData.Country || '',
+                displayName: userData.PublicData.DisplayName || ''
             });
 
             // Update user data for dashboard
             setUserData(prev => ({
                 ...prev,
-                name: `${personalData.firstName} ${personalData.lastName}`,
-                phone: personalData.phoneNumber,
-                memberSince: new Date(personalData.createdAt).getFullYear().toString(),
+                name: userData.PublicData.DisplayName,
+                email: userData.PrivateData.Login.Email,
+                phone: userData.PublicData.PhoneNumber,
+                memberSince: new Date(userData.CreatedAt).getFullYear().toString(),
                 activeListings: detailedListings.length,
                 activeBids: detailedBids.length,
-                totalSales: detailedListings.reduce((total, listing) => total + (listing.Price || 0), 0)
+                totalSales: detailedListings.reduce((total, listing) => total + (listing.Price || 0), 0),
+                role: userData.Role,
+                isCompany: userData.Role === 'Company'
             }));
 
         } catch (error) {
@@ -246,6 +264,7 @@ function Profile() {
                 body: JSON.stringify({
                     firstName: formData.firstName,
                     lastName: formData.lastName,
+                    displayName: formData.displayName,
                     phoneNumber: formData.phone,
                     address: formData.address,
                     city: formData.city,
@@ -409,6 +428,81 @@ function Profile() {
                 }
             }, 300);
         }, 3000);
+    };
+
+    const handleDeleteBid = async (bidId) => {
+        try {
+            const token = Cookies.get('authToken');
+            if (!token) {
+                showNotification('Please log in to delete bids', 'error');
+                return;
+            }
+            const response = await fetch(`https://rprauto.onrender.com/bid/${bidId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token.trim()}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to delete bid');
+            }
+            setBids(prevBids => prevBids.filter(bid => bid.Id !== bidId));
+            showNotification('Bid deleted successfully');
+        } catch (error) {
+            console.error('Error deleting bid:', error);
+            showNotification(error.message || 'Failed to delete bid', 'error');
+        }
+    };
+
+    const handlePasswordFormChange = (e) => {
+        const { name, value } = e.target;
+        setPasswordForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handlePasswordChange = async (e) => {
+        e.preventDefault();
+        if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+            showNotification('Please fill in all password fields', 'error');
+            return;
+        }
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            showNotification('New passwords do not match', 'error');
+            return;
+        }
+        try {
+            setPasswordLoading(true);
+            const token = Cookies.get('authToken');
+            if (!token) {
+                showNotification('Please log in to change your password', 'error');
+                setPasswordLoading(false);
+                return;
+            }
+            // Use new API endpoint
+            const response = await fetch('https://rprauto.onrender.com/auth/change-password', {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    currentPassword: passwordForm.currentPassword,
+                    newPassword: passwordForm.newPassword
+                })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to change password');
+            }
+            showNotification('Password updated successfully!');
+            setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        } catch (error) {
+            showNotification(error.message || 'Failed to change password', 'error');
+        } finally {
+            setPasswordLoading(false);
+        }
     };
 
     return (
@@ -623,6 +717,7 @@ function Profile() {
                                             value={formData.firstName}
                                             onChange={handleFormChange}
                                             required 
+                                            style={darkInputStyle}
                                         />
                                     </div>
                                     <div className="form-group">
@@ -634,6 +729,7 @@ function Profile() {
                                             value={formData.lastName}
                                             onChange={handleFormChange}
                                             required 
+                                            style={darkInputStyle}
                                         />
                                     </div>
                                 </div>
@@ -647,6 +743,7 @@ function Profile() {
                                             name="email"
                                             value={formData.email}
                                             disabled
+                                            style={darkInputStyle}
                                         />
                                     </div>
                                     <div className="form-group">
@@ -658,6 +755,7 @@ function Profile() {
                                             value={formData.phone}
                                             onChange={handleFormChange}
                                             required 
+                                            style={darkInputStyle}
                                         />
                                     </div>
                                 </div>
@@ -671,6 +769,7 @@ function Profile() {
                                             name="city"
                                             value={formData.city}
                                             onChange={handleFormChange}
+                                            style={darkInputStyle}
                                         />
                                     </div>
                                     <div className="form-group">
@@ -681,6 +780,7 @@ function Profile() {
                                             name="country"
                                             value={formData.country}
                                             onChange={handleFormChange}
+                                            style={darkInputStyle}
                                         />
                                     </div>
                                 </div>
@@ -694,6 +794,7 @@ function Profile() {
                                             name="address"
                                             value={formData.address}
                                             onChange={handleFormChange}
+                                            style={darkInputStyle}
                                         />
                                     </div>
                                 </div>
@@ -753,23 +854,44 @@ function Profile() {
 
                                 <div className="sell-form">
                                     <h3><i className="fas fa-lock"></i> Security</h3>
-                                    
-                                    <div className="form-group">
-                                        <label>Current Password</label>
-                                        <input type="password" className="form-input" />
-                                    </div>
-                                    
-                                    <div className="form-group">
-                                        <label>New Password</label>
-                                        <input type="password" className="form-input" />
-                                    </div>
-                                    
-                                    <div className="form-group">
-                                        <label>Confirm New Password</label>
-                                        <input type="password" className="form-input" />
-                                    </div>
-                                    
-                                    <button className="btn btn-primary">Update Password</button>
+                                    <form onSubmit={handlePasswordChange}>
+                                        <div className="form-group">
+                                            <label>Current Password</label>
+                                            <input
+                                                type="password"
+                                                className="form-input"
+                                                name="currentPassword"
+                                                value={passwordForm.currentPassword}
+                                                onChange={handlePasswordFormChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>New Password</label>
+                                            <input
+                                                type="password"
+                                                className="form-input"
+                                                name="newPassword"
+                                                value={passwordForm.newPassword}
+                                                onChange={handlePasswordFormChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Confirm New Password</label>
+                                            <input
+                                                type="password"
+                                                className="form-input"
+                                                name="confirmPassword"
+                                                value={passwordForm.confirmPassword}
+                                                onChange={handlePasswordFormChange}
+                                                required
+                                            />
+                                        </div>
+                                        <button className="btn btn-primary" type="submit" disabled={passwordLoading}>
+                                            {passwordLoading ? 'Updating...' : 'Update Password'}
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -790,7 +912,7 @@ function Profile() {
                             {bids.length === 0 ? (
                                 <div className="empty-state">
                                     <i className="fas fa-gavel"></i>
-                                    <p>You haven't placed any bids yet.</p>
+                                    <p>You haven't created any bids yet.</p>
                                     <button 
                                         className="btn btn-primary"
                                         onClick={() => window.location.href = '/search'}
@@ -819,20 +941,14 @@ function Profile() {
                                                     <span><i className="fas fa-gas-pump"></i> {bid.Car.FuelType || 'N/A'}</span>
                                                     <span><i className="fas fa-cog"></i> {bid.Car.GearboxType || 'N/A'}</span>
                                                 </div>
-                                                <div className="bid-info">
-                                                    <span>Your Bid: ${(bid.Bids[userId] || 0).toLocaleString()}</span>
-                                                    <span>Min Bid: ${(bid.MinBid || 0).toLocaleString()}</span>
-                                                    {bid.InstantBuy > 0 && (
-                                                        <span>Buy Now: ${(bid.InstantBuy || 0).toLocaleString()}</span>
-                                                    )}
-                                                </div>
                                             </div>
                                             <div className="listing-actions">
-                                                <button className="btn btn-outline">
-                                                    <i className="fas fa-gavel"></i> Place New Bid
-                                                </button>
-                                                <button className="btn btn-outline">
-                                                    <i className="fas fa-times"></i> Cancel Bid
+                                                <button className="btn btn-outline" onClick={() => {
+                                                    if (window.confirm('Are you sure you want to delete this bid?')) {
+                                                        handleDeleteBid(bid.Id);
+                                                    }
+                                                }}>
+                                                    <i className="fas fa-trash"></i> Delete Bid
                                                 </button>
                                             </div>
                                         </div>
@@ -935,135 +1051,5 @@ function Profile() {
         </div>
     );
 }
-
-// Add these styles to your CSS file
-const styles = `
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background-color: #1a1a1a;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.modal-header {
-    padding: 1rem;
-    border-bottom: 1px solid #333;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h2 {
-    margin: 0;
-    color: #fff;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0.5rem;
-}
-
-.modal-body {
-    padding: 1rem;
-}
-
-.modal-footer {
-    padding: 1rem;
-    border-top: 1px solid #333;
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-}
-
-.listing-preview {
-    background-color: #2a2a2a;
-    border-radius: 6px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-}
-
-.listing-preview h3 {
-    margin: 0 0 1rem 0;
-    color: #fff;
-}
-
-.car-details {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-}
-
-.detail-row {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.detail-label {
-    color: #9ca3af;
-    font-weight: 500;
-}
-
-.detail-value {
-    color: #fff;
-}
-
-.edit-form {
-    margin-top: 1rem;
-}
-
-.form-group {
-    margin-bottom: 1rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #9ca3af;
-}
-
-.form-input {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #333;
-    border-radius: 4px;
-    background-color: #2a2a2a;
-    color: #fff;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: #695FD6;
-}
-
-textarea.form-input {
-    resize: vertical;
-    min-height: 100px;
-}
-`;
-
-// Add the styles to the document
-const styleSheet = document.createElement("style");
-styleSheet.innerText = styles;
-document.head.appendChild(styleSheet);
 
 export default Profile; 

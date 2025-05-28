@@ -1,4 +1,5 @@
 using MongoDB.Bson;
+using MongoDB.Driver;
 using RPRAuto.Server.Models.Bid;
 using RPRAuto.Server.Models.Enums;
 
@@ -13,4 +14,5 @@ public interface IBidRepository : IRepository<Bid>
     Task UpdateBidStatusAsync(ObjectId id, BidStatus status);
     Task<IEnumerable<Bid>> GetLatestBidsAsync(int count);
     Task<(IEnumerable<Bid> Bids, long TotalCount)> GetBidsByPageAsync(int page, int pageSize);
+    Task<IEnumerable<Bid>> SearchAsync(FilterDefinition<Bid> filter);
 } 

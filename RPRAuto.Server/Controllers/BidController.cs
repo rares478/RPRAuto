@@ -3,9 +3,6 @@ using MongoDB.Bson;
 using RPRAuto.Server.Interfaces;
 using RPRAuto.Server.Models.Bid;
 using RPRAuto.Server.Exceptions;
-using RPRAuto.Server.Models.Enums;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace RPRAuto.Server.Controllers;
@@ -236,6 +233,116 @@ public class BidController : ControllerBase
 
         await _bidRepository.UpdateAsync(objectId, bid);
         return Ok(new { message = "Bid placed successfully" });
+    }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchBids(
+        [FromQuery] string? make = null,
+        [FromQuery] string? model = null,
+        [FromQuery] decimal? priceMin = null,
+        [FromQuery] decimal? priceMax = null,
+        [FromQuery] int? yearFrom = null,
+        [FromQuery] int? yearTo = null,
+        [FromQuery] string? gearbox = null,
+        [FromQuery] string? color = null,
+        [FromQuery] int? doors = null,
+        [FromQuery] string? fuel = null,
+        [FromQuery] float? engineMin = null,
+        [FromQuery] float? engineMax = null,
+        [FromQuery] int? powerMin = null,
+        [FromQuery] int? powerMax = null,
+        [FromQuery] int? mileageMin = null,
+        [FromQuery] int? mileageMax = null,
+        [FromQuery] string? endingIn = null)
+    {
+        var filter = new BsonDocument
+        {
+            { "status", 0 } // Only active bids
+        };
+
+        if (!string.IsNullOrEmpty(make))
+            filter.Add("car.make", new BsonRegularExpression(make, "i"));
+        if (!string.IsNullOrEmpty(model))
+            filter.Add("car.model", new BsonRegularExpression(model, "i"));
+        if (priceMin.HasValue || priceMax.HasValue)
+        {
+            var priceRange = new BsonDocument();
+            if (priceMin.HasValue) priceRange.Add("$gte", priceMin.Value);
+            if (priceMax.HasValue) priceRange.Add("$lte", priceMax.Value);
+            filter.Add("minBid", priceRange);
+        }
+        if (yearFrom.HasValue || yearTo.HasValue)
+        {
+            var yearRange = new BsonDocument();
+            if (yearFrom.HasValue) yearRange.Add("$gte", yearFrom.Value);
+            if (yearTo.HasValue) yearRange.Add("$lte", yearTo.Value);
+            filter.Add("car.year", yearRange);
+        }
+        if (!string.IsNullOrEmpty(gearbox))
+            filter.Add("car.gearboxType", gearbox);
+        if (!string.IsNullOrEmpty(color))
+            filter.Add("car.color", new BsonRegularExpression(color, "i"));
+        if (doors.HasValue)
+            filter.Add("car.doors", doors.Value);
+        if (!string.IsNullOrEmpty(fuel))
+            filter.Add("car.fuelType", fuel);
+        if (engineMin.HasValue || engineMax.HasValue)
+        {
+            var engineRange = new BsonDocument();
+            if (engineMin.HasValue) engineRange.Add("$gte", engineMin.Value);
+            if (engineMax.HasValue) engineRange.Add("$lte", engineMax.Value);
+            filter.Add("car.engineSize", engineRange);
+        }
+        if (powerMin.HasValue || powerMax.HasValue)
+        {
+            var powerRange = new BsonDocument();
+            if (powerMin.HasValue) powerRange.Add("$gte", powerMin.Value);
+            if (powerMax.HasValue) powerRange.Add("$lte", powerMax.Value);
+            filter.Add("car.horsePower", powerRange);
+        }
+        if (mileageMin.HasValue || mileageMax.HasValue)
+        {
+            var mileageRange = new BsonDocument();
+            if (mileageMin.HasValue) mileageRange.Add("$gte", mileageMin.Value);
+            if (mileageMax.HasValue) mileageRange.Add("$lte", mileageMax.Value);
+            filter.Add("car.mileage", mileageRange);
+        }
+
+        // Add endingIn filter
+        if (!string.IsNullOrEmpty(endingIn))
+        {
+            DateTime now = DateTime.UtcNow;
+            DateTime endTime = now;
+            switch (endingIn)
+            {
+                case "1h":
+                    endTime = now.AddHours(1);
+                    break;
+                case "12h":
+                    endTime = now.AddHours(12);
+                    break;
+                case "1d":
+                    endTime = now.AddDays(1);
+                    break;
+                case "3d":
+                    endTime = now.AddDays(3);
+                    break;
+                case "1w":
+                    endTime = now.AddDays(7);
+                    break;
+                default:
+                    endTime = now;
+                    break;
+            }
+            var endAtRange = new BsonDocument {
+                { "$gte", now },
+                { "$lte", endTime }
+            };
+            filter.Add("endAt", endAtRange);
+        }
+
+        var bids = await _bidRepository.SearchAsync(filter);
+        return Ok(bids);
     }
 
     private ObjectId GetUserIdFromToken()

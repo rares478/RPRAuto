@@ -9,13 +9,7 @@ public class User : IUser
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    public ObjectId UserId { get; set; }
-
-    [BsonElement("login")]
-    public LoginDetails Login { get; set; } = new();
-
-    [BsonElement("personal")]
-    public PersonalData Personal { get; set; } = new();
+    public ObjectId Id { get; set; }
 
     [BsonElement("role")]
     public UserRole Role { get; set; }
@@ -23,36 +17,42 @@ public class User : IUser
     [BsonElement("companyCUI")]
     public string? CompanyCUI { get; set; }
 
-    [BsonElement("createdAt")]
-    public DateTime CreatedAt { get; set; }
-
-    [BsonElement("updatedAt")]
-    public DateTime UpdatedAt { get; set; }
-
     [BsonElement("listings")]
     public List<ObjectId> Listings { get; set; } = new();
 
     [BsonElement("bids")]
     public List<ObjectId> Bids { get; set; } = new();
 
-    [BsonElement("reviews")]
+    [BsonElement("review")]
     public ObjectId? Review { get; set; }
+
+    [BsonElement("createdAt")]
+    public DateTime CreatedAt { get; set; }
+
+    [BsonElement("updatedAt")]
+    public DateTime UpdatedAt { get; set; }
+
+    [BsonElement("privateData")]
+    public PrivateUserData PrivateData { get; set; } = new();
+
+    [BsonElement("publicData")]
+    public PublicUserData PublicData { get; set; } = new();
 
     // Helper properties to maintain compatibility
     [BsonIgnore]
     public string Email { 
-        get => Login.Email; 
-        set => Login.Email = value; 
+        get => PrivateData.Login.Email; 
+        set => PrivateData.Login.Email = value; 
     }
 
     [BsonIgnore]
     public string Password { 
-        get => Login.Password; 
-        set => Login.Password = value; 
+        get => PrivateData.Login.Password; 
+        set => PrivateData.Login.Password = value; 
     }
 
     public bool VerifyPassword(string password)
     {
-        return BCrypt.Net.BCrypt.Verify(password, Login.Password);
+        return BCrypt.Net.BCrypt.Verify(password, PrivateData.Login.Password);
     }
 }
