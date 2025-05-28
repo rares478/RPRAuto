@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import './styles/marketplace.css';
 import ListingCard from './ListingCard';
+import Select from 'react-select';
+import { Range } from 'react-range';
+import { makes, gearboxOptions, fuelOptions, mileageOptions, getModelsForMake } from './data/carOptions';
+const years = Array.from({length: 15}, (_, i) => (2010 + i).toString());
 
 const Market = () => {
+  const location = useLocation();
   const [filters, setFilters] = useState({
     search: '',
     priceMin: 0,
@@ -21,14 +27,55 @@ const Market = () => {
     powerMax: '',
     mileage: ''
   });
+  const [shouldApplyFilters, setShouldApplyFilters] = useState(false);
 
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Update darkInputStyle for inputs
+  const darkInputStyle = {
+    background: '#181828',
+    border: '1.5px solid #23233a',
+    borderRadius: 8,
+    color: '#fff',
+    fontSize: '0.95rem',
+    padding: '6px 10px',
+    minHeight: '40px',
+    outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
+    transition: 'border 0.2s, box-shadow 0.2s',
+  };
+
   useEffect(() => {
-    fetchCars();
-  }, []);
+    // Parse query params
+    const params = new URLSearchParams(location.search);
+    const make = params.get('make') || '';
+    const model = params.get('model') || '';
+    const year = params.get('year') || '';
+    if (make || model || year) {
+      setFilters(prev => ({
+        ...prev,
+        make,
+        model,
+        yearFrom: year,
+        yearTo: year
+      }));
+      setShouldApplyFilters(true);
+    } else {
+      fetchCars();
+    }
+    // eslint-disable-next-line
+  }, [location.search]);
+
+  useEffect(() => {
+    if (shouldApplyFilters) {
+      applyFilters();
+      setShouldApplyFilters(false);
+    }
+    // eslint-disable-next-line
+  }, [shouldApplyFilters, filters]);
 
   const fetchCars = async () => {
     try {
@@ -195,10 +242,12 @@ const Market = () => {
                     <i className="fas fa-search"></i>
                     <input
                       type="text"
+                      className="filter-input"
                       name="search"
                       value={filters.search}
                       onChange={handleFilterChange}
                       placeholder="Make, model, year..."
+                      style={{ ...darkInputStyle, paddingLeft: '48px' }}
                     />
                   </div>
                 </div>
@@ -206,24 +255,75 @@ const Market = () => {
                 {/* Price Range */}
                 <div className="filter-group">
                   <label>Price Range: ${filters.priceMin.toLocaleString()} - ${filters.priceMax.toLocaleString()}</label>
-                  <div className="price-range">
-                    <input
-                      type="range"
-                      min="0"
-                      max="500000"
-                      value={filters.priceMin}
-                      name="priceMin"
-                      onChange={handleFilterChange}
-                      className="slider"
-                    />
-                    <input
-                      type="range"
-                      min={filters.priceMin}
-                      max="500000"
-                      value={filters.priceMax}
-                      name="priceMax"
-                      onChange={handleFilterChange}
-                      className="slider"
+                  <div className="price-range" style={{ position: 'relative', height: '40px', background: 'transparent', border: 'none', padding: '32px 0 16px 0' }}>
+                    <Range
+                      step={1000}
+                      min={0}
+                      max={500000}
+                      values={[filters.priceMin, filters.priceMax]}
+                      onChange={([min, max]) => setFilters(prev => ({ ...prev, priceMin: min, priceMax: max }))}
+                      renderTrack={({ props, children }) => {
+                        const { key, ...rest } = props;
+                        return (
+                          <div
+                            key={key}
+                            {...rest}
+                            style={{
+                              ...rest.style,
+                              height: '5px',
+                              width: '100%',
+                              background: `linear-gradient(to right, #374151 ${((filters.priceMin)/500000)*100}%, #695FD6 ${((filters.priceMin)/500000)*100}%, #695FD6 ${((filters.priceMax)/500000)*100}%, #374151 ${((filters.priceMax)/500000)*100}%)`,
+                              borderRadius: '3px',
+                              position: 'absolute',
+                              top: '50%',
+                              left: 0,
+                              transform: 'translateY(-50%)',
+                              zIndex: 2,
+                            }}
+                          >
+                            {children}
+                          </div>
+                        );
+                      }}
+                      renderThumb={({ props, index, isDragged }) => {
+                        const { key, ...rest } = props;
+                        return (
+                          <div
+                            key={key}
+                            {...rest}
+                            style={{
+                              ...rest.style,
+                              height: '24px',
+                              width: '24px',
+                              borderRadius: '50%',
+                              backgroundColor: isDragged ? '#A8A1F8' : '#695FD6',
+                              border: '2px solid #fff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxShadow: isDragged ? '0 0 0 2px #695FD655' : 'none',
+                              zIndex: 5,
+                            }}
+                          >
+                            <span style={{
+                              position: 'absolute',
+                              top: '-28px',
+                              color: '#fff',
+                              fontWeight: 700,
+                              fontSize: '1rem',
+                              background: '#23233a',
+                              borderRadius: 6,
+                              padding: '2px 8px',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              whiteSpace: 'nowrap',
+                            }}>
+                              ${[filters.priceMin, filters.priceMax][index].toLocaleString()}
+                            </span>
+                          </div>
+                        );
+                      }}
                     />
                   </div>
                 </div>
@@ -231,87 +331,379 @@ const Market = () => {
                 {/* Make */}
                 <div className="filter-group">
                   <label>Make</label>
-                  <select
-                    className="filter-select"
-                    name="make"
-                    value={filters.make}
-                    onChange={handleFilterChange}
-                  >
-                    <option value="">Select make</option>
-                    <option value="bmw">BMW</option>
-                    <option value="porsche">Porsche</option>
-                    <option value="tesla">Tesla</option>
-                    <option value="lamborghini">Lamborghini</option>
-                    <option value="mercedes">Mercedes-Benz</option>
-                    <option value="audi">Audi</option>
-                    <option value="ford">Ford</option>
-                    <option value="chevrolet">Chevrolet</option>
-                    <option value="toyota">Toyota</option>
-                    <option value="honda">Honda</option>
-                  </select>
+                  <Select
+                    classNamePrefix="react-select"
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        background: '#181828',
+                        border: '1.5px solid #23233a',
+                        borderRadius: 8,
+                        minHeight: 32,
+                        fontSize: '0.95rem',
+                        color: '#fff',
+                        boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                        transition: 'border 0.2s, box-shadow 0.2s',
+                      }),
+                      valueContainer: base => ({
+                        ...base,
+                        color: '#fff',
+                        padding: '6px 10px',
+                        background: '#181828',
+                      }),
+                      placeholder: base => ({
+                        ...base,
+                        color: '#bdbdf7',
+                        fontSize: '0.95rem',
+                      }),
+                      singleValue: base => ({
+                        ...base,
+                        color: '#fff',
+                        fontSize: '0.95rem',
+                      }),
+                      indicatorSeparator: base => ({
+                        ...base,
+                        background: '#23233a',
+                      }),
+                      dropdownIndicator: base => ({
+                        ...base,
+                        color: '#A8A1F8',
+                        transition: 'color 0.2s',
+                      }),
+                      menu: base => ({
+                        ...base,
+                        background: '#181828',
+                        color: '#fff',
+                        borderRadius: 8,
+                        border: '1.5px solid #23233a',
+                        zIndex: 2147483647,
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        background: state.isSelected
+                          ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                          : state.isFocused
+                          ? '#23233a'
+                          : 'transparent',
+                        color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                        fontSize: '0.95rem',
+                        padding: '6px 10px',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s, color 0.15s',
+                      }),
+                      menuList: base => ({
+                        ...base,
+                        maxHeight: 220,
+                        overflowY: 'auto',
+                        background: '#181828',
+                      }),
+                    }}
+                    options={makes.map(make => ({ value: make, label: make }))}
+                    value={filters.make ? { value: filters.make, label: filters.make } : null}
+                    onChange={(option) => handleFilterChange({ target: { name: 'make', value: option?.value } })}
+                  />
                 </div>
 
                 {/* Model */}
                 <div className="filter-group">
                   <label>Model</label>
-                  <select
-                    className="filter-select"
-                    name="model"
-                    value={filters.model}
-                    onChange={handleFilterChange}
-                  >
-                    <option value="">Select model</option>
-                    <option value="m4">M4</option>
-                    <option value="911">911</option>
-                    <option value="model-s">Model S</option>
-                    <option value="huracan">Huracán</option>
-                    <option value="amg-gt">AMG GT</option>
-                  </select>
+                  <Select
+                    classNamePrefix="react-select"
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        background: '#181828',
+                        border: '1.5px solid #23233a',
+                        borderRadius: 8,
+                        minHeight: 32,
+                        fontSize: '0.95rem',
+                        color: '#fff',
+                        boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                        transition: 'border 0.2s, box-shadow 0.2s',
+                      }),
+                      valueContainer: base => ({
+                        ...base,
+                        color: '#fff',
+                        padding: '6px 10px',
+                        background: '#181828',
+                      }),
+                      placeholder: base => ({
+                        ...base,
+                        color: '#bdbdf7',
+                        fontSize: '0.95rem',
+                      }),
+                      singleValue: base => ({
+                        ...base,
+                        color: '#fff',
+                        fontSize: '0.95rem',
+                      }),
+                      indicatorSeparator: base => ({
+                        ...base,
+                        background: '#23233a',
+                      }),
+                      dropdownIndicator: base => ({
+                        ...base,
+                        color: '#A8A1F8',
+                        transition: 'color 0.2s',
+                      }),
+                      menu: base => ({
+                        ...base,
+                        background: '#181828',
+                        color: '#fff',
+                        borderRadius: 8,
+                        border: '1.5px solid #23233a',
+                        zIndex: 2147483647,
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        background: state.isSelected
+                          ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                          : state.isFocused
+                          ? '#23233a'
+                          : 'transparent',
+                        color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                        fontSize: '0.95rem',
+                        padding: '6px 10px',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s, color 0.15s',
+                      }),
+                      menuList: base => ({
+                        ...base,
+                        maxHeight: 220,
+                        overflowY: 'auto',
+                        background: '#181828',
+                      }),
+                    }}
+                    options={filters.make ? getModelsForMake(filters.make).map(model => ({ value: model, label: model })) : []}
+                    value={filters.model ? { value: filters.model, label: filters.model } : null}
+                    onChange={(option) => handleFilterChange({ target: { name: 'model', value: option?.value } })}
+                    isDisabled={!filters.make}
+                  />
                 </div>
 
                 {/* Year */}
                 <div className="filter-group">
                   <label>Year</label>
                   <div className="year-inputs">
-                    <select
-                      className="filter-select"
-                      name="yearFrom"
-                      value={filters.yearFrom}
-                      onChange={handleFilterChange}
-                    >
-                      <option value="">From</option>
-                      {[...Array(10)].map((_, i) => (
-                        <option key={i} value={2015 + i}>{2015 + i}</option>
-                      ))}
-                    </select>
-                    <select
-                      className="filter-select"
-                      name="yearTo"
-                      value={filters.yearTo}
-                      onChange={handleFilterChange}
-                    >
-                      <option value="">To</option>
-                      {[...Array(10)].map((_, i) => (
-                        <option key={i} value={2015 + i}>{2015 + i}</option>
-                      ))}
-                    </select>
+                    <Select
+                      classNamePrefix="react-select"
+                      styles={{
+                        control: (base, state) => ({
+                          ...base,
+                          background: '#181828',
+                          border: '1.5px solid #23233a',
+                          borderRadius: 8,
+                          minHeight: 32,
+                          fontSize: '0.95rem',
+                          color: '#fff',
+                          boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                          transition: 'border 0.2s, box-shadow 0.2s',
+                        }),
+                        valueContainer: base => ({
+                          ...base,
+                          color: '#fff',
+                          padding: '6px 10px',
+                          background: '#181828',
+                        }),
+                        placeholder: base => ({
+                          ...base,
+                          color: '#bdbdf7',
+                          fontSize: '0.95rem',
+                        }),
+                        singleValue: base => ({
+                          ...base,
+                          color: '#fff',
+                          fontSize: '0.95rem',
+                        }),
+                        indicatorSeparator: base => ({
+                          ...base,
+                          background: '#23233a',
+                        }),
+                        dropdownIndicator: base => ({
+                          ...base,
+                          color: '#A8A1F8',
+                          transition: 'color 0.2s',
+                        }),
+                        menu: base => ({
+                          ...base,
+                          background: '#181828',
+                          color: '#fff',
+                          borderRadius: 8,
+                          border: '1.5px solid #23233a',
+                          zIndex: 2147483647,
+                        }),
+                        option: (base, state) => ({
+                          ...base,
+                          background: state.isSelected
+                            ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                            : state.isFocused
+                            ? '#23233a'
+                            : 'transparent',
+                          color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                          fontSize: '0.95rem',
+                          padding: '6px 10px',
+                          cursor: 'pointer',
+                          transition: 'background 0.15s, color 0.15s',
+                        }),
+                        menuList: base => ({
+                          ...base,
+                          maxHeight: 220,
+                          overflowY: 'auto',
+                          background: '#181828',
+                        }),
+                      }}
+                      options={years.map(year => ({ value: year, label: year }))}
+                      value={filters.yearFrom ? { value: filters.yearFrom, label: filters.yearFrom } : null}
+                      onChange={(option) => handleFilterChange({ target: { name: 'yearFrom', value: option?.value } })}
+                    />
+                    <Select
+                      classNamePrefix="react-select"
+                      styles={{
+                        control: (base, state) => ({
+                          ...base,
+                          background: '#181828',
+                          border: '1.5px solid #23233a',
+                          borderRadius: 8,
+                          minHeight: 32,
+                          fontSize: '0.95rem',
+                          color: '#fff',
+                          boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                          transition: 'border 0.2s, box-shadow 0.2s',
+                        }),
+                        valueContainer: base => ({
+                          ...base,
+                          color: '#fff',
+                          padding: '6px 10px',
+                          background: '#181828',
+                        }),
+                        placeholder: base => ({
+                          ...base,
+                          color: '#bdbdf7',
+                          fontSize: '0.95rem',
+                        }),
+                        singleValue: base => ({
+                          ...base,
+                          color: '#fff',
+                          fontSize: '0.95rem',
+                        }),
+                        indicatorSeparator: base => ({
+                          ...base,
+                          background: '#23233a',
+                        }),
+                        dropdownIndicator: base => ({
+                          ...base,
+                          color: '#A8A1F8',
+                          transition: 'color 0.2s',
+                        }),
+                        menu: base => ({
+                          ...base,
+                          background: '#181828',
+                          color: '#fff',
+                          borderRadius: 8,
+                          border: '1.5px solid #23233a',
+                          zIndex: 2147483647,
+                        }),
+                        option: (base, state) => ({
+                          ...base,
+                          background: state.isSelected
+                            ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                            : state.isFocused
+                            ? '#23233a'
+                            : 'transparent',
+                          color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                          fontSize: '0.95rem',
+                          padding: '6px 10px',
+                          cursor: 'pointer',
+                          transition: 'background 0.15s, color 0.15s',
+                        }),
+                        menuList: base => ({
+                          ...base,
+                          maxHeight: 220,
+                          overflowY: 'auto',
+                          background: '#181828',
+                        }),
+                      }}
+                      options={years.map(year => ({ value: year, label: year }))}
+                      value={filters.yearTo ? { value: filters.yearTo, label: filters.yearTo } : null}
+                      onChange={(option) => handleFilterChange({ target: { name: 'yearTo', value: option?.value } })}
+                    />
                   </div>
                 </div>
 
                 {/* Gearbox */}
                 <div className="filter-group">
                   <label>Gearbox</label>
-                  <select
-                    className="filter-select"
-                    name="gearbox"
-                    value={filters.gearbox}
-                    onChange={handleFilterChange}
-                  >
-                    <option value="">Select gearbox</option>
-                    <option value="Manual">Manual</option>
-                    <option value="Automatic">Automatic</option>
-                    <option value="Any">Any</option>
-                  </select>
+                  <Select
+                    classNamePrefix="react-select"
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        background: '#181828',
+                        border: '1.5px solid #23233a',
+                        borderRadius: 8,
+                        minHeight: 32,
+                        fontSize: '0.95rem',
+                        color: '#fff',
+                        boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                        transition: 'border 0.2s, box-shadow 0.2s',
+                      }),
+                      valueContainer: base => ({
+                        ...base,
+                        color: '#fff',
+                        padding: '6px 10px',
+                        background: '#181828',
+                      }),
+                      placeholder: base => ({
+                        ...base,
+                        color: '#bdbdf7',
+                        fontSize: '0.95rem',
+                      }),
+                      singleValue: base => ({
+                        ...base,
+                        color: '#fff',
+                        fontSize: '0.95rem',
+                      }),
+                      indicatorSeparator: base => ({
+                        ...base,
+                        background: '#23233a',
+                      }),
+                      dropdownIndicator: base => ({
+                        ...base,
+                        color: '#A8A1F8',
+                        transition: 'color 0.2s',
+                      }),
+                      menu: base => ({
+                        ...base,
+                        background: '#181828',
+                        color: '#fff',
+                        borderRadius: 8,
+                        border: '1.5px solid #23233a',
+                        zIndex: 2147483647,
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        background: state.isSelected
+                          ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                          : state.isFocused
+                          ? '#23233a'
+                          : 'transparent',
+                        color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                        fontSize: '0.95rem',
+                        padding: '6px 10px',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s, color 0.15s',
+                      }),
+                      menuList: base => ({
+                        ...base,
+                        maxHeight: 220,
+                        overflowY: 'auto',
+                        background: '#181828',
+                      }),
+                    }}
+                    options={gearboxOptions}
+                    value={filters.gearbox ? { value: filters.gearbox, label: filters.gearbox } : null}
+                    onChange={(option) => handleFilterChange({ target: { name: 'gearbox', value: option?.value } })}
+                  />
                 </div>
 
                 {/* Color */}
@@ -324,41 +716,168 @@ const Market = () => {
                     value={filters.color}
                     onChange={handleFilterChange}
                     placeholder="Enter color"
+                    style={darkInputStyle}
+                    onFocus={e => { e.target.style.borderColor = '#A8A1F8'; e.target.style.boxShadow = '0 0 0 2px #695FD655'; }}
+                    onBlur={e => { e.target.style.borderColor = '#23233a'; e.target.style.boxShadow = 'none'; }}
                   />
                 </div>
 
                 {/* Doors */}
                 <div className="filter-group">
                   <label>Doors</label>
-                  <select
-                    className="filter-select"
-                    name="doors"
-                    value={filters.doors}
-                    onChange={handleFilterChange}
-                  >
-                    <option value="">Select doors</option>
-                    <option value="2">2 Doors</option>
-                    <option value="3">3 Doors</option>
-                    <option value="4">4 Doors</option>
-                    <option value="5">5 Doors</option>
-                  </select>
+                  <Select
+                    classNamePrefix="react-select"
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        background: '#181828',
+                        border: '1.5px solid #23233a',
+                        borderRadius: 8,
+                        minHeight: 32,
+                        fontSize: '0.95rem',
+                        color: '#fff',
+                        boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                        transition: 'border 0.2s, box-shadow 0.2s',
+                      }),
+                      valueContainer: base => ({
+                        ...base,
+                        color: '#fff',
+                        padding: '6px 10px',
+                        background: '#181828',
+                      }),
+                      placeholder: base => ({
+                        ...base,
+                        color: '#bdbdf7',
+                        fontSize: '0.95rem',
+                      }),
+                      singleValue: base => ({
+                        ...base,
+                        color: '#fff',
+                        fontSize: '0.95rem',
+                      }),
+                      indicatorSeparator: base => ({
+                        ...base,
+                        background: '#23233a',
+                      }),
+                      dropdownIndicator: base => ({
+                        ...base,
+                        color: '#A8A1F8',
+                        transition: 'color 0.2s',
+                      }),
+                      menu: base => ({
+                        ...base,
+                        background: '#181828',
+                        color: '#fff',
+                        borderRadius: 8,
+                        border: '1.5px solid #23233a',
+                        zIndex: 2147483647,
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        background: state.isSelected
+                          ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                          : state.isFocused
+                          ? '#23233a'
+                          : 'transparent',
+                        color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                        fontSize: '0.95rem',
+                        padding: '6px 10px',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s, color 0.15s',
+                      }),
+                      menuList: base => ({
+                        ...base,
+                        maxHeight: 220,
+                        overflowY: 'auto',
+                        background: '#181828',
+                      }),
+                    }}
+                    options={[
+                      { value: '', label: 'Select doors' },
+                      { value: '2', label: '2 Doors' },
+                      { value: '3', label: '3 Doors' },
+                      { value: '4', label: '4 Doors' },
+                      { value: '5', label: '5 Doors' }
+                    ]}
+                    value={filters.doors ? { value: filters.doors, label: filters.doors } : null}
+                    onChange={(option) => handleFilterChange({ target: { name: 'doors', value: option?.value } })}
+                  />
                 </div>
 
                 {/* Fuel Type */}
                 <div className="filter-group">
                   <label>Fuel Type</label>
-                  <select
-                    className="filter-select"
-                    name="fuel"
-                    value={filters.fuel}
-                    onChange={handleFilterChange}
-                  >
-                    <option value="">Select fuel type</option>
-                    <option value="Petrol">Petrol</option>
-                    <option value="Diesel">Diesel</option>
-                    <option value="Electric">Electric</option>
-                    <option value="Hybrid">Hybrid</option>
-                  </select>
+                  <Select
+                    classNamePrefix="react-select"
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        background: '#181828',
+                        border: '1.5px solid #23233a',
+                        borderRadius: 8,
+                        minHeight: 32,
+                        fontSize: '0.95rem',
+                        color: '#fff',
+                        boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                        transition: 'border 0.2s, box-shadow 0.2s',
+                      }),
+                      valueContainer: base => ({
+                        ...base,
+                        color: '#fff',
+                        padding: '6px 10px',
+                        background: '#181828',
+                      }),
+                      placeholder: base => ({
+                        ...base,
+                        color: '#bdbdf7',
+                        fontSize: '0.95rem',
+                      }),
+                      singleValue: base => ({
+                        ...base,
+                        color: '#fff',
+                        fontSize: '0.95rem',
+                      }),
+                      indicatorSeparator: base => ({
+                        ...base,
+                        background: '#23233a',
+                      }),
+                      dropdownIndicator: base => ({
+                        ...base,
+                        color: '#A8A1F8',
+                        transition: 'color 0.2s',
+                      }),
+                      menu: base => ({
+                        ...base,
+                        background: '#181828',
+                        color: '#fff',
+                        borderRadius: 8,
+                        border: '1.5px solid #23233a',
+                        zIndex: 2147483647,
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        background: state.isSelected
+                          ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                          : state.isFocused
+                          ? '#23233a'
+                          : 'transparent',
+                        color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                        fontSize: '0.95rem',
+                        padding: '6px 10px',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s, color 0.15s',
+                      }),
+                      menuList: base => ({
+                        ...base,
+                        maxHeight: 220,
+                        overflowY: 'auto',
+                        background: '#181828',
+                      }),
+                    }}
+                    options={fuelOptions}
+                    value={filters.fuel ? { value: filters.fuel, label: filters.fuel } : null}
+                    onChange={(option) => handleFilterChange({ target: { name: 'fuel', value: option?.value } })}
+                  />
                 </div>
 
                 {/* Engine Size */}
@@ -374,7 +893,7 @@ const Market = () => {
                       placeholder="Min"
                       step="0.1"
                       min="0"
-                      style={{ width: '50%' }}
+                      style={darkInputStyle}
                     />
                     <input
                       type="number"
@@ -385,7 +904,7 @@ const Market = () => {
                       placeholder="Max"
                       step="0.1"
                       min="0"
-                      style={{ width: '50%' }}
+                      style={darkInputStyle}
                     />
                   </div>
                 </div>
@@ -402,7 +921,7 @@ const Market = () => {
                       onChange={handleFilterChange}
                       placeholder="Min"
                       min="0"
-                      style={{ width: '50%' }}
+                      style={darkInputStyle}
                     />
                     <input
                       type="number"
@@ -412,7 +931,7 @@ const Market = () => {
                       onChange={handleFilterChange}
                       placeholder="Max"
                       min="0"
-                      style={{ width: '50%' }}
+                      style={darkInputStyle}
                     />
                   </div>
                 </div>
@@ -420,20 +939,78 @@ const Market = () => {
                 {/* Mileage */}
                 <div className="filter-group">
                   <label>Mileage (km)</label>
-                  <select
-                    className="filter-select"
-                    name="mileage"
-                    value={filters.mileage}
-                    onChange={handleFilterChange}
-                  >
-                    <option value="">Select mileage</option>
-                    <option value="0-10000">0 - 10,000 km</option>
-                    <option value="10001-25000">10,001 - 25,000 km</option>
-                    <option value="25001-50000">25,001 - 50,000 km</option>
-                    <option value="50001-75000">50,001 - 75,000 km</option>
-                    <option value="75001-100000">75,001 - 100,000 km</option>
-                    <option value="100001+">100,001+ km</option>
-                  </select>
+                  <Select
+                    classNamePrefix="react-select"
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        background: '#181828',
+                        border: '1.5px solid #23233a',
+                        borderRadius: 8,
+                        minHeight: 32,
+                        fontSize: '0.95rem',
+                        color: '#fff',
+                        boxShadow: state.isFocused ? '0 0 0 2px #695FD655' : 'none',
+                        transition: 'border 0.2s, box-shadow 0.2s',
+                      }),
+                      valueContainer: base => ({
+                        ...base,
+                        color: '#fff',
+                        padding: '6px 10px',
+                        background: '#181828',
+                      }),
+                      placeholder: base => ({
+                        ...base,
+                        color: '#bdbdf7',
+                        fontSize: '0.95rem',
+                      }),
+                      singleValue: base => ({
+                        ...base,
+                        color: '#fff',
+                        fontSize: '0.95rem',
+                      }),
+                      indicatorSeparator: base => ({
+                        ...base,
+                        background: '#23233a',
+                      }),
+                      dropdownIndicator: base => ({
+                        ...base,
+                        color: '#A8A1F8',
+                        transition: 'color 0.2s',
+                      }),
+                      menu: base => ({
+                        ...base,
+                        background: '#181828',
+                        color: '#fff',
+                        borderRadius: 8,
+                        border: '1.5px solid #23233a',
+                        zIndex: 2147483647,
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        background: state.isSelected
+                          ? 'linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%)'
+                          : state.isFocused
+                          ? '#23233a'
+                          : 'transparent',
+                        color: state.isSelected ? '#fff' : state.isFocused ? '#A8A1F8' : '#bdbdf7',
+                        fontSize: '0.95rem',
+                        padding: '6px 10px',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s, color 0.15s',
+                      }),
+                      menuList: base => ({
+                        ...base,
+                        maxHeight: 150,
+                        overflowY: 'auto',
+                        background: '#181828',
+                      }),
+                    }}
+                    options={mileageOptions}
+                    value={filters.mileage ? { value: filters.mileage, label: filters.mileage } : null}
+                    onChange={(option) => handleFilterChange({ target: { name: 'mileage', value: option?.value } })}
+                    menuPlacement="bottom"
+                  />
                 </div>
 
                 <button className="btn btn-primary filter-apply" onClick={applyFilters}>

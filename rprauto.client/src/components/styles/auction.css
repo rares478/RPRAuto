@@ -45,7 +45,8 @@ html, body {
 }
 
 .auction-container .filter-card {
-  background-color: rgb(31, 41, 55);
+  background-color: #23233a;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.25);
   border: 1px solid rgba(105, 95, 214, 0.2);
   border-radius: 8px;
   height: fit-content;
@@ -57,7 +58,6 @@ html, body {
 .auction-container .filter-header {
   padding: 16px;
   border-bottom: 1px solid rgba(105, 95, 214, 0.2);
-  background-color: rgb(31, 41, 55);
   border-radius: 8px 8px 0 0;
 }
 
@@ -354,4 +354,42 @@ html, body {
   .auction-container .filter-content {
     grid-template-columns: 1fr;
   }
+}
+
+.filter-input {
+  background: #181828;
+  border: 1.5px solid #23233a;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.95rem;
+  padding: 6px 10px;
+  min-height: 40px;
+  width: 100%;
+  outline: none;
+  box-sizing: border-box;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.filter-input:focus {
+  border-color: #A8A1F8;
+  box-shadow: 0 0 0 2px #695FD655;
+}
+
+.filter-select {
+  background: #181828;
+  border: 1.5px solid #23233a;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.95rem;
+  padding: 6px 10px;
+  min-height: 40px;
+  width: 100%;
+  outline: none;
+  box-sizing: border-box;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.filter-select:focus {
+  border-color: #A8A1F8;
+  box-shadow: 0 0 0 2px #695FD655;
 } 

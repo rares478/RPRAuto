@@ -1,7 +1,9 @@
 ﻿import React, { useState, useEffect } from "react";
+import Select from 'react-select';
 import "./styles/mainPage.css";
 import ListingCard from './ListingCard';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import { useNavigate } from 'react-router-dom';
 
 function MainPage() {
      const [cars, setCars] = useState([]);
@@ -14,6 +16,10 @@ function MainPage() {
           liveAuctions: '0',
           satisfactionRate: '0'
      });
+     const [selectedMake, setSelectedMake] = useState(null);
+     const [selectedModel, setSelectedModel] = useState(null);
+     const [selectedYear, setSelectedYear] = useState(null);
+     const navigate = useNavigate();
 
      useEffect(() => {
           loadSiteSettings();
@@ -75,6 +81,48 @@ function MainPage() {
           }
      };
 
+     // Dropdown search handler
+     const handleSearch = (e) => {
+          if (e) e.preventDefault();
+          let params = new URLSearchParams();
+          if (selectedMake) params.append('make', selectedMake.value);
+          if (selectedModel) params.append('model', selectedModel.value);
+          if (selectedYear) params.append('year', selectedYear.value);
+          navigate(`/market?${params.toString()}`);
+     };
+
+     // Dropdown options
+     const makes = [
+          { value: '', label: 'Select Make' },
+          { value: 'BMW', label: 'BMW' },
+          { value: 'Porsche', label: 'Porsche' },
+          { value: 'Tesla', label: 'Tesla' },
+          { value: 'Lamborghini', label: 'Lamborghini' },
+          { value: 'Mercedes-Benz', label: 'Mercedes-Benz' },
+          { value: 'Audi', label: 'Audi' },
+          { value: 'Ford', label: 'Ford' },
+          { value: 'Chevrolet', label: 'Chevrolet' },
+          { value: 'Toyota', label: 'Toyota' },
+          { value: 'Honda', label: 'Honda' }
+     ];
+     const models = {
+          'BMW': [ { value: '', label: 'Select Model' }, { value: 'M4', label: 'M4' }, { value: 'F30', label: 'F30' }, { value: 'X5', label: 'X5' } ],
+          'Porsche': [ { value: '', label: 'Select Model' }, { value: '911', label: '911' }, { value: 'Cayenne', label: 'Cayenne' }, { value: 'Panamera', label: 'Panamera' } ],
+          'Tesla': [ { value: '', label: 'Select Model' }, { value: 'Model S', label: 'Model S' }, { value: 'Model 3', label: 'Model 3' }, { value: 'Model X', label: 'Model X' } ],
+          'Lamborghini': [ { value: '', label: 'Select Model' }, { value: 'Huracán', label: 'Huracán' }, { value: 'Aventador', label: 'Aventador' } ],
+          'Mercedes-Benz': [ { value: '', label: 'Select Model' }, { value: 'AMG GT', label: 'AMG GT' }, { value: 'C-Class', label: 'C-Class' }, { value: 'E-Class', label: 'E-Class' } ],
+          'Audi': [ { value: '', label: 'Select Model' }, { value: 'A4', label: 'A4' }, { value: 'A6', label: 'A6' }, { value: 'Q7', label: 'Q7' } ],
+          'Ford': [ { value: '', label: 'Select Model' }, { value: 'Mustang', label: 'Mustang' }, { value: 'F-150', label: 'F-150' } ],
+          'Chevrolet': [ { value: '', label: 'Select Model' }, { value: 'Camaro', label: 'Camaro' }, { value: 'Corvette', label: 'Corvette' } ],
+          'Toyota': [ { value: '', label: 'Select Model' }, { value: 'Corolla', label: 'Corolla' }, { value: 'Camry', label: 'Camry' } ],
+          'Honda': [ { value: '', label: 'Select Model' }, { value: 'Civic', label: 'Civic' }, { value: 'Accord', label: 'Accord' } ],
+          '': [ { value: '', label: 'Select Model' } ]
+     };
+     const years = Array.from({length: 15}, (_, i) => {
+          const y = (2010 + i).toString();
+          return { value: y, label: y };
+     });
+
     return (
           <div className="main-page">
                {/* Hero Section */}
@@ -84,11 +132,58 @@ function MainPage() {
                               <h1>{siteSettings.heroTitle}</h1>
                               <p>{siteSettings.heroSubtitle}</p>
                               <div className="search-bar">
-                                   <input type="text" placeholder="Search by make, model, or year..." />
-                                   <button className="btn btn-primary">
-                                        <i className="fas fa-search"></i>
-                                        Search
-                                   </button>
+                                   <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                                        <div style={{ flex: 1 }}>
+                                             <Select
+                                                  options={makes}
+                                                  value={selectedMake}
+                                                  onChange={option => {
+                                                       setSelectedMake(option);
+                                                       setSelectedModel(null);
+                                                  }}
+                                                  placeholder="Select Make"
+                                                  isClearable
+                                                  menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+                                                  styles={{
+                                                       menuPortal: base => ({ ...base, zIndex: 2147483647 })
+                                                  }}
+                                                  classNamePrefix="react-select"
+                                             />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                             <Select
+                                                  options={models[selectedMake?.value || '']}
+                                                  value={selectedModel}
+                                                  onChange={option => setSelectedModel(option)}
+                                                  placeholder="Select Model"
+                                                  isClearable
+                                                  isDisabled={!selectedMake}
+                                                  menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+                                                  styles={{
+                                                       menuPortal: base => ({ ...base, zIndex: 2147483647 })
+                                                  }}
+                                                  classNamePrefix="react-select"
+                                             />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                             <Select
+                                                  options={[{ value: '', label: 'Year From' }, ...years]}
+                                                  value={selectedYear}
+                                                  onChange={option => setSelectedYear(option)}
+                                                  placeholder="Year From"
+                                                  isClearable
+                                                  menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
+                                                  styles={{
+                                                       menuPortal: base => ({ ...base, zIndex: 2147483647 })
+                                                  }}
+                                                  classNamePrefix="react-select"
+                                             />
+                                        </div>
+                                        <button className="btn btn-primary" type="submit">
+                                             <i className="fas fa-search"></i>
+                                             Search
+                                        </button>
+                                   </form>
                               </div>
                          </div>
                     </div>
@@ -189,7 +284,7 @@ function MainPage() {
                               <div className="footer-section">
                                    <h4>Quick Links</h4>
                                    <ul>
-                                        <li><a href="/marketplace">Marketplace</a></li>
+                                        <li><a href="/market">Marketplace</a></li>
                                         <li><a href="/auctions">Live Auctions</a></li>
                                         <li><a href="/account">My Account</a></li>
                                         <li><a href="/about">About Us</a></li>

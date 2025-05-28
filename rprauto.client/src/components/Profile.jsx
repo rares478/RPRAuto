@@ -44,6 +44,21 @@ function Profile() {
     });
     const [showEditModal, setShowEditModal] = useState(false);
 
+    // Add darkInputStyle for inputs, matching Auction and SellForm
+    const darkInputStyle = {
+        background: '#181828',
+        border: '1.5px solid #23233a',
+        borderRadius: 8,
+        color: '#fff',
+        fontSize: '0.95rem',
+        padding: '6px 10px',
+        minHeight: '40px',
+        outline: 'none',
+        width: '100%',
+        boxSizing: 'border-box',
+        transition: 'border 0.2s, box-shadow 0.2s',
+    };
+
     useEffect(() => {
         // Load user data when component mounts
         const token = Cookies.get('authToken');
@@ -629,6 +644,7 @@ function Profile() {
                                             value={formData.firstName}
                                             onChange={handleFormChange}
                                             required 
+                                            style={darkInputStyle}
                                         />
                                     </div>
                                     <div className="form-group">
@@ -640,6 +656,7 @@ function Profile() {
                                             value={formData.lastName}
                                             onChange={handleFormChange}
                                             required 
+                                            style={darkInputStyle}
                                         />
                                     </div>
                                 </div>
@@ -653,6 +670,7 @@ function Profile() {
                                             name="email"
                                             value={formData.email}
                                             disabled
+                                            style={darkInputStyle}
                                         />
                                     </div>
                                     <div className="form-group">
@@ -664,6 +682,7 @@ function Profile() {
                                             value={formData.phone}
                                             onChange={handleFormChange}
                                             required 
+                                            style={darkInputStyle}
                                         />
                                     </div>
                                 </div>
@@ -677,6 +696,7 @@ function Profile() {
                                             name="city"
                                             value={formData.city}
                                             onChange={handleFormChange}
+                                            style={darkInputStyle}
                                         />
                                     </div>
                                     <div className="form-group">
@@ -687,6 +707,7 @@ function Profile() {
                                             name="country"
                                             value={formData.country}
                                             onChange={handleFormChange}
+                                            style={darkInputStyle}
                                         />
                                     </div>
                                 </div>
@@ -700,6 +721,7 @@ function Profile() {
                                             name="address"
                                             value={formData.address}
                                             onChange={handleFormChange}
+                                            style={darkInputStyle}
                                         />
                                     </div>
                                 </div>
@@ -941,135 +963,5 @@ function Profile() {
         </div>
     );
 }
-
-// Add these styles to your CSS file
-const styles = `
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background-color: #1a1a1a;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.modal-header {
-    padding: 1rem;
-    border-bottom: 1px solid #333;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h2 {
-    margin: 0;
-    color: #fff;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0.5rem;
-}
-
-.modal-body {
-    padding: 1rem;
-}
-
-.modal-footer {
-    padding: 1rem;
-    border-top: 1px solid #333;
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-}
-
-.listing-preview {
-    background-color: #2a2a2a;
-    border-radius: 6px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-}
-
-.listing-preview h3 {
-    margin: 0 0 1rem 0;
-    color: #fff;
-}
-
-.car-details {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-}
-
-.detail-row {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.detail-label {
-    color: #9ca3af;
-    font-weight: 500;
-}
-
-.detail-value {
-    color: #fff;
-}
-
-.edit-form {
-    margin-top: 1rem;
-}
-
-.form-group {
-    margin-bottom: 1rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #9ca3af;
-}
-
-.form-input {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #333;
-    border-radius: 4px;
-    background-color: #2a2a2a;
-    color: #fff;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: #695FD6;
-}
-
-textarea.form-input {
-    resize: vertical;
-    min-height: 100px;
-}
-`;
-
-// Add the styles to the document
-const styleSheet = document.createElement("style");
-styleSheet.innerText = styles;
-document.head.appendChild(styleSheet);
 
 export default Profile; 
