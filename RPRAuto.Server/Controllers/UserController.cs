@@ -59,6 +59,7 @@ public class UserController : ControllerBase
                 CompanyCUI = user.CompanyCUI,
                 CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt,
+                PrivateData = user.PrivateData,
                 PublicData = user.PublicData,
                 Listings = user.Listings.Select(l => l.ToString()).ToList(),
                 Bids = user.Bids.Select(b => b.ToString()).ToList(),

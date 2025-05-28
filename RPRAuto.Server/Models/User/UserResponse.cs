@@ -12,6 +12,9 @@ public class UserResponse
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     
+    // Private data - only included when the requesting user is the owner
+    public PrivateUserData? PrivateData { get; set; }
+    
     // Public data
     public PublicUserData PublicData { get; set; } = new();
     
