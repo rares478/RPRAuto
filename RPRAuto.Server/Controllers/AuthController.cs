@@ -49,26 +49,39 @@ public class AuthController : ControllerBase
             // Create new user
             var user = new User
             {
-                Login = new LoginDetails
+                UserId = ObjectId.GenerateNewId(),
+                PrivateData = new PrivateUserData
                 {
-                    Email = request.Email,
-                    Password = BCrypt.Net.BCrypt.HashPassword(request.Password)
+                    Login = new LoginDetails
+                    {
+                        Email = request.Email,
+                        Password = BCrypt.Net.BCrypt.HashPassword(request.Password)
+                    },
+                    Personal = new PersonalData
+                    {
+                        FirstName = request.FirstName,
+                        LastName = request.LastName,
+                        Address = request.Address
+                    }
                 },
-                Personal = new PersonalData
+                PublicData = new PublicUserData
                 {
-                    FirstName = request.FirstName,
-                    LastName = request.LastName,
+                    DisplayName = request.FirstName + (request.LastName != null ? " " + request.LastName : ""),
                     PhoneNumber = request.PhoneNumber,
-                    Address = request.Address,
                     City = request.City,
-                    Country = request.Country
+                    Country = request.Country,
+                    MemberSince = DateTime.UtcNow,
+                    Rating = 0,
+                    TotalSales = 0,
+                    IsVerified = false
                 },
                 Role = request.IsCompany ? UserRole.Company : UserRole.User,
                 CompanyCUI = request.IsCompany ? request.CompanyCUI : null,
                 Listings = new List<ObjectId>(),
                 Bids = new List<ObjectId>(),
                 Review = null,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             await _userRepository.CreateAsync(user);
@@ -108,7 +121,17 @@ public class AuthController : ControllerBase
 
             var token = GenerateJwtToken(user);
 
-            return Ok(new AuthResponse { Message = "Login successful", Token = token });
+            return Ok(new AuthResponse 
+            { 
+                Message = "Login successful", 
+                Token = token,
+                UserData = new LoginDetailsResponse
+                {
+                    Email = user.PrivateData.Login.Email,
+                    Role = user.Role.ToString(),
+                    CreatedAt = user.CreatedAt
+                }
+            });
         }
         catch (ValidationException ex)
         {
@@ -183,7 +206,7 @@ public class AuthController : ControllerBase
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Name, user.Login.Email),
+            new Claim(JwtRegisteredClaimNames.Name, user.PrivateData.Login.Email),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(ClaimTypes.Role, user.Role.ToString())
         };

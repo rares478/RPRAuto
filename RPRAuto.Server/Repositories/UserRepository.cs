@@ -25,7 +25,7 @@ public class UserRepository : MongoRepository<User>, IUserRepository
 
     public async Task<User?> GetByEmailAsync(string email)
     {
-        var filter = Builders<User>.Filter.Eq("Login.Email", email);
+        var filter = Builders<User>.Filter.Eq("PrivateData.Login.Email", email);
         return await _collection.Find(filter).FirstOrDefaultAsync();
     }
 
@@ -69,5 +69,11 @@ public class UserRepository : MongoRepository<User>, IUserRepository
         if (user == null) return false;
 
         return user.VerifyPassword(password);
+    }
+
+    public async Task<PublicUserData?> GetPublicProfileAsync(ObjectId userId)
+    {
+        var user = await GetByIdAsync(userId);
+        return user?.PublicData;
     }
 } 

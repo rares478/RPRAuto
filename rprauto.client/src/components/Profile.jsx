@@ -13,7 +13,9 @@ function Profile() {
         memberSince: '',
         activeListings: 0,
         activeBids: 0,
-        totalSales: 0
+        totalSales: 0,
+        role: '',
+        isCompany: false
     });
     const [listings, setListings] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +26,8 @@ function Profile() {
         phone: '',
         address: '',
         city: '',
-        country: ''
+        country: '',
+        displayName: ''
     });
     const [imagePreviews, setImagePreviews] = useState([]);
     const [notifications, setNotifications] = useState({
@@ -66,8 +69,8 @@ function Profile() {
             const userId = decodedToken.sub;
             console.log('User ID from token:', userId); // Debug log
 
-            // Fetch user's personal details
-            const personalResponse = await fetch(`https://rprauto.onrender.com/user/${userId}/personal`, {
+            // Fetch user's full details
+            const userResponse = await fetch(`https://rprauto.onrender.com/user/${userId}`, {
                 headers: {
                     'Authorization': `Bearer ${token.trim()}`,
                     'Accept': 'application/json',
@@ -75,16 +78,14 @@ function Profile() {
                 }
             });
 
-            console.log('Response status:', personalResponse.status); // Debug log
-
-            if (!personalResponse.ok) {
-                const errorData = await personalResponse.json();
+            if (!userResponse.ok) {
+                const errorData = await userResponse.json();
                 console.error('Error response:', errorData); // Debug log
-                throw new Error(errorData.message || 'Failed to fetch personal details');
+                throw new Error(errorData.message || 'Failed to fetch user details');
             }
 
-            const personalData = await personalResponse.json();
-            console.log('Personal data:', personalData); // Debug log
+            const userData = await userResponse.json();
+            console.log('User data:', userData); // Debug log
 
             // Fetch user's listings
             const listingsResponse = await fetch(`https://rprauto.onrender.com/user/${userId}/listings`, {
@@ -166,24 +167,28 @@ function Profile() {
             
             // Update form data with fetched user data
             setFormData({
-                firstName: personalData.firstName || '',
-                lastName: personalData.lastName || '',
-                email: personalData.email || '',
-                phone: personalData.phoneNumber || '',
-                address: personalData.address || '',
-                city: personalData.city || '',
-                country: personalData.country || ''
+                firstName: userData.PrivateData.Personal.FirstName || '',
+                lastName: userData.PrivateData.Personal.LastName || '',
+                email: userData.PrivateData.Login.Email || '',
+                phone: userData.PublicData.PhoneNumber || '',
+                address: userData.PrivateData.Personal.Address || '',
+                city: userData.PublicData.City || '',
+                country: userData.PublicData.Country || '',
+                displayName: userData.PublicData.DisplayName || ''
             });
 
             // Update user data for dashboard
             setUserData(prev => ({
                 ...prev,
-                name: `${personalData.firstName} ${personalData.lastName}`,
-                phone: personalData.phoneNumber,
-                memberSince: new Date(personalData.createdAt).getFullYear().toString(),
+                name: userData.PublicData.DisplayName,
+                email: userData.PrivateData.Login.Email,
+                phone: userData.PublicData.PhoneNumber,
+                memberSince: new Date(userData.CreatedAt).getFullYear().toString(),
                 activeListings: detailedListings.length,
                 activeBids: detailedBids.length,
-                totalSales: detailedListings.reduce((total, listing) => total + (listing.Price || 0), 0)
+                totalSales: detailedListings.reduce((total, listing) => total + (listing.Price || 0), 0),
+                role: userData.Role,
+                isCompany: userData.Role === 'Company'
             }));
 
         } catch (error) {
@@ -246,6 +251,7 @@ function Profile() {
                 body: JSON.stringify({
                     firstName: formData.firstName,
                     lastName: formData.lastName,
+                    displayName: formData.displayName,
                     phoneNumber: formData.phone,
                     address: formData.address,
                     city: formData.city,

@@ -1,49 +1,69 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { verifyUserHandle } from '../functionality/authFun';
 import Cookies from 'js-cookie';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [token, setToken] = useState(Cookies.get('token') || null);
+    const [userData, setUserData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const checkAuth = async () => {
-            const token = Cookies.get('authToken');
-            console.log('Initial token check:', token); // Debug log
-            if (token) {
-                const isValid = await verifyUserHandle();
-                console.log('Token validation result:', isValid); // Debug log
-                setIsAuthenticated(isValid);
+        const validateToken = async () => {
+            if (!token) {
+                setIsLoading(false);
+                return;
             }
-            setIsLoading(false);
+
+            try {
+                const response = await fetch('https://rprauto.onrender.com/auth/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(token),
+                });
+
+                if (!response.ok) {
+                    logout();
+                }
+            } catch (error) {
+                console.error('Token validation error:', error);
+                logout();
+            } finally {
+                setIsLoading(false);
+            }
         };
 
-        checkAuth();
-    }, []);
+        validateToken();
+    }, [token]);
 
-    const login = (token) => {
-        console.log('Setting token in login:', token); // Debug log
-        // More permissive cookie settings for development
-        Cookies.set("authToken", token, { 
-            expires: 120,
-            secure: window.location.protocol === 'https:',
-            sameSite: 'lax',
-            path: '/' // Add path to ensure cookie is available everywhere
-        });
-        console.log('Cookie after setting:', Cookies.get('authToken')); // Debug log
-        setIsAuthenticated(true);
+    const login = (newToken, user) => {
+        setToken(newToken);
+        setUserData(user);
+        Cookies.set('token', newToken, { expires: 1 }); // Expires in 1 day
     };
 
     const logout = () => {
-        Cookies.remove('authToken');
-        setIsAuthenticated(false);
+        setToken(null);
+        setUserData(null);
+        Cookies.remove('token');
+    };
+
+    const value = {
+        token,
+        userData,
+        isLoading,
+        login,
+        logout,
+        isAuthenticated: !!token,
+        isCompany: userData?.role === 'Company',
+        isAdmin: userData?.role === 'Admin'
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout }}>
-            {children}
+        <AuthContext.Provider value={value}>
+            {!isLoading && children}
         </AuthContext.Provider>
     );
 };

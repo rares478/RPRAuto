@@ -22,7 +22,7 @@ function Login() {
 
             if (response.success) {
                 console.log('Token before login:', response.token); // Debug log
-                login(response.token);
+                login(response.token, response.userData); // Pass user data to login function
                 console.log('Cookie after login:', document.cookie); // Debug log
                 navigate('/');
             } else {

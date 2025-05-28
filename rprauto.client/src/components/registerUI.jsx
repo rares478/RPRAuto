@@ -67,12 +67,13 @@ const SignUp = () => {
             );
     
             if (result.success) {
-                login(result.token);
+                login(result.token, result.userData);
                 navigate('/');
             } else {
                 setError(result.message || 'Registration failed.');
             }
         } catch (err) {
+            console.error('Registration error:', err);
             setError('An unexpected error occurred.');
         }
     };
