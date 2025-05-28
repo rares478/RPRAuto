@@ -372,9 +372,15 @@ body {
 }
 
 .bid-history {
-  padding: 20px 0;
+  padding: 20px;
   flex: 1;
   overflow-y: auto;
+  max-height: 300px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(105, 95, 214, 0.2);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  min-height: 150px;
 }
 
 .bid-item {
@@ -384,7 +390,9 @@ body {
   padding: 12px;
   background: rgba(105, 95, 214, 0.1);
   border-radius: 6px;
-  margin-bottom: 8px;
+  margin: 12px 0;
+  border: 1px solid rgba(105, 95, 214, 0.2);
+  min-height: 50px;
 }
 
 .bidder-info {
@@ -403,22 +411,24 @@ body {
   justify-content: center;
   color: white;
   font-weight: bold;
-  font-size: 12px;
+  font-size: 16px;
 }
 
 .bidder-name {
   color: white;
   font-weight: 500;
+  font-size: 18px;
 }
 
 .bid-time {
-  font-size: 12px;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.6);
 }
 
 .bid-amount-small {
   color: #A8A1F8;
   font-weight: bold;
+  font-size: 20px;
 }
 
 .highest-bid {
