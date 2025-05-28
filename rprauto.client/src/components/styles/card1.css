@@ -46,6 +46,10 @@ body {
 .card-back {
   transform: rotateY(180deg);
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow-y: auto;
 }
 
 /* Slideshow styles */
@@ -356,7 +360,7 @@ body {
 
 /* Back card styles */
 .auction-header {
-  padding: 20px;
+  padding: 0 0 20px 0;
   border-bottom: 1px solid rgba(105, 95, 214, 0.2);
 }
 
@@ -371,6 +375,12 @@ body {
   padding: 20px;
   flex: 1;
   overflow-y: auto;
+  max-height: 300px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(105, 95, 214, 0.2);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  min-height: 150px;
 }
 
 .bid-item {
@@ -380,7 +390,9 @@ body {
   padding: 12px;
   background: rgba(105, 95, 214, 0.1);
   border-radius: 6px;
-  margin-bottom: 8px;
+  margin: 12px 0;
+  border: 1px solid rgba(105, 95, 214, 0.2);
+  min-height: 50px;
 }
 
 .bidder-info {
@@ -399,29 +411,32 @@ body {
   justify-content: center;
   color: white;
   font-weight: bold;
-  font-size: 12px;
+  font-size: 16px;
 }
 
 .bidder-name {
   color: white;
   font-weight: 500;
+  font-size: 18px;
 }
 
 .bid-time {
-  font-size: 12px;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.6);
 }
 
 .bid-amount-small {
   color: #A8A1F8;
   font-weight: bold;
+  font-size: 20px;
 }
 
 .highest-bid {
   padding: 20px;
   text-align: center;
   background: rgba(105, 95, 214, 0.1);
-  border-top: 1px solid rgba(105, 95, 214, 0.2);
+  border-radius: 8px;
+  margin-bottom: 20px;
 }
 
 .highest-bid-label {
@@ -443,7 +458,7 @@ body {
 }
 
 .bid-form {
-  padding: 20px;
+  padding: 0 0 20px 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -483,6 +498,7 @@ body {
 }
 
 .back-button {
+  margin-top: auto;
   width: 100%;
   padding: 12px;
   background: transparent;
@@ -497,4 +513,50 @@ body {
 .back-button:hover {
   background: rgba(105, 95, 214, 0.1);
   border-color: #695FD6;
+}
+
+.instant-buy-section {
+  background: rgba(105, 95, 214, 0.1);
+  border: 1px solid rgba(105, 95, 214, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.instant-buy-label {
+  color: #A8A1F8;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.instant-buy-amount {
+  color: #695FD6;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.instant-buy-button {
+  background: linear-gradient(135deg, #695FD6, #4a3f9e);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.instant-buy-button:hover {
+  background: linear-gradient(135deg, #4a3f9e, #695FD6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(105, 95, 214, 0.3);
+}
+
+.instant-buy-button:active {
+  transform: translateY(0);
 }

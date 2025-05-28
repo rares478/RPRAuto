@@ -58,7 +58,7 @@ public class Bid : IBid
 
     [BsonElement("bids")]
     [JsonPropertyName("Bids")]
-    public Dictionary<ObjectId, decimal> Bids { get; set; } = new();
+    public Dictionary<string, decimal> Bids { get; set; } = new();
 
     [BsonElement("instantBuy")]
     [JsonPropertyName("InstantBuy")]

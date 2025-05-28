@@ -1,6 +1,6 @@
 @host = https://rprauto.onrender.com
-@userId = 68237abae20bc0a6d4b2fdc7
-@token = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODIzN2FiYWUyMGJjMGE2ZDRiMmZkYzciLCJuYW1lIjoiaGF1aGF1QGV4YW1wbGUuY29tIiwianRpIjoiNjBmMzBiZTYtYmYwYi00MTNhLTk2OWYtODFiZDY0ZDJjMWYxIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiVXNlciIsImV4cCI6MTc0NzE3ODAyNX0.Zl1LZShkhi6SbfPFF2NBg8VPQ_54OzQqJEPW-aYlHvsezfV9Qs8DqCkoioMlZ0mMjwXwjZO43bsNPV_XALb3a1P4EepYSJc1hAuimpFtwGpzgWqGEV7YkJO_HyJPJ9uwV9gnvjYzLpFX90CvmnXR5_c7fW81CP60BrGFbaMgZVqkRA1_upp9vRwOMHp8WsPi6xrfvUcHfLMbSS3MPFTGAz173ncY3v5NbGSc7TaaX7jNDuA7EdT-tvVqYfTLYCs2wtCBWEP4cv_0B0oKfhwSlo_jW2Tt38x0QHIDAV_gu_da9Sacm_qHpew8wXGQjoTqv_OVvAw1WKtjkc-1vb8xwQ
+@userId = 6834c6e98f392562d5e64517
+@token = eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODM0YzZlOThmMzkyNTYyZDVlNjQ1MTciLCJuYW1lIjoiY2V2YUBnbWFpbC5jb20iLCJqdGkiOiJmZDk3NTcwZC1mN2NlLTRhMGItYmJlYi01YmZhY2NiNjQzYmUiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc0ODM3OTkzMCwiaXNzIjoiUlBSQXV0byIsImF1ZCI6IlJQUkF1dG8uQ2xpZW50In0.TrYbhQyKbsGqR8RklFOzsc9NltFYnXGCf0YQG-g49ZpX3naI25yqUX4y5wQN703qreRpHD-RFdlA83moBazCBGaade7-_P0pS5Heou97qBT3kWCzaMAbLIpLp13o6kMq6DJJ7oKDVa-uEaIkOZCk2xmphu5FMLMZv4UoxyiUocOeycWDoxAq9WgZAow3vNnsnBSAZi9nG7FBo5KOP0yc_HHKCzqv7wy20-IKOppljvATfsYABEk4Joco1K2NWrugDy5LXMpYuLc5DZ7SggTrOavLO1LxzFW1a87MYjz3hDP_sU2XQyKz6WJ46fJX-T47n7akV_51CN-GtAB8SJuZ-Q
 @listingId = your_listing_id_here
 
 ### Get user by ID
@@ -91,27 +91,24 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "request": {
     "car": {
-      "make": "BMW",
-      "model": "3 Series",
-      "year": 2022,
-      "mileage": 15000,
-      "fuelType": "Petrol",
-      "color": "Black",
-      "doors": 4,
-      "engineSize": 2.0,
-      "bodyType": "Sedan",
-      "horsePower": 184,
-      "isManual": false,
-      "description": "Excellent condition",
-      "pictures": []
+        "Make": "BMW",
+        "Model": "3 Series",
+        "Year": 2022,
+        "Mileage": 15000,
+        "FuelType": "Petrol",
+        "Color": "Black",
+        "Doors": 4,
+        "EngineSize": 2.0,
+        "BodyType": "Sedan",
+        "HorsePower": 184,
+        "GearboxType": "Automatic",
+        "Description": "Excellent condition",
+        "Pictures": []
     },
     "price": 35000,
     "description": "Excellent condition, one owner, full service history",
-    "title": "BMW 3 Series 2022",
     "endAt": "2024-05-13T16:47:35Z"
-  }
 }
 
 ### Update listing
@@ -138,25 +135,29 @@ Authorization: Bearer {{token}}
 }
 
 ### Search listings - All parameters
-GET {{host}}/listing/search?make=BMW&model=3&minPrice=30000&maxPrice=40000&minYear=2020&maxYear=2023
+GET {{host}}/listing/search?make=bmw&model=3&price=35000&year=2022&gearbox=Automatic&body=Sedan&color=black&doors=4&fuel=Petrol&engine=2.0&power=184&mileage=15000
 Accept: application/json
 
 ### Search listings - By make only
-GET {{host}}/listing/search?make=BMW
+GET {{host}}/listing/search?make=bmw
 Accept: application/json
 
-### Search listings - By price range only
-GET {{host}}/listing/search?minPrice=30000&maxPrice=40000
+### Search listings - By price only
+GET {{host}}/listing/search?price=35000
 Accept: application/json
 
-### Search listings - By year range only
-GET {{host}}/listing/search?minYear=2020&maxYear=2023
+### Search listings - By year only
+GET {{host}}/listing/search?year=2020
 Accept: application/json
 
 ### Search listings - By make and model
-GET {{host}}/listing/search?make=BMW&model=3
+GET {{host}}/listing/search?make=lamborghini
 Accept: application/json
 
-### Search listings - By make and price range
-GET {{host}}/listing/search?make=BMW&minPrice=30000&maxPrice=40000
+### Search listings - By make and price
+GET {{host}}/listing/search?make=bmw
+Accept: application/json
+
+### Search listings - By make and model
+GET {{host}}/listing/search?make=lamborghini
 Accept: application/json

@@ -119,7 +119,7 @@ public class BidController : ControllerBase
                 },
                 CreatedAt = DateTime.UtcNow,
                 EndAt = wrapper.Request.EndAt,
-                Bids = new Dictionary<ObjectId, decimal>()
+                Bids = new Dictionary<string, decimal>()
             };
             _logger.LogInformation("Created bid object: {@Bid}", bid);
 
@@ -217,7 +217,7 @@ public class BidController : ControllerBase
         if (bid.UserId == userId)
             throw new ValidationException("Cannot place bid on your own bid");
 
-        if (bid.Bids.ContainsKey(userId))
+        if (bid.Bids.ContainsKey(userId.ToString()))
             throw new ValidationException("You have already placed a bid");
 
         if (request.Amount < bid.MinBid)
@@ -226,7 +226,7 @@ public class BidController : ControllerBase
         if (bid.TopBid > 0 && request.Amount <= bid.TopBid)
             throw new ValidationException($"Bid amount must be higher than current top bid of {bid.TopBid}");
 
-        bid.Bids[userId] = request.Amount;
+        bid.Bids[userId.ToString()] = request.Amount;
         bid.TopBid = request.Amount;
 
         if (bid.InstantBuy > 0 && request.Amount >= bid.InstantBuy)

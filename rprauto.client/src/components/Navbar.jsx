@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 import Cookies from 'js-cookie';
 import OwnerPanel from './OwnerPanel';
 import './styles/navbar.css';
@@ -8,7 +9,8 @@ import './styles/navbar.css';
 const Navbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { isAuthenticated, logout } = useAuth();
+    const { isAuthenticated, logout, user } = useAuth();
+    const { siteSettings } = useSiteSettings();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [userRole, setUserRole] = useState(null);
     const [isOwnerPanelOpen, setIsOwnerPanelOpen] = useState(false);
@@ -77,7 +79,7 @@ const Navbar = () => {
                     <div className="nav-content">
                         <div className="nav-brand">
                             <Link to="/">
-                                <h1>RPR Auto</h1>
+                                <h1>{siteSettings.siteTitle}</h1>
                             </Link>
                         </div>
                         <div className="nav-links">
