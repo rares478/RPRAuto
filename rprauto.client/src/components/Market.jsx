@@ -85,6 +85,10 @@ const Market = () => {
       if (filters.engine) queryParams.append('engine', filters.engine);
       if (filters.power) queryParams.append('power', filters.power);
       if (filters.mileage) queryParams.append('mileage', filters.mileage);
+      if (filters.priceMin !== '' && filters.priceMin !== undefined && filters.priceMin !== null) queryParams.append('priceMin', filters.priceMin);
+      if (filters.priceMax !== '' && filters.priceMax !== undefined && filters.priceMax !== null) queryParams.append('priceMax', filters.priceMax);
+      if (filters.yearFrom !== '' && filters.yearFrom !== undefined && filters.yearFrom !== null) queryParams.append('yearFrom', filters.yearFrom);
+      if (filters.yearTo !== '' && filters.yearTo !== undefined && filters.yearTo !== null) queryParams.append('yearTo', filters.yearTo);
       
       const response = await fetch(`https://rprauto.onrender.com/listing/search?${queryParams.toString()}`);
       const data = await response.json();

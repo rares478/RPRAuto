@@ -215,7 +215,11 @@ public class ListingController : ControllerBase
         [FromQuery] string? make = null,
         [FromQuery] string? model = null,
         [FromQuery] decimal? price = null,
+        [FromQuery] decimal? priceMin = null,
+        [FromQuery] decimal? priceMax = null,
         [FromQuery] int? year = null,
+        [FromQuery] int? yearFrom = null,
+        [FromQuery] int? yearTo = null,
         [FromQuery] string? gearbox = null,
         [FromQuery] string? body = null,
         [FromQuery] string? color = null,
@@ -227,8 +231,8 @@ public class ListingController : ControllerBase
     {
         try
         {
-            _logger.LogInformation("Starting search with parameters: make={Make}, model={Model}, price={Price}, year={Year}", 
-                make, model, price, year);
+            _logger.LogInformation("Starting search with parameters: make={Make}, model={Model}, price={Price}, priceMin={PriceMin}, priceMax={PriceMax}, year={Year}, yearFrom={YearFrom}, yearTo={YearTo}", 
+                make, model, price, priceMin, priceMax, year, yearFrom, yearTo);
 
             // Build the filter using BsonDocument
             var filter = new BsonDocument
@@ -248,14 +252,28 @@ public class ListingController : ControllerBase
                 filter.Add("car.model", new BsonRegularExpression(model, "i"));
             }
 
-            // Add price filter if provided
-            if (price.HasValue)
+            // Add price range filter if provided
+            if (priceMin.HasValue || priceMax.HasValue)
+            {
+                var priceRange = new BsonDocument();
+                if (priceMin.HasValue) priceRange.Add("$gte", priceMin.Value);
+                if (priceMax.HasValue) priceRange.Add("$lte", priceMax.Value);
+                filter.Add("price", priceRange);
+            }
+            else if (price.HasValue)
             {
                 filter.Add("price", price.Value);
             }
 
-            // Add year filter if provided
-            if (year.HasValue)
+            // Add year range filter if provided
+            if (yearFrom.HasValue || yearTo.HasValue)
+            {
+                var yearRange = new BsonDocument();
+                if (yearFrom.HasValue) yearRange.Add("$gte", yearFrom.Value);
+                if (yearTo.HasValue) yearRange.Add("$lte", yearTo.Value);
+                filter.Add("car.year", yearRange);
+            }
+            else if (year.HasValue)
             {
                 filter.Add("car.year", year.Value);
             }
