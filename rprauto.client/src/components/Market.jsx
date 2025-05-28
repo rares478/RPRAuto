@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './styles/marketplace.css';
+import ListingCard from './ListingCard';
 
 const Market = () => {
   const [filters, setFilters] = useState({
@@ -20,9 +21,6 @@ const Market = () => {
   });
 
   const [cars, setCars] = useState([]);
-  const [currentSlides, setCurrentSlides] = useState({});
-  const [flippedCards, setFlippedCards] = useState({});
-  const [showPhones, setShowPhones] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -36,44 +34,27 @@ const Market = () => {
       const response = await fetch('https://rprauto.onrender.com/listing?page=1&pageSize=30');
       const data = await response.json();
       
-      const formattedCars = data.Listings.map(listing => {
-        // Ensure we have valid images array
-        const images = Array.isArray(listing.Car.Pictures) && listing.Car.Pictures.length > 0 
-          ? listing.Car.Pictures 
-          : ['/placeholder-car.jpg']; // Add a placeholder image if no images exist
-
-        return {
-          id: listing.Id,
-          title: `${listing.Car.Make} ${listing.Car.Model}`,
-          year: listing.Car.Year,
-          make: listing.Car.Make,
-          model: listing.Car.Model,
-          gearbox: listing.Car.GearboxType,
-          color: listing.Car.Color,
-          doors: listing.Car.Doors,
-          fuelType: listing.Car.FuelType,
-          engine: listing.Car.EngineSize,
-          power: listing.Car.HorsePower,
-          mileage: listing.Car.Mileage,
-          bodyType: listing.Car.BodyType,
-          price: listing.Price,
-          description: listing.Description,
-          images: images,
-          phone: listing.User?.Personal?.PhoneNumber || "N/A"
-        };
-      });
+      const formattedCars = data.Listings.map(listing => ({
+        id: listing.Id,
+        title: `${listing.Car.Make} ${listing.Car.Model}`,
+        year: listing.Car.Year,
+        make: listing.Car.Make,
+        model: listing.Car.Model,
+        gearbox: listing.Car.GearboxType,
+        color: listing.Car.Color,
+        doors: listing.Car.Doors,
+        fuelType: listing.Car.FuelType,
+        engine: listing.Car.EngineSize,
+        power: listing.Car.HorsePower,
+        mileage: listing.Car.Mileage,
+        bodyType: listing.Car.BodyType,
+        price: listing.Price,
+        description: listing.Description,
+        images: listing.Car.Pictures || [],
+        phone: listing.User?.Personal?.PhoneNumber || "N/A"
+      }));
 
       setCars(formattedCars);
-      
-      // Initialize current slides for each car
-      const initialSlides = {};
-      formattedCars.forEach(car => {
-        if (car.id) {
-          initialSlides[car.id] = 0;
-        }
-      });
-      setCurrentSlides(initialSlides);
-      
       setLoading(false);
     } catch (error) {
       console.error('Error fetching cars:', error);
@@ -155,34 +136,6 @@ const Market = () => {
       mileage: ''
     });
     fetchCars();
-  };
-
-  const changeSlide = (carId, direction, e) => {
-    e.stopPropagation();
-    setCurrentSlides(prev => {
-      const car = cars.find(c => c.id === carId);
-      const newSlide = (prev[carId] + direction + car.images.length) % car.images.length;
-      return { ...prev, [carId]: newSlide };
-    });
-  };
-
-  const goToSlide = (carId, slideIndex, e) => {
-    e.stopPropagation();
-    setCurrentSlides(prev => ({ ...prev, [carId]: slideIndex }));
-  };
-
-  const flipCard = (carId, e) => {
-    e.stopPropagation();
-    setFlippedCards(prev => {
-      const newState = { ...prev };
-      newState[carId] = !newState[carId];
-      return newState;
-    });
-  };
-
-  const showPhoneNumber = (carId, e) => {
-    e.stopPropagation();
-    setShowPhones(prev => ({ ...prev, [carId]: !prev[carId] }));
   };
 
   if (loading) {
@@ -470,160 +423,7 @@ const Market = () => {
             {/* Car Grid */}
             <div className="cars-grid">
               {cars.map(car => (
-                <div key={car.id} className="car-card-container">
-                  <div 
-                    className={`car-card ${flippedCards[car.id] ? 'flipped' : ''}`}
-                    onClick={(e) => flipCard(car.id, e)}
-                  >
-                    <div className="car-card-front">
-                      <div className="car-slideshow">
-                        {car.images.map((image, index) => {
-                          // Ensure the image URL is properly formatted
-                          const imageUrl = image.startsWith('http') ? image : `https://rprauto.onrender.com${image}`;
-                          return (
-                            <div
-                              key={index}
-                              className={`slide ${currentSlides[car.id] === index ? 'active' : ''}`}
-                            >
-                              <div
-                                className="car-photo"
-                                style={{ 
-                                  backgroundImage: `url(${imageUrl})`,
-                                  backgroundSize: 'cover',
-                                  backgroundPosition: 'center'
-                                }}
-                              ></div>
-                            </div>
-                          );
-                        })}
-                        
-                        {car.images.length > 1 && (
-                          <>
-                            <div
-                              className="nav-arrow prev"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                changeSlide(car.id, -1, e);
-                              }}
-                            >
-                              ❮
-                            </div>
-                            <div
-                              className="nav-arrow next"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                changeSlide(car.id, 1, e);
-                              }}
-                            >
-                              ❯
-                            </div>
-                          </>
-                        )}
-                        
-                        <div className="slide-indicator">
-                          {car.images.map((_, index) => (
-                            <div
-                              key={index}
-                              className={`dot ${currentSlides[car.id] === index ? 'active' : ''}`}
-                              onClick={(e) => goToSlide(car.id, index, e)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <div
-                        className="flip-indicator"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          flipCard(car.id, e);
-                        }}
-                      >
-                        Flip for details
-                      </div>
-                    </div>
-                    
-                    <div className="car-card-back">
-                      <div className="car-details-container">
-                        <div className="car-header">
-                          <span className="car-title">{car.title}</span>
-                          <span className="car-year">{car.year}</span>
-                        </div>
-                        
-                        <div className="car-specs-column">
-                          <div className="spec-row">
-                            <span className="spec-label">Make:</span>
-                            <span className="spec-value">{car.make}</span>
-                          </div>
-                          <div className="spec-row">
-                            <span className="spec-label">Model:</span>
-                            <span className="spec-value">{car.model}</span>
-                          </div>
-                          <div className="spec-row">
-                            <span className="spec-label">Gearbox:</span>
-                            <span className="spec-value">{car.gearbox}</span>
-                          </div>
-                          <div className="spec-row">
-                            <span className="spec-label">Color:</span>
-                            <span className="spec-value">{car.color}</span>
-                          </div>
-                          <div className="spec-row">
-                            <span className="spec-label">Doors:</span>
-                            <span className="spec-value">{car.doors}</span>
-                          </div>
-                          <div className="spec-row">
-                            <span className="spec-label">Fuel Type:</span>
-                            <span className="spec-value">{car.fuelType}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="car-specs-column">
-                          <div className="spec-row">
-                            <span className="spec-label">Engine:</span>
-                            <span className="spec-value">{car.engine}L</span>
-                          </div>
-                          <div className="spec-row">
-                            <span className="spec-label">Power:</span>
-                            <span className="spec-value">{car.power} HP</span>
-                          </div>
-                          <div className="spec-row">
-                            <span className="spec-label">Mileage:</span>
-                            <span className="spec-value">{car.mileage.toLocaleString()} km</span>
-                          </div>
-                          <div className="spec-row">
-                            <span className="spec-label">Body Type:</span>
-                            <span className="spec-value">{car.bodyType}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="car-description">
-                          {car.description}
-                        </div>
-                        
-                        <div className="car-price-large">
-                          ${car.price.toLocaleString()}
-                        </div>
-                        
-                        <div className="button-container">
-                          <button
-                            className={`call-button ${showPhones[car.id] ? 'show-phone' : ''}`}
-                            onClick={(e) => showPhoneNumber(car.id, e)}
-                          >
-                            <span className="call-text">Call Now</span>
-                            <span className="phone-number">{car.phone}</span>
-                          </button>
-                        </div>
-                      </div>
-                      <div
-                        className="flip-indicator"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          flipCard(car.id, e);
-                        }}
-                      >
-                        Flip back
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <ListingCard key={car.id} car={car} />
               ))}
             </div>
 

@@ -92,7 +92,6 @@ const Navbar = () => {
                             <Link to="/auctions" className={`nav-link ${location.pathname === '/auctions' ? 'active' : ''}`}>
                                 Auctions
                             </Link>
-                            <Link to="/contact">Contact</Link>
                         </div>
                         <div className="nav-account" ref={dropdownRef}>
                             <button 
