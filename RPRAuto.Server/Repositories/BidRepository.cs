@@ -73,4 +73,9 @@ public class BidRepository : MongoRepository<Bid>, IBidRepository
             
         return (bids, totalCount);
     }
+
+    public async Task<IEnumerable<Bid>> SearchAsync(FilterDefinition<Bid> filter)
+    {
+        return await _collection.Find(filter).ToListAsync();
+    }
 } 

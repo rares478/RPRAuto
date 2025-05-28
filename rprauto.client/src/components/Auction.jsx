@@ -19,7 +19,8 @@ const Auction = () => {
     engineMax: '',
     powerMin: '',
     powerMax: '',
-    mileage: ''
+    mileage: '',
+    endingIn: ''
   });
 
   const [bids, setBids] = useState([]);
@@ -116,6 +117,7 @@ const Auction = () => {
         queryParams.append('mileageMin', min);
       }
     }
+    if (filters.endingIn && filters.endingIn !== 'any') queryParams.append('endingIn', filters.endingIn);
     fetchBids(queryParams, true);
   };
 
@@ -136,7 +138,8 @@ const Auction = () => {
       engineMax: '',
       powerMin: '',
       powerMax: '',
-      mileage: ''
+      mileage: '',
+      endingIn: ''
     });
     fetchBids();
   };
@@ -374,6 +377,24 @@ const Auction = () => {
                     <option value="diesel">Diesel</option>
                     <option value="electric">Electric</option>
                     <option value="hybrid">Hybrid</option>
+                  </select>
+                </div>
+
+                {/* Ending In */}
+                <div className="filter-group">
+                  <label>Ending In</label>
+                  <select
+                    className="filter-select"
+                    name="endingIn"
+                    value={filters.endingIn}
+                    onChange={handleFilterChange}
+                  >
+                    <option value="any">Any</option>
+                    <option value="1h">1 hour</option>
+                    <option value="12h">12 hours</option>
+                    <option value="1d">1 day</option>
+                    <option value="3d">3 days</option>
+                    <option value="1w">1 week</option>
                   </select>
                 </div>
 
