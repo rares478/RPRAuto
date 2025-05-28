@@ -15,8 +15,10 @@ const Market = () => {
     color: '',
     doors: '',
     fuel: '',
-    engine: '',
-    power: '',
+    engineMin: '',
+    engineMax: '',
+    powerMin: '',
+    powerMax: '',
     mileage: ''
   });
 
@@ -82,9 +84,20 @@ const Market = () => {
       if (filters.color) queryParams.append('color', filters.color);
       if (filters.doors) queryParams.append('doors', filters.doors);
       if (filters.fuel) queryParams.append('fuel', filters.fuel);
-      if (filters.engine) queryParams.append('engine', filters.engine);
-      if (filters.power) queryParams.append('power', filters.power);
-      if (filters.mileage) queryParams.append('mileage', filters.mileage);
+      if (filters.engineMin !== '' && filters.engineMin !== undefined && filters.engineMin !== null) queryParams.append('engineMin', filters.engineMin);
+      if (filters.engineMax !== '' && filters.engineMax !== undefined && filters.engineMax !== null) queryParams.append('engineMax', filters.engineMax);
+      if (filters.powerMin !== '' && filters.powerMin !== undefined && filters.powerMin !== null) queryParams.append('powerMin', filters.powerMin);
+      if (filters.powerMax !== '' && filters.powerMax !== undefined && filters.powerMax !== null) queryParams.append('powerMax', filters.powerMax);
+      if (filters.mileage) {
+        if (filters.mileage.includes('-')) {
+          const [min, max] = filters.mileage.split('-');
+          queryParams.append('mileageMin', min);
+          queryParams.append('mileageMax', max);
+        } else if (filters.mileage.endsWith('+')) {
+          const min = filters.mileage.replace('+', '');
+          queryParams.append('mileageMin', min);
+        }
+      }
       if (filters.priceMin !== '' && filters.priceMin !== undefined && filters.priceMin !== null) queryParams.append('priceMin', filters.priceMin);
       if (filters.priceMax !== '' && filters.priceMax !== undefined && filters.priceMax !== null) queryParams.append('priceMax', filters.priceMax);
       if (filters.yearFrom !== '' && filters.yearFrom !== undefined && filters.yearFrom !== null) queryParams.append('yearFrom', filters.yearFrom);
@@ -135,8 +148,10 @@ const Market = () => {
       color: '',
       doors: '',
       fuel: '',
-      engine: '',
-      power: '',
+      engineMin: '',
+      engineMax: '',
+      powerMin: '',
+      powerMax: '',
       mileage: ''
     });
     fetchCars();
@@ -348,36 +363,63 @@ const Market = () => {
 
                 {/* Engine Size */}
                 <div className="filter-group">
-                  <label>Engine Size</label>
-                  <input
-                    type="number"
-                    className="filter-input"
-                    name="engine"
-                    value={filters.engine}
-                    onChange={handleFilterChange}
-                    placeholder="Enter engine size"
-                    step="0.1"
-                    min="0"
-                  />
+                  <label>Engine Size (L)</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="number"
+                      className="filter-input"
+                      name="engineMin"
+                      value={filters.engineMin}
+                      onChange={handleFilterChange}
+                      placeholder="Min"
+                      step="0.1"
+                      min="0"
+                      style={{ width: '50%' }}
+                    />
+                    <input
+                      type="number"
+                      className="filter-input"
+                      name="engineMax"
+                      value={filters.engineMax}
+                      onChange={handleFilterChange}
+                      placeholder="Max"
+                      step="0.1"
+                      min="0"
+                      style={{ width: '50%' }}
+                    />
+                  </div>
                 </div>
 
                 {/* Power */}
                 <div className="filter-group">
                   <label>Power (HP)</label>
-                  <input
-                    type="number"
-                    className="filter-input"
-                    name="power"
-                    value={filters.power}
-                    onChange={handleFilterChange}
-                    placeholder="Enter horsepower"
-                    min="0"
-                  />
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="number"
+                      className="filter-input"
+                      name="powerMin"
+                      value={filters.powerMin}
+                      onChange={handleFilterChange}
+                      placeholder="Min"
+                      min="0"
+                      style={{ width: '50%' }}
+                    />
+                    <input
+                      type="number"
+                      className="filter-input"
+                      name="powerMax"
+                      value={filters.powerMax}
+                      onChange={handleFilterChange}
+                      placeholder="Max"
+                      min="0"
+                      style={{ width: '50%' }}
+                    />
+                  </div>
                 </div>
 
                 {/* Mileage */}
                 <div className="filter-group">
-                  <label>Mileage</label>
+                  <label>Mileage (km)</label>
                   <select
                     className="filter-select"
                     name="mileage"
@@ -385,12 +427,12 @@ const Market = () => {
                     onChange={handleFilterChange}
                   >
                     <option value="">Select mileage</option>
-                    <option value="0-10000">0 - 10,000 miles</option>
-                    <option value="10001-25000">10,001 - 25,000 miles</option>
-                    <option value="25001-50000">25,001 - 50,000 miles</option>
-                    <option value="50001-75000">50,001 - 75,000 miles</option>
-                    <option value="75001-100000">75,001 - 100,000 miles</option>
-                    <option value="100001+">100,001+ miles</option>
+                    <option value="0-10000">0 - 10,000 km</option>
+                    <option value="10001-25000">10,001 - 25,000 km</option>
+                    <option value="25001-50000">25,001 - 50,000 km</option>
+                    <option value="50001-75000">50,001 - 75,000 km</option>
+                    <option value="75001-100000">75,001 - 100,000 km</option>
+                    <option value="100001+">100,001+ km</option>
                   </select>
                 </div>
 

@@ -15,8 +15,10 @@ const Auction = () => {
     color: '',
     doors: '',
     fuel: '',
-    engine: '',
-    power: '',
+    engineMin: '',
+    engineMax: '',
+    powerMin: '',
+    powerMax: '',
     mileage: ''
   });
 
@@ -28,10 +30,11 @@ const Auction = () => {
     fetchBids();
   }, []);
 
-  const fetchBids = async (queryParams = new URLSearchParams()) => {
+  const fetchBids = async (queryParams = new URLSearchParams(), isSearch = false) => {
     try {
       setLoading(true);
-      const response = await fetch(`https://rprauto.onrender.com/bid?${queryParams.toString()}`);
+      const endpoint = isSearch ? 'https://rprauto.onrender.com/bid/search' : `https://rprauto.onrender.com/bid?${queryParams.toString()}`;
+      const response = await fetch(isSearch ? `${endpoint}?${queryParams.toString()}` : endpoint);
       const data = await response.json();
       
       const formattedBids = data.Bids.map(bid => ({
@@ -90,18 +93,30 @@ const Auction = () => {
     
     if (filters.make) queryParams.append('make', filters.make.toLowerCase());
     if (filters.model) queryParams.append('model', filters.model.toLowerCase());
-    if (filters.priceMin) queryParams.append('price', filters.priceMin);
-    if (filters.yearFrom) queryParams.append('year', filters.yearFrom);
-    if (filters.gearbox !== 'Any') queryParams.append('gearbox', filters.gearbox);
-    if (filters.bodyType !== 'Any') queryParams.append('body', filters.bodyType);
+    if (filters.priceMin !== '' && filters.priceMin !== undefined && filters.priceMin !== null) queryParams.append('priceMin', filters.priceMin);
+    if (filters.priceMax !== '' && filters.priceMax !== undefined && filters.priceMax !== null) queryParams.append('priceMax', filters.priceMax);
+    if (filters.yearFrom !== '' && filters.yearFrom !== undefined && filters.yearFrom !== null) queryParams.append('yearFrom', filters.yearFrom);
+    if (filters.yearTo !== '' && filters.yearTo !== undefined && filters.yearTo !== null) queryParams.append('yearTo', filters.yearTo);
+    if (filters.gearbox && filters.gearbox !== 'Any') queryParams.append('gearbox', filters.gearbox);
     if (filters.color) queryParams.append('color', filters.color.toLowerCase());
     if (filters.doors) queryParams.append('doors', filters.doors);
-    if (filters.fuel !== 'Any') queryParams.append('fuel', filters.fuel);
-    if (filters.engine) queryParams.append('engine', filters.engine);
-    if (filters.power) queryParams.append('power', filters.power);
-    if (filters.mileage) queryParams.append('mileage', filters.mileage);
-
-    fetchBids(queryParams);
+    if (filters.fuel && filters.fuel !== 'Any') queryParams.append('fuel', filters.fuel);
+    if (filters.engineMin !== '' && filters.engineMin !== undefined && filters.engineMin !== null) queryParams.append('engineMin', filters.engineMin);
+    if (filters.engineMax !== '' && filters.engineMax !== undefined && filters.engineMax !== null) queryParams.append('engineMax', filters.engineMax);
+    if (filters.powerMin !== '' && filters.powerMin !== undefined && filters.powerMin !== null) queryParams.append('powerMin', filters.powerMin);
+    if (filters.powerMax !== '' && filters.powerMax !== undefined && filters.powerMax !== null) queryParams.append('powerMax', filters.powerMax);
+    // Handle mileage range (km)
+    if (filters.mileage) {
+      if (filters.mileage.includes('-')) {
+        const [min, max] = filters.mileage.split('-');
+        queryParams.append('mileageMin', min);
+        queryParams.append('mileageMax', max);
+      } else if (filters.mileage.endsWith('+')) {
+        const min = filters.mileage.replace('+', '');
+        queryParams.append('mileageMin', min);
+      }
+    }
+    fetchBids(queryParams, true);
   };
 
   const clearFilters = () => {
@@ -117,8 +132,10 @@ const Auction = () => {
       color: '',
       doors: '',
       fuel: '',
-      engine: '',
-      power: '',
+      engineMin: '',
+      engineMax: '',
+      powerMin: '',
+      powerMax: '',
       mileage: ''
     });
     fetchBids();
@@ -252,6 +269,81 @@ const Auction = () => {
                       className="filter-input"
                     />
                   </div>
+                </div>
+
+                {/* Engine Size */}
+                <div className="filter-group">
+                  <label>Engine Size (L)</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="number"
+                      className="filter-input"
+                      name="engineMin"
+                      value={filters.engineMin}
+                      onChange={handleFilterChange}
+                      placeholder="Min"
+                      step="0.1"
+                      min="0"
+                      style={{ width: '50%' }}
+                    />
+                    <input
+                      type="number"
+                      className="filter-input"
+                      name="engineMax"
+                      value={filters.engineMax}
+                      onChange={handleFilterChange}
+                      placeholder="Max"
+                      step="0.1"
+                      min="0"
+                      style={{ width: '50%' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Power */}
+                <div className="filter-group">
+                  <label>Power (HP)</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="number"
+                      className="filter-input"
+                      name="powerMin"
+                      value={filters.powerMin}
+                      onChange={handleFilterChange}
+                      placeholder="Min"
+                      min="0"
+                      style={{ width: '50%' }}
+                    />
+                    <input
+                      type="number"
+                      className="filter-input"
+                      name="powerMax"
+                      value={filters.powerMax}
+                      onChange={handleFilterChange}
+                      placeholder="Max"
+                      min="0"
+                      style={{ width: '50%' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Mileage */}
+                <div className="filter-group">
+                  <label>Mileage (km)</label>
+                  <select
+                    className="filter-select"
+                    name="mileage"
+                    value={filters.mileage}
+                    onChange={handleFilterChange}
+                  >
+                    <option value="">Select mileage</option>
+                    <option value="0-10000">0 - 10,000 km</option>
+                    <option value="10001-25000">10,001 - 25,000 km</option>
+                    <option value="25001-50000">25,001 - 50,000 km</option>
+                    <option value="50001-75000">50,001 - 75,000 km</option>
+                    <option value="75001-100000">75,001 - 100,000 km</option>
+                    <option value="100001+">100,001+ km</option>
+                  </select>
                 </div>
 
                 {/* Additional filters */}

@@ -87,7 +87,7 @@ const ListingCard = ({ car }) => {
                                     key={index}
                                     className={`slide-modern${currentSlide === index ? ' active' : ''}`}
                                     style={{ backgroundImage: `url(${imageUrl})` }}
-                                    onClick={e => handleImageClick(imageUrl, index, e)}
+                                    onClick={!isFlipped ? (e => handleImageClick(imageUrl, index, e)) : undefined}
                                 />
                             );
                         })}

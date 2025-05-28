@@ -226,13 +226,19 @@ public class ListingController : ControllerBase
         [FromQuery] int? doors = null,
         [FromQuery] string? fuel = null,
         [FromQuery] float? engine = null,
+        [FromQuery] float? engineMin = null,
+        [FromQuery] float? engineMax = null,
         [FromQuery] int? power = null,
-        [FromQuery] int? mileage = null)
+        [FromQuery] int? powerMin = null,
+        [FromQuery] int? powerMax = null,
+        [FromQuery] int? mileage = null,
+        [FromQuery] int? mileageMin = null,
+        [FromQuery] int? mileageMax = null)
     {
         try
         {
-            _logger.LogInformation("Starting search with parameters: make={Make}, model={Model}, price={Price}, priceMin={PriceMin}, priceMax={PriceMax}, year={Year}, yearFrom={YearFrom}, yearTo={YearTo}", 
-                make, model, price, priceMin, priceMax, year, yearFrom, yearTo);
+            _logger.LogInformation("Starting search with parameters: make={Make}, model={Model}, price={Price}, priceMin={PriceMin}, priceMax={PriceMax}, year={Year}, yearFrom={YearFrom}, yearTo={YearTo}, mileage={Mileage}, mileageMin={MileageMin}, mileageMax={MileageMax}", 
+                make, model, price, priceMin, priceMax, year, yearFrom, yearTo, mileage, mileageMin, mileageMax);
 
             // Build the filter using BsonDocument
             var filter = new BsonDocument
@@ -308,20 +314,41 @@ public class ListingController : ControllerBase
                 filter.Add("car.fuelType", fuel);
             }
 
-            // Add engine size filter if provided
-            if (engine.HasValue)
+            // Add engine size range filter if provided
+            if (engineMin.HasValue || engineMax.HasValue)
+            {
+                var engineRange = new BsonDocument();
+                if (engineMin.HasValue) engineRange.Add("$gte", engineMin.Value);
+                if (engineMax.HasValue) engineRange.Add("$lte", engineMax.Value);
+                filter.Add("car.engineSize", engineRange);
+            }
+            else if (engine.HasValue)
             {
                 filter.Add("car.engineSize", engine.Value);
             }
 
-            // Add power filter if provided
-            if (power.HasValue)
+            // Add power range filter if provided
+            if (powerMin.HasValue || powerMax.HasValue)
+            {
+                var powerRange = new BsonDocument();
+                if (powerMin.HasValue) powerRange.Add("$gte", powerMin.Value);
+                if (powerMax.HasValue) powerRange.Add("$lte", powerMax.Value);
+                filter.Add("car.horsePower", powerRange);
+            }
+            else if (power.HasValue)
             {
                 filter.Add("car.horsePower", power.Value);
             }
 
-            // Add mileage filter if provided
-            if (mileage.HasValue)
+            // Add mileage range filter if provided
+            if (mileageMin.HasValue || mileageMax.HasValue)
+            {
+                var mileageRange = new BsonDocument();
+                if (mileageMin.HasValue) mileageRange.Add("$gte", mileageMin.Value);
+                if (mileageMax.HasValue) mileageRange.Add("$lte", mileageMax.Value);
+                filter.Add("car.mileage", mileageRange);
+            }
+            else if (mileage.HasValue)
             {
                 filter.Add("car.mileage", mileage.Value);
             }
