@@ -38,7 +38,8 @@ const Auction = () => {
       const response = await fetch(isSearch ? `${endpoint}?${queryParams.toString()}` : endpoint);
       const data = await response.json();
       
-      const formattedBids = data.Bids.map(bid => ({
+      const bidsArray = Array.isArray(data) ? data : (data.Bids || []);
+      const formattedBids = bidsArray.map(bid => ({
         id: bid.Id,
         title: bid.Title || `${bid.Car.Make} ${bid.Car.Model}`,
         year: bid.Car.Year,
