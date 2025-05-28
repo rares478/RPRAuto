@@ -9,7 +9,7 @@ import './styles/navbar.css';
 const Navbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { isAuthenticated, logout, userData } = useAuth();
+    const { isAuthenticated, logout, userData, isOwner } = useAuth();
     const { siteSettings } = useSiteSettings();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isOwnerPanelOpen, setIsOwnerPanelOpen] = useState(false);
@@ -32,9 +32,6 @@ const Navbar = () => {
         navigate('/');
         setIsDropdownOpen(false);
     };
-
-    const isAdmin = userData?.role === 'Admin';
-    const isCompany = userData?.role === 'Company';
 
     return (
         <>
@@ -75,16 +72,7 @@ const Navbar = () => {
                                             >
                                                 Settings
                                             </Link>
-                                            {isCompany && (
-                                                <Link 
-                                                    to="/account?section=sell" 
-                                                    className="dropdown-item"
-                                                    onClick={() => setIsDropdownOpen(false)}
-                                                >
-                                                    Sell Your Car
-                                                </Link>
-                                            )}
-                                            {isAdmin && (
+                                            {isOwner && (
                                                 <button 
                                                     className="dropdown-item"
                                                     onClick={() => {

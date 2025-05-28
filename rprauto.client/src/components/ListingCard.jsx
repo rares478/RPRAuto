@@ -9,15 +9,13 @@ const ListingCard = ({ car }) => {
     const [sellerInfo, setSellerInfo] = useState(null);
     const [popupOpen, setPopupOpen] = useState(false);
     const [popupSlide, setPopupSlide] = useState(0);
+    const [sellerInfoOpen, setSellerInfoOpen] = useState(false);
 
     useEffect(() => {
-        const sellerId = car.sellerId || car.userId || car.UserId || car.ownerId;
-        if (sellerId) {
-            fetch(`https://rprauto.onrender.com/user/${sellerId}/public`)
-                .then(res => res.json())
-                .then(data => setSellerInfo(data))
-                .catch(() => setSellerInfo(null));
-        }
+        fetch(`https://rprauto.onrender.com/user/${car.sellerId}/public`)
+            .then(res => res.json())
+            .then(data => setSellerInfo(data))
+            .catch(() => setSellerInfo(null));
     }, [car]);
 
     const changeSlide = (direction, e) => {
@@ -142,31 +140,37 @@ const ListingCard = ({ car }) => {
                         <div className="spec-item"><i className="fas fa-horse-head"></i><span>{car.power || car.horsePower} HP</span></div>
                     </div>
                     <div className="car-description-modern">{car.description}</div>
-                    {sellerInfo && (
-                        <div className="seller-info-modern">
-                            <h4>Seller Info</h4>
-                            <div><b>Name:</b> {sellerInfo.displayName}</div>
-                            <div><b>Phone:</b> {sellerInfo.phoneNumber}</div>
-                            <div><b>City:</b> {sellerInfo.city}</div>
-                            <div><b>Rating:</b> {sellerInfo.rating?.toFixed(1) ?? 0} ⭐</div>
-                        </div>
-                    )}
                     <div className="card-back-actions">
                         <button
-                            className={`call-button-modern${showPhone ? ' show-phone' : ''}`}
-                            onClick={showPhoneNumber}
+                            className="seller-info-button-modern"
+                            onClick={e => { e.stopPropagation(); setSellerInfoOpen(true); }}
                         >
-                            {showPhone ? (
-                                <span className="phone-number-modern">{sellerInfo?.phoneNumber || car.phone}</span>
-                            ) : (
-                                <span className="call-text-modern">Call Now</span>
-                            )}
+                            Seller Info
                         </button>
                         <div className="flip-indicator-modern" onClick={flipCard}>⟵ Back</div>
                     </div>
                 </div>
             </div>
             {popupOverlay}
+            {sellerInfoOpen && ReactDOM.createPortal(
+                <div className="seller-info-popup-overlay" onClick={() => setSellerInfoOpen(false)}>
+                    <div className="seller-info-popup-modal" onClick={e => e.stopPropagation()}>
+                        <button className="seller-info-popup-close" onClick={() => setSellerInfoOpen(false)}>&times;</button>
+                        <h3>Seller Info</h3>
+                        {sellerInfo ? (
+                            <div className="seller-info-modern">
+                                <div><b>Name:</b> {sellerInfo.displayName || sellerInfo.DisplayName}</div>
+                                <div><b>Phone:</b> {sellerInfo.PhoneNumber || car.phone}</div>
+                                <div><b>City:</b> {sellerInfo.city || sellerInfo.City}</div>
+                                <div><b>Rating:</b> {sellerInfo.rating?.toFixed(1) ?? 0} ⭐</div>
+                            </div>
+                        ) : (
+                            <div className="seller-info-modern">Seller info not available.</div>
+                        )}
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 };

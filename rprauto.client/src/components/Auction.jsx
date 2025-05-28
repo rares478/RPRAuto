@@ -183,7 +183,7 @@ const Auction = () => {
     if (filters.make) queryParams.append('make', filters.make.toLowerCase());
     if (filters.model) queryParams.append('model', filters.model.toLowerCase());
     if (filters.priceMin !== '' && filters.priceMin !== undefined && filters.priceMin !== null) queryParams.append('priceMin', filters.priceMin);
-    if (filters.priceMax !== '' && filters.priceMax !== undefined && filters.priceMax !== null) queryParams.append('priceMax', filters.priceMax);
+    if (filters.priceMax !== '' && filters.priceMax !== undefined && filters.priceMax !== null && filters.priceMax < 200000) queryParams.append('priceMax', filters.priceMax);
     if (filters.yearFrom !== '' && filters.yearFrom !== undefined && filters.yearFrom !== null) queryParams.append('yearFrom', filters.yearFrom);
     if (filters.yearTo !== '' && filters.yearTo !== undefined && filters.yearTo !== null) queryParams.append('yearTo', filters.yearTo);
     if (filters.gearbox && filters.gearbox !== 'Any') queryParams.append('gearbox', filters.gearbox);
@@ -284,12 +284,12 @@ const Auction = () => {
 
                 {/* Price Range */}
                 <div className="filter-group">
-                  <label>Price Range: ${filters.priceMin.toLocaleString()} - ${filters.priceMax.toLocaleString()}</label>
+                  <label>Price Range: ${filters.priceMin.toLocaleString()} - ${filters.priceMax === 200000 ? '200,000+' : filters.priceMax.toLocaleString()}</label>
                   <div className="price-range">
                     <Range
                       step={1000}
                       min={0}
-                      max={500000}
+                      max={200000}
                       values={[filters.priceMin, filters.priceMax]}
                       onChange={([min, max]) => setFilters(prev => ({ ...prev, priceMin: min, priceMax: max }))}
                       renderTrack={({ props, children }) => {
@@ -301,7 +301,7 @@ const Auction = () => {
                               ...props.style,
                               height: '5px',
                               width: '100%',
-                              background: `linear-gradient(to right, #374151 ${((filters.priceMin)/500000)*100}%, #695FD6 ${((filters.priceMin)/500000)*100}%, #695FD6 ${((filters.priceMax)/500000)*100}%, #374151 ${((filters.priceMax)/500000)*100}%)`,
+                              background: `linear-gradient(to right, #374151 ${((filters.priceMin)/200000)*100}%, #695FD6 ${((filters.priceMin)/200000)*100}%, #695FD6 ${((filters.priceMax)/200000)*100}%, #374151 ${((filters.priceMax)/200000)*100}%)`,
                               borderRadius: '3px',
                               position: 'absolute',
                               top: '50%',
@@ -352,7 +352,7 @@ const Auction = () => {
                               transform: 'translateX(-50%)',
                               whiteSpace: 'nowrap',
                             }}>
-                              ${[filters.priceMin, filters.priceMax][index].toLocaleString()}
+                              ${[filters.priceMin, filters.priceMax][index] === 200000 ? '200,000+' : [filters.priceMin, filters.priceMax][index].toLocaleString()}
                             </span>
                           </div>
                         );
@@ -587,7 +587,7 @@ const Auction = () => {
             {bids.map(bid => (
               <AuctionCard
                 key={bid.id}
-                auction={bid}
+                auction={{ ...bid, title: `${bid.make} ${bid.model} ${bid.year}` }}
               />
             ))}
           </div>

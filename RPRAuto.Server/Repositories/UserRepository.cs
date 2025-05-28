@@ -76,4 +76,13 @@ public class UserRepository : MongoRepository<User>, IUserRepository
         var user = await GetByIdAsync(userId);
         return user?.PublicData;
     }
+
+    public async Task<bool> UpdatePasswordAsync(ObjectId userId, string newHashedPassword)
+    {
+        var update = Builders<User>.Update
+            .Set(u => u.PrivateData.Login.Password, newHashedPassword)
+            .Set(u => u.UpdatedAt, DateTime.UtcNow);
+        var result = await _collection.UpdateOneAsync(u => u.Id == userId, update);
+        return result.ModifiedCount > 0;
+    }
 } 

@@ -206,6 +206,43 @@ public class AuthController : ControllerBase
         }
     }
 
+    [HttpPut("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.CurrentPassword) || string.IsNullOrWhiteSpace(request.NewPassword))
+                return BadRequest(new { message = "Current and new password are required" });
+
+            // Get user ID from JWT
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(JwtRegisteredClaimNames.Sub);
+            if (userIdClaim == null)
+                return Unauthorized(new { message = "Invalid token" });
+
+            var userId = MongoDB.Bson.ObjectId.Parse(userIdClaim.Value);
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
+            // Verify current password
+            if (!user.VerifyPassword(request.CurrentPassword))
+                return BadRequest(new { message = "Current password is incorrect" });
+
+            // Hash new password
+            var newHashedPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            var updated = await _userRepository.UpdatePasswordAsync(userId, newHashedPassword);
+            if (!updated)
+                return StatusCode(500, new { message = "Failed to update password" });
+
+            return Ok(new { message = "Password updated successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error changing password");
+            return StatusCode(500, new { message = "An error occurred while changing password" });
+        }
+    }
+
     private string GenerateJwtToken(User user)
     {
         var rsa = EnvLoader.GetRsaPrivateKey();

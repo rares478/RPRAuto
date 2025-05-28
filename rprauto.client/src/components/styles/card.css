@@ -146,13 +146,17 @@ body {
     background: rgba(105, 95, 214, 0.08);
     border-radius: 6px;
     padding: 10px 12px;
-    margin-bottom: 14px;
+    margin-bottom: 18px;
     font-size: 0.98rem;
     color: #e0e0e0;
     word-break: break-word;
     line-height: 1.5;
     box-shadow: 0 2px 8px rgba(105,95,214,0.04);
-    border: 1px solid rgba(105, 95, 214, 0.10);
+    border: 1.5px solid #23233a;
+    border-top: 2.5px solid #695FD6;
+    border-bottom: 2.5px solid #695FD6;
+    position: relative;
+    z-index: 2;
 }
 .seller-info-modern h4 {
     margin: 0 0 6px 0;
@@ -178,6 +182,7 @@ body {
     bottom: 18px;
     padding: 0 20px;
     background: transparent;
+    z-index: 1;
 }
 .call-button-modern, .flip-indicator-modern {
     margin-top: 0;
@@ -279,6 +284,11 @@ body {
     .card-back-actions {
         padding: 0 8px;
         bottom: 8px;
+    }
+    .seller-info-modern {
+        padding: 8px 6px;
+        font-size: 0.95rem;
+        margin-bottom: 10px;
     }
 }
 
@@ -500,4 +510,72 @@ body {
     .image-popup-arrow.left { left: 0; }
     .image-popup-arrow.right { right: 0; }
     .image-popup-arrow { width: 44px; height: 44px; font-size: 1.5rem; }
+}
+
+.seller-info-button-modern {
+    background: linear-gradient(90deg, #695FD6 60%, #A8A1F8 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 28px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(105,95,214,0.15);
+    transition: background 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: auto;
+}
+.seller-info-button-modern:hover {
+    background: linear-gradient(90deg, #A8A1F8 0%, #695FD6 100%);
+    transform: scale(1.04);
+}
+.seller-info-popup-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(24, 24, 40, 0.85);
+    z-index: 2147483647;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s;
+    pointer-events: auto;
+    backdrop-filter: blur(8px);
+}
+.seller-info-popup-modal {
+    background: #181828;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    padding: 32px 32px 24px 32px;
+    min-width: 320px;
+    max-width: 90vw;
+    min-height: 180px;
+    color: #fff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.seller-info-popup-close {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2rem;
+    cursor: pointer;
+    z-index: 2;
+    transition: color 0.2s;
+}
+.seller-info-popup-close:hover {
+    color: #FFD700;
+}
+@media (max-width: 600px) {
+    .seller-info-popup-modal {
+        padding: 18px 8px 12px 8px;
+        min-width: 0;
+    }
 }

@@ -14,4 +14,5 @@ public interface IUserRepository : IRepository<User>
     Task<Review?> GetUserReviewAsync(ObjectId userId);
     Task AddUserReviewAsync(ObjectId userId, Review review);
     Task<bool> VerifyPasswordAsync(string email, string password);
+    Task<bool> UpdatePasswordAsync(ObjectId userId, string newHashedPassword);
 } 

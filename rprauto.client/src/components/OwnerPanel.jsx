@@ -31,7 +31,6 @@ const OwnerPanel = ({ isOpen, onClose }) => {
             }
             
             const data = await response.json();
-            console.log('Loaded settings:', data); // Debug log
             
             setSettings({
                 siteTitle: data.SiteTitle || '',
@@ -58,8 +57,6 @@ const OwnerPanel = ({ isOpen, onClose }) => {
                 return;
             }
 
-            // Debug token
-            console.log('Token:', token);
             try {
                 const tokenParts = token.split('.');
                 if (tokenParts.length === 3) {
@@ -86,9 +83,6 @@ const OwnerPanel = ({ isOpen, onClose }) => {
                     HeroSubtitle: settings.heroSubtitle
                 })
             });
-
-            console.log('Response status:', response.status);
-            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
             if (!response.ok) {
                 let errorMessage = 'Failed to update customization';
@@ -123,8 +117,6 @@ const OwnerPanel = ({ isOpen, onClose }) => {
                 return;
             }
 
-            console.log('Token:', token); // Debug log
-
             const response = await fetch('https://rprauto.onrender.com/api/sitesettings/statistics', {
                 method: 'PUT',
                 headers: {
@@ -147,7 +139,6 @@ const OwnerPanel = ({ isOpen, onClose }) => {
             }
 
             const data = await response.json();
-            console.log('Response data:', data); // Debug log
 
             setSettings(prev => ({
                 ...prev,

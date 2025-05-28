@@ -107,15 +107,6 @@ public class UserController : ControllerBase
         // Update company data
         user.CompanyCUI = request.CompanyCUI;
 
-        // Update password if provided
-        if (!string.IsNullOrEmpty(request.CurrentPassword) && !string.IsNullOrEmpty(request.NewPassword))
-        {
-            if (!user.VerifyPassword(request.CurrentPassword))
-                throw new ValidationException("Current password is incorrect");
-
-            user.PrivateData.Login.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-        }
-
         user.UpdatedAt = DateTime.UtcNow;
         await _userRepository.UpdateAsync(objectId, user);
         return Ok(new { message = "User updated successfully" });

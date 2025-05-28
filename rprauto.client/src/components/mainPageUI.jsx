@@ -4,6 +4,7 @@ import "./styles/mainPage.css";
 import ListingCard from './ListingCard';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useNavigate } from 'react-router-dom';
+import { makes, getModelsForMake } from './data/carOptions';
 
 function MainPage() {
      const [cars, setCars] = useState([]);
@@ -91,33 +92,6 @@ function MainPage() {
           navigate(`/market?${params.toString()}`);
      };
 
-     // Dropdown options
-     const makes = [
-          { value: '', label: 'Select Make' },
-          { value: 'BMW', label: 'BMW' },
-          { value: 'Porsche', label: 'Porsche' },
-          { value: 'Tesla', label: 'Tesla' },
-          { value: 'Lamborghini', label: 'Lamborghini' },
-          { value: 'Mercedes-Benz', label: 'Mercedes-Benz' },
-          { value: 'Audi', label: 'Audi' },
-          { value: 'Ford', label: 'Ford' },
-          { value: 'Chevrolet', label: 'Chevrolet' },
-          { value: 'Toyota', label: 'Toyota' },
-          { value: 'Honda', label: 'Honda' }
-     ];
-     const models = {
-          'BMW': [ { value: '', label: 'Select Model' }, { value: 'M4', label: 'M4' }, { value: 'F30', label: 'F30' }, { value: 'X5', label: 'X5' } ],
-          'Porsche': [ { value: '', label: 'Select Model' }, { value: '911', label: '911' }, { value: 'Cayenne', label: 'Cayenne' }, { value: 'Panamera', label: 'Panamera' } ],
-          'Tesla': [ { value: '', label: 'Select Model' }, { value: 'Model S', label: 'Model S' }, { value: 'Model 3', label: 'Model 3' }, { value: 'Model X', label: 'Model X' } ],
-          'Lamborghini': [ { value: '', label: 'Select Model' }, { value: 'Huracán', label: 'Huracán' }, { value: 'Aventador', label: 'Aventador' } ],
-          'Mercedes-Benz': [ { value: '', label: 'Select Model' }, { value: 'AMG GT', label: 'AMG GT' }, { value: 'C-Class', label: 'C-Class' }, { value: 'E-Class', label: 'E-Class' } ],
-          'Audi': [ { value: '', label: 'Select Model' }, { value: 'A4', label: 'A4' }, { value: 'A6', label: 'A6' }, { value: 'Q7', label: 'Q7' } ],
-          'Ford': [ { value: '', label: 'Select Model' }, { value: 'Mustang', label: 'Mustang' }, { value: 'F-150', label: 'F-150' } ],
-          'Chevrolet': [ { value: '', label: 'Select Model' }, { value: 'Camaro', label: 'Camaro' }, { value: 'Corvette', label: 'Corvette' } ],
-          'Toyota': [ { value: '', label: 'Select Model' }, { value: 'Corolla', label: 'Corolla' }, { value: 'Camry', label: 'Camry' } ],
-          'Honda': [ { value: '', label: 'Select Model' }, { value: 'Civic', label: 'Civic' }, { value: 'Accord', label: 'Accord' } ],
-          '': [ { value: '', label: 'Select Model' } ]
-     };
      const years = Array.from({length: 15}, (_, i) => {
           const y = (2010 + i).toString();
           return { value: y, label: y };
@@ -135,7 +109,7 @@ function MainPage() {
                                    <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px', width: '100%' }}>
                                         <div style={{ flex: 1 }}>
                                              <Select
-                                                  options={makes}
+                                                  options={makes.filter(m => m).map(make => ({ value: make, label: make }))}
                                                   value={selectedMake}
                                                   onChange={option => {
                                                        setSelectedMake(option);
@@ -152,7 +126,7 @@ function MainPage() {
                                         </div>
                                         <div style={{ flex: 1 }}>
                                              <Select
-                                                  options={models[selectedMake?.value || '']}
+                                                  options={selectedMake ? getModelsForMake(selectedMake.value).map(model => ({ value: model, label: model })) : []}
                                                   value={selectedModel}
                                                   onChange={option => setSelectedModel(option)}
                                                   placeholder="Select Model"
@@ -240,7 +214,7 @@ function MainPage() {
                          </div>
 
                          <div className="section-footer">
-                              <button className="btn btn-outline">View All Vehicles</button>
+                              <button className="btn btn-outline" onClick={() => navigate('/market')}>View All Vehicles</button>
                          </div>
                     </div>
                </section>

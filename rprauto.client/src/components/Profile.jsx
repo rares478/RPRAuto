@@ -43,6 +43,12 @@ function Profile() {
         description: ''
     });
     const [showEditModal, setShowEditModal] = useState(false);
+    const [passwordForm, setPasswordForm] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+    const [passwordLoading, setPasswordLoading] = useState(false);
 
     // Add darkInputStyle for inputs, matching Auction and SellForm
     const darkInputStyle = {
@@ -72,7 +78,6 @@ function Profile() {
     const loadUserData = async () => {
         try {
             const token = Cookies.get('authToken');
-            console.log('Token from cookie:', token); // Debug log
 
             if (!token) {
                 showNotification('Please log in to view your profile', 'error');
@@ -80,9 +85,7 @@ function Profile() {
             }
 
             const decodedToken = jwtDecode(token);
-            console.log('Decoded token:', decodedToken); // Debug log
             const userId = decodedToken.sub;
-            console.log('User ID from token:', userId); // Debug log
 
             // Fetch user's full details
             const userResponse = await fetch(`https://rprauto.onrender.com/user/${userId}`, {
@@ -100,7 +103,6 @@ function Profile() {
             }
 
             const userData = await userResponse.json();
-            console.log('User data:', userData); // Debug log
 
             // Fetch user's listings
             const listingsResponse = await fetch(`https://rprauto.onrender.com/user/${userId}/listings`, {
@@ -116,7 +118,6 @@ function Profile() {
             }
 
             const listingsData = await listingsResponse.json();
-            console.log('Listings data:', listingsData); // Debug log
 
             // Fetch detailed data for each listing
             const detailedListings = await Promise.all(
@@ -138,7 +139,6 @@ function Profile() {
                 })
             );
 
-            console.log('Detailed listings:', detailedListings); // Debug log
             setListings(detailedListings);
 
             // Fetch user's bids
@@ -155,7 +155,6 @@ function Profile() {
             }
 
             const bidsData = await bidsResponse.json();
-            console.log('Bids data:', bidsData); // Debug log
 
             // Fetch detailed data for each bid
             const detailedBids = await Promise.all(
@@ -177,7 +176,6 @@ function Profile() {
                 })
             );
 
-            console.log('Detailed bids:', detailedBids); // Debug log
             setBids(detailedBids);
             
             // Update form data with fetched user data
@@ -430,6 +428,81 @@ function Profile() {
                 }
             }, 300);
         }, 3000);
+    };
+
+    const handleDeleteBid = async (bidId) => {
+        try {
+            const token = Cookies.get('authToken');
+            if (!token) {
+                showNotification('Please log in to delete bids', 'error');
+                return;
+            }
+            const response = await fetch(`https://rprauto.onrender.com/bid/${bidId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token.trim()}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to delete bid');
+            }
+            setBids(prevBids => prevBids.filter(bid => bid.Id !== bidId));
+            showNotification('Bid deleted successfully');
+        } catch (error) {
+            console.error('Error deleting bid:', error);
+            showNotification(error.message || 'Failed to delete bid', 'error');
+        }
+    };
+
+    const handlePasswordFormChange = (e) => {
+        const { name, value } = e.target;
+        setPasswordForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handlePasswordChange = async (e) => {
+        e.preventDefault();
+        if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+            showNotification('Please fill in all password fields', 'error');
+            return;
+        }
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            showNotification('New passwords do not match', 'error');
+            return;
+        }
+        try {
+            setPasswordLoading(true);
+            const token = Cookies.get('authToken');
+            if (!token) {
+                showNotification('Please log in to change your password', 'error');
+                setPasswordLoading(false);
+                return;
+            }
+            // Use new API endpoint
+            const response = await fetch('https://rprauto.onrender.com/auth/change-password', {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    currentPassword: passwordForm.currentPassword,
+                    newPassword: passwordForm.newPassword
+                })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to change password');
+            }
+            showNotification('Password updated successfully!');
+            setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        } catch (error) {
+            showNotification(error.message || 'Failed to change password', 'error');
+        } finally {
+            setPasswordLoading(false);
+        }
     };
 
     return (
@@ -781,23 +854,44 @@ function Profile() {
 
                                 <div className="sell-form">
                                     <h3><i className="fas fa-lock"></i> Security</h3>
-                                    
-                                    <div className="form-group">
-                                        <label>Current Password</label>
-                                        <input type="password" className="form-input" />
-                                    </div>
-                                    
-                                    <div className="form-group">
-                                        <label>New Password</label>
-                                        <input type="password" className="form-input" />
-                                    </div>
-                                    
-                                    <div className="form-group">
-                                        <label>Confirm New Password</label>
-                                        <input type="password" className="form-input" />
-                                    </div>
-                                    
-                                    <button className="btn btn-primary">Update Password</button>
+                                    <form onSubmit={handlePasswordChange}>
+                                        <div className="form-group">
+                                            <label>Current Password</label>
+                                            <input
+                                                type="password"
+                                                className="form-input"
+                                                name="currentPassword"
+                                                value={passwordForm.currentPassword}
+                                                onChange={handlePasswordFormChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>New Password</label>
+                                            <input
+                                                type="password"
+                                                className="form-input"
+                                                name="newPassword"
+                                                value={passwordForm.newPassword}
+                                                onChange={handlePasswordFormChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Confirm New Password</label>
+                                            <input
+                                                type="password"
+                                                className="form-input"
+                                                name="confirmPassword"
+                                                value={passwordForm.confirmPassword}
+                                                onChange={handlePasswordFormChange}
+                                                required
+                                            />
+                                        </div>
+                                        <button className="btn btn-primary" type="submit" disabled={passwordLoading}>
+                                            {passwordLoading ? 'Updating...' : 'Update Password'}
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -818,7 +912,7 @@ function Profile() {
                             {bids.length === 0 ? (
                                 <div className="empty-state">
                                     <i className="fas fa-gavel"></i>
-                                    <p>You haven't placed any bids yet.</p>
+                                    <p>You haven't created any bids yet.</p>
                                     <button 
                                         className="btn btn-primary"
                                         onClick={() => window.location.href = '/search'}
@@ -847,20 +941,14 @@ function Profile() {
                                                     <span><i className="fas fa-gas-pump"></i> {bid.Car.FuelType || 'N/A'}</span>
                                                     <span><i className="fas fa-cog"></i> {bid.Car.GearboxType || 'N/A'}</span>
                                                 </div>
-                                                <div className="bid-info">
-                                                    <span>Your Bid: ${(bid.Bids[userId] || 0).toLocaleString()}</span>
-                                                    <span>Min Bid: ${(bid.MinBid || 0).toLocaleString()}</span>
-                                                    {bid.InstantBuy > 0 && (
-                                                        <span>Buy Now: ${(bid.InstantBuy || 0).toLocaleString()}</span>
-                                                    )}
-                                                </div>
                                             </div>
                                             <div className="listing-actions">
-                                                <button className="btn btn-outline">
-                                                    <i className="fas fa-gavel"></i> Place New Bid
-                                                </button>
-                                                <button className="btn btn-outline">
-                                                    <i className="fas fa-times"></i> Cancel Bid
+                                                <button className="btn btn-outline" onClick={() => {
+                                                    if (window.confirm('Are you sure you want to delete this bid?')) {
+                                                        handleDeleteBid(bid.Id);
+                                                    }
+                                                }}>
+                                                    <i className="fas fa-trash"></i> Delete Bid
                                                 </button>
                                             </div>
                                         </div>

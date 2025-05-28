@@ -560,3 +560,40 @@ body {
 .instant-buy-button:active {
   transform: translateY(0);
 }
+
+/* Fullscreen Icon for Auction Card */
+.fullscreen-icon {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.card-front:hover .fullscreen-icon {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fullscreen-btn {
+  width: 40px;
+  height: 40px;
+  background: rgba(24,24,40,0.7);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  box-shadow: 0 2px 8px rgba(105,95,214,0.10);
+}
+
+.fullscreen-btn:hover {
+  background: #695FD6;
+  color: #fff;
+}

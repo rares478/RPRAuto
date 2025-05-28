@@ -534,3 +534,120 @@ textarea.form-input:focus {
 .stats-grid {
     margin-bottom: 32px;
 }
+
+/* Modal Styles for Edit Listing */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(24, 24, 40, 0.85);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #23233a;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.25);
+  padding: 32px 32px 24px 32px;
+  max-width: 520px;
+  width: 100%;
+  color: #fff;
+  position: relative;
+  animation: modalIn 0.2s cubic-bezier(.4,2,.6,1);
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(40px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.modal-header h2 {
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.modal-close:hover {
+  background: rgba(105,95,214,0.12);
+}
+
+.modal-body {
+  margin-bottom: 18px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.edit-form {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.edit-form .form-group label {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.edit-form .form-input,
+.edit-form textarea.form-input {
+  background: #181828;
+  border: 1.5px solid #23233a;
+  color: #fff;
+  font-size: 0.95rem;
+  padding: 6px 10px;
+  border-radius: 8px;
+  min-height: 40px;
+  margin-bottom: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.edit-form .form-input:focus,
+.edit-form textarea.form-input:focus {
+  border-color: #695FD6;
+}
+
+.bid-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+
+.bid-info span {
+  color: #bdbdf7;
+  font-size: 14px;
+  line-height: 1.5;
+}

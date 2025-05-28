@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
                 setUserData({
                     id: decodedToken.sub,
                     email: decodedToken.name,
-                    role: decodedToken.role
+                    role: decodedToken.role || decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
                 });
             } catch (error) {
                 console.error('Token validation error:', error);
@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }) => {
         isLoading,
         isAuthenticated: !!token,
         isAdmin: userData?.role === 'Admin',
-        isCompany: userData?.role === 'Company',
+        isOwner: userData?.role === 'Owner' || userData?.role === 2 || userData?.role === '2' || userData?.role === 'Admin',
         login,
         logout
     };

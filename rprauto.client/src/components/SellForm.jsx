@@ -136,8 +136,6 @@ const SellForm = () => {
                     endAt: new Date().toISOString()
                 };
 
-                console.log('Sending listing data:', JSON.stringify(listingData, null, 2)); // Debug log with pretty print
-
                 const listingResponse = await fetch('https://rprauto.onrender.com/listing', {
                     method: 'POST',
                     headers: {

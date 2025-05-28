@@ -85,6 +85,7 @@ const Market = () => {
       
       const formattedCars = data.Listings.map(listing => ({
         id: listing.Id,
+        sellerId: listing.UserId,
         title: `${listing.Car.Make} ${listing.Car.Model}`,
         year: listing.Car.Year,
         make: listing.Car.Make,
@@ -146,7 +147,7 @@ const Market = () => {
         }
       }
       if (filters.priceMin !== '' && filters.priceMin !== undefined && filters.priceMin !== null) queryParams.append('priceMin', filters.priceMin);
-      if (filters.priceMax !== '' && filters.priceMax !== undefined && filters.priceMax !== null) queryParams.append('priceMax', filters.priceMax);
+      if (filters.priceMax !== '' && filters.priceMax !== undefined && filters.priceMax !== null && filters.priceMax < 200000) queryParams.append('priceMax', filters.priceMax);
       if (filters.yearFrom !== '' && filters.yearFrom !== undefined && filters.yearFrom !== null) queryParams.append('yearFrom', filters.yearFrom);
       if (filters.yearTo !== '' && filters.yearTo !== undefined && filters.yearTo !== null) queryParams.append('yearTo', filters.yearTo);
       
@@ -155,6 +156,7 @@ const Market = () => {
       
       const formattedCars = data.map(listing => ({
         id: listing._id,
+        sellerId: listing.UserId,
         title: `${listing.Car.Make} ${listing.Car.Model}`,
         year: listing.Car.Year,
         make: listing.Car.Make,
@@ -254,12 +256,12 @@ const Market = () => {
 
                 {/* Price Range */}
                 <div className="filter-group">
-                  <label>Price Range: ${filters.priceMin.toLocaleString()} - ${filters.priceMax.toLocaleString()}</label>
+                  <label>Price Range: ${filters.priceMin.toLocaleString()} - ${filters.priceMax === 200000 ? '200,000+' : filters.priceMax.toLocaleString()}</label>
                   <div className="price-range" style={{ position: 'relative', height: '40px', background: 'transparent', border: 'none', padding: '32px 0 16px 0' }}>
                     <Range
                       step={1000}
                       min={0}
-                      max={500000}
+                      max={200000}
                       values={[filters.priceMin, filters.priceMax]}
                       onChange={([min, max]) => setFilters(prev => ({ ...prev, priceMin: min, priceMax: max }))}
                       renderTrack={({ props, children }) => {
@@ -272,7 +274,7 @@ const Market = () => {
                               ...rest.style,
                               height: '5px',
                               width: '100%',
-                              background: `linear-gradient(to right, #374151 ${((filters.priceMin)/500000)*100}%, #695FD6 ${((filters.priceMin)/500000)*100}%, #695FD6 ${((filters.priceMax)/500000)*100}%, #374151 ${((filters.priceMax)/500000)*100}%)`,
+                              background: `linear-gradient(to right, #374151 ${((filters.priceMin)/200000)*100}%, #695FD6 ${((filters.priceMin)/200000)*100}%, #695FD6 ${((filters.priceMax)/200000)*100}%, #374151 ${((filters.priceMax)/200000)*100}%)`,
                               borderRadius: '3px',
                               position: 'absolute',
                               top: '50%',
@@ -319,7 +321,7 @@ const Market = () => {
                               transform: 'translateX(-50%)',
                               whiteSpace: 'nowrap',
                             }}>
-                              ${[filters.priceMin, filters.priceMax][index].toLocaleString()}
+                              ${[filters.priceMin, filters.priceMax][index] === 200000 ? '200,000+' : [filters.priceMin, filters.priceMax][index].toLocaleString()}
                             </span>
                           </div>
                         );
