@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
             }
 
             try {
-                const response = await fetch('https://rprauto.onrender.com/auth/validate', {
+                const response = await fetch('https://rprauto-ajdq.onrender.com/auth/validate', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

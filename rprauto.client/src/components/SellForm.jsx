@@ -136,7 +136,7 @@ const SellForm = () => {
                     endAt: new Date().toISOString()
                 };
 
-                const listingResponse = await fetch('https://rprauto.onrender.com/listing', {
+                const listingResponse = await fetch('https://rprauto-ajdq.onrender.com/listing', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -170,7 +170,7 @@ const SellForm = () => {
 
                 const payload = { request: bidData };
 
-                const bidResponse = await fetch('https://rprauto.onrender.com/bid', {
+                const bidResponse = await fetch('https://rprauto-ajdq.onrender.com/bid', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -29,7 +29,7 @@ function MainPage() {
 
      const loadSiteSettings = async () => {
           try {
-               const response = await fetch('https://rprauto.onrender.com/api/sitesettings');
+               const response = await fetch('https://rprauto-ajdq.onrender.com/api/sitesettings');
                if (!response.ok) {
                     throw new Error('Failed to load site settings');
                }
@@ -51,7 +51,7 @@ function MainPage() {
      // Fetch cars data from your API
      const fetchCars = async () => {
           try {
-               const response = await fetch('https://rprauto.onrender.com/listing?page=1&pageSize=3');
+               const response = await fetch('https://rprauto-ajdq.onrender.com/listing?page=1&pageSize=3');
                const data = await response.json();
                
                // Get 3 random cars from the listings

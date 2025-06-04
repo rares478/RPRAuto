@@ -12,7 +12,7 @@ const ListingCard = ({ car }) => {
     const [sellerInfoOpen, setSellerInfoOpen] = useState(false);
 
     useEffect(() => {
-        fetch(`https://rprauto.onrender.com/user/${car.sellerId}/public`)
+        fetch(`https://rprauto-ajdq.onrender.com/user/${car.sellerId}/public`)
             .then(res => res.json())
             .then(data => setSellerInfo(data))
             .catch(() => setSellerInfo(null));
@@ -59,7 +59,7 @@ const ListingCard = ({ car }) => {
     const popupOverlay = popupOpen ? ReactDOM.createPortal(
         <div className="image-popup-overlay image-popup-blur" onClick={closePopup}>
             <div className="image-popup-modal" onClick={e => e.stopPropagation()}>
-                <img src={car.images[popupSlide].startsWith('http') ? car.images[popupSlide] : `https://rprauto.onrender.com${car.images[popupSlide]}`} alt="Car" className="image-popup-img image-popup-img-large" />
+                <img src={car.images[popupSlide].startsWith('http') ? car.images[popupSlide] : `https://rprauto-ajdq.onrender.com${car.images[popupSlide]}`} alt="Car" className="image-popup-img image-popup-img-large" />
                 {car.images.length > 1 && (
                     <>
                         <button className="image-popup-arrow left" onClick={popupPrev}>❮</button>
@@ -79,7 +79,7 @@ const ListingCard = ({ car }) => {
                 <div className="car-card-front-modern">
                     <div className="car-slideshow-modern">
                         {car.images.map((image, index) => {
-                            const imageUrl = image.startsWith('http') ? image : `https://rprauto.onrender.com${image}`;
+                            const imageUrl = image.startsWith('http') ? image : `https://rprauto-ajdq.onrender.com${image}`;
                             return (
                                 <div
                                     key={index}

@@ -23,7 +23,7 @@ export const SiteSettingsProvider = ({ children }) => {
 
     const loadSiteSettings = async () => {
         try {
-            const response = await fetch('https://rprauto.onrender.com/api/sitesettings');
+            const response = await fetch('https://rprauto-ajdq.onrender.com/api/sitesettings');
             if (!response.ok) {
                 throw new Error('Failed to load site settings');
             }

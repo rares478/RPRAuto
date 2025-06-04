@@ -6,7 +6,7 @@ export async function verifyUserHandle() {
 
         if (!token) return false;
 
-        const response = await fetch('https://rprauto.onrender.com/auth/validate', {
+        const response = await fetch('https://rprauto-ajdq.onrender.com/auth/validate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

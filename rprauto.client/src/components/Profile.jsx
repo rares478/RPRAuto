@@ -88,7 +88,7 @@ function Profile() {
             const userId = decodedToken.sub;
 
             // Fetch user's full details
-            const userResponse = await fetch(`https://rprauto.onrender.com/user/${userId}`, {
+            const userResponse = await fetch(`https://rprauto-ajdq.onrender.com/user/${userId}`, {
                 headers: {
                     'Authorization': `Bearer ${token.trim()}`,
                     'Accept': 'application/json',
@@ -105,7 +105,7 @@ function Profile() {
             const userData = await userResponse.json();
 
             // Fetch user's listings
-            const listingsResponse = await fetch(`https://rprauto.onrender.com/user/${userId}/listings`, {
+            const listingsResponse = await fetch(`https://rprauto-ajdq.onrender.com/user/${userId}/listings`, {
                 headers: {
                     'Authorization': `Bearer ${token.trim()}`,
                     'Accept': 'application/json',
@@ -122,7 +122,7 @@ function Profile() {
             // Fetch detailed data for each listing
             const detailedListings = await Promise.all(
                 listingsData.map(async (listing) => {
-                    const detailResponse = await fetch(`https://rprauto.onrender.com/listing/${listing.Id}`, {
+                    const detailResponse = await fetch(`https://rprauto-ajdq.onrender.com/listing/${listing.Id}`, {
                         headers: {
                             'Authorization': `Bearer ${token.trim()}`,
                             'Accept': 'application/json',
@@ -142,7 +142,7 @@ function Profile() {
             setListings(detailedListings);
 
             // Fetch user's bids
-            const bidsResponse = await fetch(`https://rprauto.onrender.com/user/${userId}/bids`, {
+            const bidsResponse = await fetch(`https://rprauto-ajdq.onrender.com/user/${userId}/bids`, {
                 headers: {
                     'Authorization': `Bearer ${token.trim()}`,
                     'Accept': 'application/json',
@@ -159,7 +159,7 @@ function Profile() {
             // Fetch detailed data for each bid
             const detailedBids = await Promise.all(
                 bidsData.map(async (bid) => {
-                    const detailResponse = await fetch(`https://rprauto.onrender.com/bid/${bid.Id}`, {
+                    const detailResponse = await fetch(`https://rprauto-ajdq.onrender.com/bid/${bid.Id}`, {
                         headers: {
                             'Authorization': `Bearer ${token.trim()}`,
                             'Accept': 'application/json',
@@ -255,7 +255,7 @@ function Profile() {
             const decodedToken = jwtDecode(token);
             const userId = decodedToken.sub;
 
-            const response = await fetch(`https://rprauto.onrender.com/user/${userId}`, {
+            const response = await fetch(`https://rprauto-ajdq.onrender.com/user/${userId}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -299,7 +299,7 @@ function Profile() {
                 return;
             }
 
-            const response = await fetch(`https://rprauto.onrender.com/listing/${listingId}`, {
+            const response = await fetch(`https://rprauto-ajdq.onrender.com/listing/${listingId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token.trim()}`,
@@ -337,7 +337,7 @@ function Profile() {
                 return;
             }
 
-            const response = await fetch(`https://rprauto.onrender.com/listing/${listingId}`, {
+            const response = await fetch(`https://rprauto-ajdq.onrender.com/listing/${listingId}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token.trim()}`,
@@ -437,7 +437,7 @@ function Profile() {
                 showNotification('Please log in to delete bids', 'error');
                 return;
             }
-            const response = await fetch(`https://rprauto.onrender.com/bid/${bidId}`, {
+            const response = await fetch(`https://rprauto-ajdq.onrender.com/bid/${bidId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token.trim()}`,
@@ -481,7 +481,7 @@ function Profile() {
                 return;
             }
             // Use new API endpoint
-            const response = await fetch('https://rprauto.onrender.com/auth/change-password', {
+            const response = await fetch('https://rprauto-ajdq.onrender.com/auth/change-password', {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,

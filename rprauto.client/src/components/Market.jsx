@@ -80,7 +80,7 @@ const Market = () => {
   const fetchCars = async () => {
     try {
       setLoading(true);
-      const response = await fetch('https://rprauto.onrender.com/listing?page=1&pageSize=30');
+      const response = await fetch('https://rprauto-ajdq.onrender.com/listing?page=1&pageSize=30');
       const data = await response.json();
       
       const formattedCars = data.Listings.map(listing => ({
@@ -151,7 +151,7 @@ const Market = () => {
       if (filters.yearFrom !== '' && filters.yearFrom !== undefined && filters.yearFrom !== null) queryParams.append('yearFrom', filters.yearFrom);
       if (filters.yearTo !== '' && filters.yearTo !== undefined && filters.yearTo !== null) queryParams.append('yearTo', filters.yearTo);
       
-      const response = await fetch(`https://rprauto.onrender.com/listing/search?${queryParams.toString()}`);
+      const response = await fetch(`https://rprauto-ajdq.onrender.com/listing/search?${queryParams.toString()}`);
       const data = await response.json();
       
       const formattedCars = data.map(listing => ({

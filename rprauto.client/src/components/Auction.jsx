@@ -121,7 +121,7 @@ const Auction = () => {
   const fetchBids = async (queryParams = new URLSearchParams(), isSearch = false) => {
     try {
       setLoading(true);
-      const endpoint = isSearch ? 'https://rprauto.onrender.com/bid/search' : `https://rprauto.onrender.com/bid?${queryParams.toString()}`;
+      const endpoint = isSearch ? 'https://rprauto-ajdq.onrender.com/bid/search' : `https://rprauto-ajdq.onrender.com/bid?${queryParams.toString()}`;
       const response = await fetch(isSearch ? `${endpoint}?${queryParams.toString()}` : endpoint);
       const data = await response.json();
       

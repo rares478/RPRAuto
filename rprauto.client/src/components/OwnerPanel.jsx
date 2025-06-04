@@ -24,7 +24,7 @@ const OwnerPanel = ({ isOpen, onClose }) => {
 
     const loadSettings = async () => {
         try {
-            const response = await fetch('https://rprauto.onrender.com/api/sitesettings');
+            const response = await fetch('https://rprauto-ajdq.onrender.com/api/sitesettings');
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Failed to load settings');
@@ -70,7 +70,7 @@ const OwnerPanel = ({ isOpen, onClose }) => {
             const trimmedToken = token.trim();
             console.log('Trimmed token:', trimmedToken);
 
-            const response = await fetch('https://rprauto.onrender.com/api/sitesettings/customization', {
+            const response = await fetch('https://rprauto-ajdq.onrender.com/api/sitesettings/customization', {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${trimmedToken}`,
@@ -117,7 +117,7 @@ const OwnerPanel = ({ isOpen, onClose }) => {
                 return;
             }
 
-            const response = await fetch('https://rprauto.onrender.com/api/sitesettings/statistics', {
+            const response = await fetch('https://rprauto-ajdq.onrender.com/api/sitesettings/statistics', {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token.trim()}`,
@@ -166,7 +166,7 @@ const OwnerPanel = ({ isOpen, onClose }) => {
                 return;
             }
 
-            const response = await fetch('https://rprauto.onrender.com/api/sitesettings/maintenance', {
+            const response = await fetch('https://rprauto-ajdq.onrender.com/api/sitesettings/maintenance', {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,

@@ -1,6 +1,6 @@
 export async function loadCarsHandle(filters, page, pageSize) {
     try {
-        const response = await fetch(`https://rprauto.onrender.com/listing?page=${page}&pageSize=${pageSize}`, {
+        const response = await fetch(`https://rprauto-ajdq.onrender.com/listing?page=${page}&pageSize=${pageSize}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

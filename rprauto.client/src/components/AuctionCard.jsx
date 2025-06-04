@@ -44,7 +44,7 @@ const AuctionCard = ({ auction }) => {
   // Fetch seller name
   useEffect(() => {
     if (auction.seller?.id) {
-      fetch(`https://rprauto.onrender.com/user/${auction.seller.id}/public`)
+      fetch(`https://rprauto-ajdq.onrender.com/user/${auction.seller.id}/public`)
         .then(res => res.json())
         .then(data => setSellerName(data.DisplayName || 'Seller'))
         .catch(() => setSellerName('Seller'));
@@ -57,7 +57,7 @@ const AuctionCard = ({ auction }) => {
     const names = {};
     let isMounted = true;
     Promise.all(uniqueBidderIds.map(id =>
-      fetch(`https://rprauto.onrender.com/user/${id}/public`)
+      fetch(`https://rprauto-ajdq.onrender.com/user/${id}/public`)
         .then(res => res.json())
         .then(data => ({ id, name: data.DisplayName || 'Bidder' }))
         .catch(() => ({ id, name: 'Bidder' }))
@@ -108,7 +108,7 @@ const AuctionCard = ({ auction }) => {
     }
 
     try {
-      const response = await fetch(`https://rprauto.onrender.com/bid/${auction.id}/place`, {
+      const response = await fetch(`https://rprauto-ajdq.onrender.com/bid/${auction.id}/place`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -166,7 +166,7 @@ const AuctionCard = ({ auction }) => {
 
     try {
 
-      const response = await fetch(`https://rprauto.onrender.com/bid/${auction.id}/place`, {
+      const response = await fetch(`https://rprauto-ajdq.onrender.com/bid/${auction.id}/place`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -224,7 +224,7 @@ const AuctionCard = ({ auction }) => {
     <div className="image-popup-overlay image-popup-blur" onClick={closePopup}>
       <div className="image-popup-modal" onClick={e => e.stopPropagation()}>
         <img
-          src={auction.images[popupSlide].startsWith('http') ? auction.images[popupSlide] : `https://rprauto.onrender.com${auction.images[popupSlide]}`}
+          src={auction.images[popupSlide].startsWith('http') ? auction.images[popupSlide] : `https://rprauto-ajdq.onrender.com${auction.images[popupSlide]}`}
           alt="Car"
           className="image-popup-img image-popup-img-large"
         />
