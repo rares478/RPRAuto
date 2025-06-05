@@ -54,6 +54,7 @@ builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddScoped<IBidRepository, BidRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<ISiteSettingsRepository, SiteSettingsRepository>();
+builder.Services.AddScoped<IReview,ReviewRepository>();
 builder.Services.AddHostedService<BidCompletionService>();
 
 // Configure JWT authentication
