@@ -157,6 +157,9 @@ public class ListingController : ControllerBase
         if (!ObjectId.TryParse(id, out var objectId))
             throw new ValidationException("Invalid listing ID format");
 
+        if (!ObjectId.TryParse(request.UserId, out var buyerId))
+            throw new ValidationException("Invalid buyer ID format");
+
         var listing = await _listingRepository.GetByIdAsync(objectId);
         if (listing == null)
             throw new NotFoundException("Listing not found");
@@ -164,8 +167,24 @@ public class ListingController : ControllerBase
         if (listing.Status != ListingStatus.Active)
             throw new ValidationException("This listing is not available for purchase");
 
+        // Check if user is trying to buy their own listing
+        if (listing.UserId == buyerId)
+            throw new ValidationException("You cannot purchase your own listing");
+
+        // Get the buyer's user data
+        var buyer = await _userRepository.GetByIdAsync(buyerId);
+        if (buyer == null)
+            throw new NotFoundException("Buyer not found");
+
+        // Update listing status
         listing.Status = ListingStatus.Sold;
+        listing.SoldTo = buyerId;
+        listing.SoldAt = DateTime.UtcNow;
         await _listingRepository.UpdateAsync(objectId, listing);
+
+        // Update buyer's purchase history
+        buyer.Purchases.Add(objectId);
+        await _userRepository.UpdateAsync(buyerId, buyer);
 
         return Ok(new { message = "Listing purchased successfully" });
     }

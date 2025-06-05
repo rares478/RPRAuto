@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import './styles/card1.css';
 import Cookies from 'js-cookie';
+import ReviewModal from './ReviewModal';
 
 const AuctionCard = ({ auction }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -11,9 +12,30 @@ const AuctionCard = ({ auction }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [sellerName, setSellerName] = useState(auction.seller?.name || 'Seller');
   const [bidderNames, setBidderNames] = useState({});
-  const minIncrement = 1250; // This should come from the auction data
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupSlide, setPopupSlide] = useState(0);
+
+  // Calculate minimum bid increment based on current bid
+  const calculateMinIncrement = (currentBid) => {
+    if (currentBid < 1000) return 100;
+    if (currentBid < 5000) return 250;
+    if (currentBid < 10000) return 500;
+    if (currentBid < 50000) return 1000;
+    return 2500;
+  };
+
+  // Calculate minimum next bid
+  const calculateMinBid = () => {
+    // If there are no bids yet, use the auction's minimum bid
+    if (!auction.currentBid || auction.currentBid === 0) {
+      return auction.minBid;
+    }
+    
+    // Otherwise, calculate based on current bid and increment
+    const minIncrement = calculateMinIncrement(auction.currentBid);
+    return Math.max(auction.currentBid + minIncrement, auction.minBid);
+  };
 
   useEffect(() => {
     const updateCountdown = () => {
@@ -95,7 +117,7 @@ const AuctionCard = ({ auction }) => {
     }
 
     const bidValue = parseFloat(bidAmount);
-    const minBid = Math.max(auction.currentBid + minIncrement, auction.minBid);
+    const minBid = calculateMinBid();
 
     if (isNaN(bidValue)) {
       alert('Please enter a valid bid amount');
@@ -240,6 +262,45 @@ const AuctionCard = ({ auction }) => {
     document.body
   ) : null;
 
+  const handleReviewSubmit = async (rating) => {
+    const token = Cookies.get('authToken');
+    if (!token) {
+      alert('Please log in to leave a review');
+      return;
+    }
+
+    try {
+      const response = await fetch('https://rprauto-ajdq.onrender.com/review', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          transactionId: auction.id,
+          transactionType: 1, // 1 for Bid
+          rating: rating
+        })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to submit review');
+      }
+
+      alert('Thank you for your review!');
+      // Refresh seller info to update rating
+      fetch(`https://rprauto-ajdq.onrender.com/user/${auction.seller.id}/public`)
+        .then(res => res.json())
+        .then(data => {
+          setSellerName(data.DisplayName || 'Seller');
+        })
+        .catch(() => setSellerName('Seller'));
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   return (
     <>
       <div className={`card flip-wrapper ${isFlipped ? 'flipped' : ''}`} id="flipCard">
@@ -372,6 +433,17 @@ const AuctionCard = ({ auction }) => {
                     <div>
                       <span className="seller-label">Sold by</span>
                       <span className="seller-name">{sellerName}</span>
+                      {auction.status === 'Completed' && (
+                        <button 
+                          className="review-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowReviewModal(true);
+                          }}
+                        >
+                          Leave a Review
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -410,11 +482,18 @@ const AuctionCard = ({ auction }) => {
             </div>
             
             <div className="highest-bid">
-              <div className="highest-bid-label">YOUR MAX BID WOULD NEED TO BE</div>
-              <div className="highest-bid-amount">
-                ${(auction.currentBid + minIncrement).toLocaleString()}
+              <div className="highest-bid-label">
+                {auction.currentBid === 0 ? 'STARTING BID' : 'YOUR MAX BID WOULD NEED TO BE'}
               </div>
-              <div className="highest-bidder">(Minimum bid increment: ${minIncrement.toLocaleString()})</div>
+              <div className="highest-bid-amount">
+                ${calculateMinBid().toLocaleString()}
+              </div>
+              <div className="highest-bidder">
+                {auction.currentBid === 0 ? 
+                  '(Minimum starting bid)' :
+                  `(Minimum bid increment: $${calculateMinIncrement(auction.currentBid).toLocaleString()})`
+                }
+              </div>
             </div>
             
             <div className="bid-form">
@@ -423,9 +502,9 @@ const AuctionCard = ({ auction }) => {
                 className="bid-input"
                 value={bidAmount}
                 onChange={(e) => setBidAmount(e.target.value)}
-                placeholder={`Enter your bid amount ($${(auction.currentBid + minIncrement).toLocaleString()} minimum)`}
-                min={auction.currentBid + minIncrement}
-                step="100"
+                placeholder={`Enter your bid amount ($${calculateMinBid().toLocaleString()} minimum)`}
+                min={calculateMinBid()}
+                step={calculateMinIncrement(auction.currentBid)}
               />
               <button className="place-bid-button" onClick={handleBidSubmit}>
                 PLACE BID
@@ -449,6 +528,12 @@ const AuctionCard = ({ auction }) => {
         </div>
       </div>
       {popupOverlay}
+      <ReviewModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        onSubmit={handleReviewSubmit}
+        sellerName={sellerName}
+      />
     </>
   );
 };

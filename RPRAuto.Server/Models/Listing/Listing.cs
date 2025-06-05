@@ -4,6 +4,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using RPRAuto.Server.Interfaces;
 using RPRAuto.Server.Models.Car;
+using RPRAuto.Server.Models.Enums;
 
 namespace RPRAuto.Server.Models.Listing;
 
@@ -45,6 +46,10 @@ public class Listing : IListing
     [BsonElement("createdAt")]
     [JsonPropertyName("CreatedAt")]
     public DateTime CreatedAt { get; set; }
+
+    [BsonRepresentation(BsonType.ObjectId)]
+    public ObjectId? SoldTo { get; set; }
+    public DateTime? SoldAt { get; set; }
 }
 
 public class ObjectIdConverter : JsonConverter<ObjectId>

@@ -4,6 +4,7 @@ using RPRAuto.Server.Interfaces;
 using RPRAuto.Server.Models.Bid;
 using RPRAuto.Server.Exceptions;
 using System.Security.Claims;
+using RPRAuto.Server.Models.Enums;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -208,7 +209,11 @@ public class BidController : ControllerBase
             throw new NotFoundException("Bid not found");
 
         if (DateTime.UtcNow >= bid.EndAt)
+        {
+            bid.Status = BidStatus.Completed;
+            await _bidRepository.UpdateAsync(objectId, bid);
             throw new ValidationException("Bid has expired");
+        }
 
         var userId = GetUserIdFromToken();
         if (bid.UserId == userId)
@@ -226,9 +231,11 @@ public class BidController : ControllerBase
         bid.Bids[userId.ToString()] = request.Amount;
         bid.TopBid = request.Amount;
 
+        // Check if instant buy price is met
         if (bid.InstantBuy > 0 && request.Amount >= bid.InstantBuy)
         {
             bid.EndAt = DateTime.UtcNow;
+            bid.Status = BidStatus.Completed;
         }
 
         await _bidRepository.UpdateAsync(objectId, bid);

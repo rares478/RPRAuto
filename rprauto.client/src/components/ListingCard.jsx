@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import './styles/card.css';
+import ReviewModal from './ReviewModal';
+import Cookies from 'js-cookie';
 
 const ListingCard = ({ car }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -10,6 +12,8 @@ const ListingCard = ({ car }) => {
     const [popupOpen, setPopupOpen] = useState(false);
     const [popupSlide, setPopupSlide] = useState(0);
     const [sellerInfoOpen, setSellerInfoOpen] = useState(false);
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [isPurchasing, setIsPurchasing] = useState(false);
 
     useEffect(() => {
         fetch(`https://rprauto-ajdq.onrender.com/user/${car.sellerId}/public`)
@@ -17,6 +21,43 @@ const ListingCard = ({ car }) => {
             .then(data => setSellerInfo(data))
             .catch(() => setSellerInfo(null));
     }, [car]);
+
+    const handleReviewSubmit = async (rating) => {
+        const token = Cookies.get('authToken');
+        if (!token) {
+            alert('Please log in to leave a review');
+            return;
+        }
+
+        try {
+            const response = await fetch('https://rprauto-ajdq.onrender.com/review', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    transactionId: car.id,
+                    transactionType: 0, // 0 for Listing
+                    rating: rating
+                })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.message || 'Failed to submit review');
+            }
+
+            alert('Thank you for your review!');
+            // Refresh seller info to update rating
+            fetch(`https://rprauto-ajdq.onrender.com/user/${car.sellerId}/public`)
+                .then(res => res.json())
+                .then(data => setSellerInfo(data))
+                .catch(() => setSellerInfo(null));
+        } catch (error) {
+            alert(error.message);
+        }
+    };
 
     const changeSlide = (direction, e) => {
         e.stopPropagation();
@@ -72,6 +113,60 @@ const ListingCard = ({ car }) => {
         document.body
     ) : null;
 
+    const handlePurchase = async (e) => {
+        e.stopPropagation();
+        
+        const token = Cookies.get('authToken');
+        if (!token) {
+            alert('Please log in to purchase this vehicle');
+            return;
+        }
+
+        // Get the current user's ID from the token
+        const tokenData = JSON.parse(atob(token.split('.')[1]));
+        const currentUserId = tokenData.nameid;
+
+        // Check if user is trying to buy their own listing
+        if (currentUserId === car.sellerId) {
+            alert('You cannot purchase your own listing');
+            return;
+        }
+
+        if (!window.confirm(`Are you sure you want to purchase this ${car.make} ${car.model} for $${car.price.toLocaleString()}?`)) {
+            return;
+        }
+
+        setIsPurchasing(true);
+        try {
+            const response = await fetch(`https://rprauto-ajdq.onrender.com/listing/${car.id}/purchase`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    request: {
+                        UserId: currentUserId, // Send the buyer's ID, not the seller's
+                        ListingId: car.id
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.message || 'Failed to purchase vehicle');
+            }
+
+            alert('Congratulations! The vehicle has been purchased successfully.');
+            // Refresh the page to update the listing status
+            window.location.reload();
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            setIsPurchasing(false);
+        }
+    };
+
     return (
         <div className="car-card-container">
             <div className={`car-card-modern${isFlipped ? ' flipped' : ''}`} onClick={flipCard}>
@@ -116,7 +211,17 @@ const ListingCard = ({ car }) => {
                         <span>{car.bodyType}</span>
                     </div>
                     <div className="card-front-actions">
-                        <button className="buy-button-modern" onClick={e => e.stopPropagation()}>Buy Now</button>
+                        <button 
+                            className="buy-button-modern" 
+                            onClick={handlePurchase}
+                            disabled={isPurchasing || car.status === 'Sold'}
+                            style={{
+                                opacity: isPurchasing || car.status === 'Sold' ? 0.7 : 1,
+                                cursor: isPurchasing || car.status === 'Sold' ? 'not-allowed' : 'pointer'
+                            }}
+                        >
+                            {isPurchasing ? 'Processing...' : car.status === 'Sold' ? 'Sold' : 'Buy Now'}
+                        </button>
                         <div className="flip-indicator-modern" onClick={flipCard}>Details ⟶</div>
                     </div>
                 </div>
@@ -163,6 +268,17 @@ const ListingCard = ({ car }) => {
                                 <div><b>Phone:</b> {sellerInfo.PhoneNumber || car.phone}</div>
                                 <div><b>City:</b> {sellerInfo.city || sellerInfo.City}</div>
                                 <div><b>Rating:</b> {sellerInfo.rating?.toFixed(1) ?? 0} ⭐</div>
+                                {car.status === 'Sold' && (
+                                    <button 
+                                        className="review-button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowReviewModal(true);
+                                        }}
+                                    >
+                                        Leave a Review
+                                    </button>
+                                )}
                             </div>
                         ) : (
                             <div className="seller-info-modern">Seller info not available.</div>
@@ -171,6 +287,12 @@ const ListingCard = ({ car }) => {
                 </div>,
                 document.body
             )}
+            <ReviewModal
+                isOpen={showReviewModal}
+                onClose={() => setShowReviewModal(false)}
+                onSubmit={handleReviewSubmit}
+                sellerName={sellerInfo?.displayName || sellerInfo?.DisplayName || 'the seller'}
+            />
         </div>
     );
 };

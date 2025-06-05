@@ -38,6 +38,12 @@ public class User : IUser
     [BsonElement("publicData")]
     public PublicUserData PublicData { get; set; } = new();
 
+    [BsonElement("purchases")]
+    public List<ObjectId> Purchases { get; set; } = new();
+
+    [BsonElement("rating")]
+    public double? Rating { get; set; }
+
     // Helper properties to maintain compatibility
     [BsonIgnore]
     public string Email { 

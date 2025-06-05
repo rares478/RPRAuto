@@ -6,6 +6,8 @@ using RPRAuto.Server.Interfaces;
 using RPRAuto.Server.Repositories;
 using RPRAuto.Server.Models.Car;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
+using RPRAuto.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,8 +46,7 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 
 // Configure MongoDB
-builder.Services.AddSingleton<MongoDB.Driver.IMongoClient>(sp =>
-    new MongoDB.Driver.MongoClient(builder.Configuration.GetConnectionString("MongoDB")));
+builder.Services.AddSingleton<IMongoClient>(sp => new MongoClient(builder.Configuration.GetConnectionString("MongoDB")));
 
 // Register repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -53,6 +54,7 @@ builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddScoped<IBidRepository, BidRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<ISiteSettingsRepository, SiteSettingsRepository>();
+builder.Services.AddHostedService<BidCompletionService>();
 
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

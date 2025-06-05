@@ -49,6 +49,7 @@ const SellForm = () => {
     const [imagePreviews, setImagePreviews] = useState([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [imageError, setImageError] = useState('');
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -60,21 +61,32 @@ const SellForm = () => {
 
     const handleImageUpload = (e) => {
         const files = Array.from(e.target.files);
+        if (files.length + imagePreviews.length > 20) {
+            setImageError('Maximum 20 images allowed');
+            return;
+        }
         const newPreviews = files.map(file => ({
             id: Math.random().toString(36).substr(2, 9),
             url: URL.createObjectURL(file)
         }));
         setImagePreviews(prev => [...prev, ...newPreviews]);
+        setImageError('');
     };
 
     const removeImage = (id) => {
         setImagePreviews(prev => prev.filter(preview => preview.id !== id));
+        setImageError('');
     };
 
     const addImageUrl = () => {
         if (!formData.imageUrls.trim()) return;
         
         const urls = formData.imageUrls.split(',').map(url => url.trim()).filter(url => url);
+        if (urls.length + imagePreviews.length > 20) {
+            setImageError('Maximum 20 images allowed');
+            return;
+        }
+        
         const newPreviews = urls.map(url => ({
             id: Math.random().toString(36).substr(2, 9),
             url: url
@@ -82,12 +94,20 @@ const SellForm = () => {
         
         setImagePreviews(prev => [...prev, ...newPreviews]);
         setFormData(prev => ({ ...prev, imageUrls: '' }));
+        setImageError('');
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccess('');
+        setImageError('');
+
+        // Validate minimum images requirement
+        if (imagePreviews.length < 3) {
+            setImageError('Please add at least 3 images of your vehicle');
+            return;
+        }
 
         try {
             const token = Cookies.get('authToken');
@@ -219,6 +239,7 @@ const SellForm = () => {
         setImagePreviews([]);
         setError('');
         setSuccess('');
+        setImageError('');
     };
 
     // Add darkInputStyle for inputs, matching Auction
@@ -939,12 +960,25 @@ const SellForm = () => {
                 </div>
             </div>
 
-            <h3 style={{ marginTop: '32px', marginBottom: '16px' }}><i className="fas fa-camera"></i> Photos</h3>
+            <h3 style={{ marginTop: '32px', marginBottom: '16px' }}>
+                <i className="fas fa-camera"></i> Photos
+                <span style={{ 
+                    fontSize: '0.9rem', 
+                    color: '#A8A1F8', 
+                    marginLeft: '8px',
+                    fontWeight: 'normal'
+                }}>
+                    (Minimum 3 images required)
+                </span>
+            </h3>
             
             <div className="image-upload" onClick={() => document.getElementById('imageInput').click()}>
                 <i className="fas fa-cloud-upload-alt"></i>
                 <p>Click to upload photos</p>
                 <small>Upload up to 20 photos (JPG, PNG, max 5MB each)</small>
+                <small style={{ color: '#A8A1F8', display: 'block', marginTop: '4px' }}>
+                    {imagePreviews.length}/3 minimum images uploaded
+                </small>
                 <input 
                     type="file" 
                     id="imageInput" 
@@ -980,6 +1014,12 @@ const SellForm = () => {
                     <small>Enter multiple URLs separated by commas</small>
                 </div>
             </div>
+
+            {imageError && (
+                <div className="error-message" style={{ marginTop: '8px' }}>
+                    {imageError}
+                </div>
+            )}
 
             <div className="image-preview">
                 {imagePreviews.map(preview => (
@@ -1042,7 +1082,16 @@ const SellForm = () => {
             <div style={{ marginTop: '32px' }}>
                 {error && <div className="error-message">{error}</div>}
                 {success && <div className="success-message">{success}</div>}
-                <button type="submit" className="btn btn-primary" style={{ marginRight: '12px' }}>
+                <button 
+                    type="submit" 
+                    className="btn btn-primary" 
+                    style={{ 
+                        marginRight: '12px',
+                        opacity: imagePreviews.length < 3 ? 0.7 : 1,
+                        cursor: imagePreviews.length < 3 ? 'not-allowed' : 'pointer'
+                    }}
+                    disabled={imagePreviews.length < 3}
+                >
                     <i className="fas fa-plus"></i>
                     List My Vehicle
                 </button>

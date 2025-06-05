@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.Extensions.Logging;
+using RPRAuto.Server.Models.Enums;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -207,36 +208,62 @@ public class UserController : ControllerBase
         });
     }
 
-    [HttpPut("{id}/review")]
-    public async Task<IActionResult> AddReview(string id, [FromBody] ReviewRequest request)
+    [HttpPost("review")]
+    public async Task<IActionResult> CreateReview([FromBody] ReviewCreateRequest request)
     {
-        if (!ObjectId.TryParse(id, out var objectId))
-            throw new ValidationException("Invalid user ID format");
+        var userId = GetUserIdFromToken();
+        
+        // Validate the transaction exists and user was involved
+        var listing = await _listingRepository.GetByIdAsync(ObjectId.Parse(request.TransactionId));
+        if (listing == null)
+            throw new NotFoundException("Transaction not found");
 
-        var user = await _userRepository.GetByIdAsync(objectId);
-        if (user == null)
-            throw new NotFoundException("User not found");
+        if (listing.UserId != ObjectId.Parse(request.SellerId))
+            throw new ValidationException("Invalid seller ID for this transaction");
+
+        if (listing.SoldTo != userId)
+            throw new ValidationException("You can only review transactions you were involved in");
+
+        // Check if user already reviewed this transaction
+        var existingReview = await _reviewRepository.GetByTransactionAndUserAsync(
+            ObjectId.Parse(request.TransactionId),
+            userId);
+        
+        if (existingReview != null)
+            throw new ValidationException("You have already reviewed this transaction");
 
         var review = new Review
         {
-            ReviewerId = objectId,
-            Rating = request.Rating,
-            ReviewText = request.Comment,
+            UserId = userId,
+            SellerId = ObjectId.Parse(request.SellerId),
+            TransactionId = ObjectId.Parse(request.TransactionId),
+            TransactionType = request.TransactionType,
+            rating = request.Rating,
             CreatedAt = DateTime.UtcNow
         };
 
         await _reviewRepository.CreateAsync(review);
-        return Ok(new { message = "Review added successfully", reviewId = review.ReviewId });
+
+        // Update seller's average rating
+        var sellerReviews = await _reviewRepository.GetBySellerAsync(ObjectId.Parse(request.SellerId));
+        var seller = await _userRepository.GetByIdAsync(ObjectId.Parse(request.SellerId));
+        if (seller != null)
+        {
+            seller.Rating = sellerReviews.Average(r => r.rating);
+            await _userRepository.UpdateAsync(seller.Id, seller);
+        }
+
+        return Ok(new { message = "Review created successfully" });
     }
 
-    [HttpGet("{id}/review")]
-    public async Task<IActionResult> GetReview(string id)
+    [HttpGet("{id}/reviews")]
+    public async Task<IActionResult> GetUserReviews(string id)
     {
-        if (!ObjectId.TryParse(id, out var objectId))
+        if (!ObjectId.TryParse(id, out var userId))
             throw new ValidationException("Invalid user ID format");
 
-        var review = await _userRepository.GetUserReviewAsync(objectId);
-        return Ok(review);
+        var reviews = await _reviewRepository.GetBySellerAsync(userId);
+        return Ok(reviews);
     }
 
     [HttpGet("{id}/public")]
