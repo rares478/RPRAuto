@@ -98,7 +98,14 @@ function Profile() {
 
             if (!userResponse.ok) {
                 const errorData = await userResponse.json();
-                console.error('Error response:', errorData); // Debug log
+                console.error('Error response:', errorData);
+                
+                // Handle MongoDB service error specifically
+                if (errorData.message?.includes('MongoDB.Driver.IMongoDatabase')) {
+                    showNotification('Server is currently experiencing issues. Please try again later.', 'error');
+                    return;
+                }
+                
                 throw new Error(errorData.message || 'Failed to fetch user details');
             }
 

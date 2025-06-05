@@ -16,10 +16,26 @@ const ListingCard = ({ car }) => {
     const [isPurchasing, setIsPurchasing] = useState(false);
 
     useEffect(() => {
-        fetch(`https://rprauto-ajdq.onrender.com/user/${car.sellerId}/public`)
-            .then(res => res.json())
-            .then(data => setSellerInfo(data))
-            .catch(() => setSellerInfo(null));
+        if (!car?.sellerId) {
+            setSellerInfo(null);
+            return;
+        }
+
+        const fetchSellerInfo = async () => {
+            try {
+                const response = await fetch(`https://rprauto-ajdq.onrender.com/user/${car.sellerId}/public`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch seller info');
+                }
+                const data = await response.json();
+                setSellerInfo(data);
+            } catch (error) {
+                console.error('Error fetching seller info:', error);
+                setSellerInfo(null);
+            }
+        };
+
+        fetchSellerInfo();
     }, [car]);
 
     const handleReviewSubmit = async (rating) => {
@@ -124,7 +140,7 @@ const ListingCard = ({ car }) => {
 
         // Get the current user's ID from the token
         const tokenData = JSON.parse(atob(token.split('.')[1]));
-        const currentUserId = tokenData.nameid;
+        const currentUserId = tokenData.sub;
 
         // Check if user is trying to buy their own listing
         if (currentUserId === car.sellerId) {
@@ -138,6 +154,8 @@ const ListingCard = ({ car }) => {
 
         setIsPurchasing(true);
         try {
+            console.log('Current User ID:', currentUserId);
+            console.log('Car ID:', car.id);
             const response = await fetch(`https://rprauto-ajdq.onrender.com/listing/${car.id}/purchase`, {
                 method: 'POST',
                 headers: {
@@ -145,10 +163,8 @@ const ListingCard = ({ car }) => {
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    request: {
-                        UserId: currentUserId, // Send the buyer's ID, not the seller's
-                        ListingId: car.id
-                    }
+                    UserId: currentUserId,
+                    ListingId: car.id
                 })
             });
 
