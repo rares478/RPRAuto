@@ -54,7 +54,14 @@ builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddScoped<IBidRepository, BidRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<ISiteSettingsRepository, SiteSettingsRepository>();
-builder.Services.AddScoped<IReview,ReviewRepository>();
+
+// Register singleton version of IBidRepository for BidCompletionService
+builder.Services.AddSingleton<IBidRepository>(sp =>
+{
+    var client = sp.GetRequiredService<MongoDB.Driver.IMongoClient>();
+    return new BidRepository(client);
+});
+
 builder.Services.AddHostedService<BidCompletionService>();
 
 // Configure JWT authentication
