@@ -47,6 +47,12 @@ public class UserRepository : MongoRepository<User>, IUserRepository
         return await _bidsCollection.Find(filter).ToListAsync();
     }
 
+    public async Task<IEnumerable<ObjectId>> GetUserPurchasesAsync(ObjectId userId)
+    {
+        var user = await GetByIdAsync(userId);
+        return user?.Purchases ?? new List<ObjectId>();
+    }
+
     public async Task<Review?> GetUserReviewAsync(ObjectId userId)
     {
         var user = await GetByIdAsync(userId);
@@ -84,5 +90,13 @@ public class UserRepository : MongoRepository<User>, IUserRepository
             .Set(u => u.UpdatedAt, DateTime.UtcNow);
         var result = await _collection.UpdateOneAsync(u => u.Id == userId, update);
         return result.ModifiedCount > 0;
+    }
+
+    public async Task UpdateUserRatingAsync(ObjectId userId, double newRating)
+    {
+        var update = Builders<User>.Update
+            .Set(u => u.PublicData.Rating, newRating)
+            .Set(u => u.UpdatedAt, DateTime.UtcNow);
+        await _collection.UpdateOneAsync(u => u.Id == userId, update);
     }
 } 

@@ -3,6 +3,7 @@ import './styles/account.css';
 import SellForm from './SellForm';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
 
 function Profile() {
     const [activeSection, setActiveSection] = useState('dashboard');
@@ -49,6 +50,11 @@ function Profile() {
         confirmPassword: ''
     });
     const [passwordLoading, setPasswordLoading] = useState(false);
+    const [purchases, setPurchases] = useState({
+        directPurchases: [],
+        auctionWins: []
+    });
+    const navigate = useNavigate();
 
     // Add darkInputStyle for inputs, matching Auction and SellForm
     const darkInputStyle = {
@@ -78,142 +84,141 @@ function Profile() {
     const loadUserData = async () => {
         try {
             const token = Cookies.get('authToken');
-
             if (!token) {
-                showNotification('Please log in to view your profile', 'error');
+                navigate('/login');
                 return;
             }
 
-            const decodedToken = jwtDecode(token);
-            const userId = decodedToken.sub;
+            // Get user ID from token
+            const tokenData = JSON.parse(atob(token.split('.')[1]));
+            const userId = tokenData.sub;
+            setUserId(userId);
 
-            // Fetch user's full details
-            const userResponse = await fetch(`https://rprauto-ajdq.onrender.com/user/${userId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token.trim()}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
+            // Fetch user details
+            try {
+                const userResponse = await fetch(`https://rprauto-ajdq.onrender.com/user/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token.trim()}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-            if (!userResponse.ok) {
-                const errorData = await userResponse.json();
-                console.error('Error response:', errorData);
-                
-                // Handle MongoDB service error specifically
-                if (errorData.message?.includes('MongoDB.Driver.IMongoDatabase')) {
-                    showNotification('Server is currently experiencing issues. Please try again later.', 'error');
-                    return;
-                }
-                
-                throw new Error(errorData.message || 'Failed to fetch user details');
-            }
-
-            const userData = await userResponse.json();
-
-            // Fetch user's listings
-            const listingsResponse = await fetch(`https://rprauto-ajdq.onrender.com/user/${userId}/listings`, {
-                headers: {
-                    'Authorization': `Bearer ${token.trim()}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!listingsResponse.ok) {
-                throw new Error('Failed to fetch listings');
-            }
-
-            const listingsData = await listingsResponse.json();
-
-            // Fetch detailed data for each listing
-            const detailedListings = await Promise.all(
-                listingsData.map(async (listing) => {
-                    const detailResponse = await fetch(`https://rprauto-ajdq.onrender.com/listing/${listing.Id}`, {
-                        headers: {
-                            'Authorization': `Bearer ${token.trim()}`,
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
+                if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    
+                    // Set form data with null checks
+                    setFormData({
+                        firstName: userData?.PrivateData?.Personal?.FirstName || '',
+                        lastName: userData?.PrivateData?.Personal?.LastName || '',
+                        email: userData?.PrivateData?.Login?.Email || '',
+                        phone: userData?.PublicData?.PhoneNumber || '',
+                        address: userData?.PrivateData?.Personal?.Address || '',
+                        city: userData?.PublicData?.City || '',
+                        country: userData?.PublicData?.Country || '',
+                        displayName: userData?.PublicData?.DisplayName || ''
                     });
 
-                    if (!detailResponse.ok) {
-                        console.error(`Failed to fetch details for listing ${listing.Id}`);
-                        return listing; // Return original listing if detail fetch fails
-                    }
+                    // Set notifications with null checks
+                    setNotifications({
+                        emailBids: userData?.PrivateData?.Notifications?.EmailBids ?? true,
+                        smsAuctions: userData?.PrivateData?.Notifications?.SmsAuctions ?? true,
+                        marketing: userData?.PrivateData?.Notifications?.Marketing ?? false
+                    });
 
-                    return await detailResponse.json();
-                })
-            );
-
-            setListings(detailedListings);
+                    // Update user data for dashboard
+                    setUserData({
+                        name: userData?.PublicData?.DisplayName || '',
+                        email: userData?.PrivateData?.Login?.Email || '',
+                        phone: userData?.PublicData?.PhoneNumber || '',
+                        memberSince: userData?.PublicData?.MemberSince || '',
+                        activeListings: userData?.PublicData?.ActiveListings || 0,
+                        activeBids: userData?.PublicData?.ActiveBids || 0,
+                        totalSales: userData?.PublicData?.TotalSales || 0,
+                        role: userData?.PublicData?.Role || '',
+                        isCompany: userData?.PublicData?.IsCompany || false
+                    });
+                } else {
+                    console.error('Failed to fetch user data:', await userResponse.text());
+                    showNotification('Failed to load user profile. Some features may be limited.', 'warning');
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                showNotification('Failed to load user profile. Some features may be limited.', 'warning');
+            }
 
             // Fetch user's bids
-            const bidsResponse = await fetch(`https://rprauto-ajdq.onrender.com/user/${userId}/bids`, {
-                headers: {
-                    'Authorization': `Bearer ${token.trim()}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
+            try {
+                const bidsResponse = await fetch(`https://rprauto-ajdq.onrender.com/user/${userId}/bids`, {
+                    headers: {
+                        'Authorization': `Bearer ${token.trim()}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-            if (!bidsResponse.ok) {
-                throw new Error('Failed to fetch bids');
+                if (bidsResponse.ok) {
+                    const bidsData = await bidsResponse.json();
+                    setBids(bidsData);
+                } else {
+                    console.error('Failed to fetch bids:', await bidsResponse.text());
+                    showNotification('Failed to load bids. Please try again later.', 'warning');
+                }
+            } catch (error) {
+                console.error('Error fetching bids:', error);
+                showNotification('Failed to load bids. Please try again later.', 'warning');
             }
 
-            const bidsData = await bidsResponse.json();
-
-            // Fetch detailed data for each bid
-            const detailedBids = await Promise.all(
-                bidsData.map(async (bid) => {
-                    const detailResponse = await fetch(`https://rprauto-ajdq.onrender.com/bid/${bid.Id}`, {
-                        headers: {
-                            'Authorization': `Bearer ${token.trim()}`,
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    });
-
-                    if (!detailResponse.ok) {
-                        console.error(`Failed to fetch details for bid ${bid.Id}`);
-                        return bid; // Return original bid if detail fetch fails
+            // Fetch user's listings
+            try {
+                const listingsResponse = await fetch(`https://rprauto-ajdq.onrender.com/user/${userId}/listings`, {
+                    headers: {
+                        'Authorization': `Bearer ${token.trim()}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
                     }
+                });
 
-                    return await detailResponse.json();
-                })
-            );
+                if (listingsResponse.ok) {
+                    const listingsData = await listingsResponse.json();
+                    setListings(listingsData);
+                } else {
+                    console.error('Failed to fetch listings:', await listingsResponse.text());
+                    showNotification('Failed to load listings. Please try again later.', 'warning');
+                }
+            } catch (error) {
+                console.error('Error fetching listings:', error);
+                showNotification('Failed to load listings. Please try again later.', 'warning');
+            }
 
-            setBids(detailedBids);
-            
-            // Update form data with fetched user data
-            setFormData({
-                firstName: userData.PrivateData.Personal.FirstName || '',
-                lastName: userData.PrivateData.Personal.LastName || '',
-                email: userData.PrivateData.Login.Email || '',
-                phone: userData.PublicData.PhoneNumber || '',
-                address: userData.PrivateData.Personal.Address || '',
-                city: userData.PublicData.City || '',
-                country: userData.PublicData.Country || '',
-                displayName: userData.PublicData.DisplayName || ''
-            });
+            // Fetch user's purchases
+            try {
+                const purchasesResponse = await fetch(`https://rprauto-ajdq.onrender.com/user/${userId}/purchases`, {
+                    headers: {
+                        'Authorization': `Bearer ${token.trim()}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-            // Update user data for dashboard
-            setUserData(prev => ({
-                ...prev,
-                name: userData.PublicData.DisplayName,
-                email: userData.PrivateData.Login.Email,
-                phone: userData.PublicData.PhoneNumber,
-                memberSince: new Date(userData.CreatedAt).getFullYear().toString(),
-                activeListings: detailedListings.length,
-                activeBids: detailedBids.length,
-                totalSales: detailedListings.reduce((total, listing) => total + (listing.Price || 0), 0),
-                role: userData.Role,
-                isCompany: userData.Role === 'Company'
-            }));
+                if (purchasesResponse.ok) {
+                    const purchasesData = await purchasesResponse.json();
+                    setPurchases({
+                        directPurchases: purchasesData.directPurchases || [],
+                        auctionWins: purchasesData.auctionWins || []
+                    });
+                } else {
+                    console.error('Failed to fetch purchases:', await purchasesResponse.text());
+                    showNotification('Failed to load purchases. Please try again later.', 'warning');
+                }
+            } catch (error) {
+                console.error('Error fetching purchases:', error);
+                showNotification('Failed to load purchases. Please try again later.', 'warning');
+            }
 
         } catch (error) {
-            console.error('Error loading user data:', error);
-            showNotification(error.message || 'Failed to load user data', 'error');
+            console.error('Error in loadUserData:', error);
+            showNotification('An error occurred while loading your profile. Please try refreshing the page.', 'error');
         }
     };
 
@@ -547,6 +552,11 @@ function Profile() {
                        className={`nav-item ${activeSection === 'settings' ? 'active' : ''}`}
                        onClick={(e) => { e.preventDefault(); handleSectionChange('settings'); }}>
                         <i className="fas fa-cog"></i> Settings
+                    </a>
+                    <a href="#purchases" 
+                       className={`nav-item ${activeSection === 'purchases' ? 'active' : ''}`}
+                       onClick={(e) => { e.preventDefault(); handleSectionChange('purchases'); }}>
+                        <i className="fas fa-shopping-cart"></i> My Purchases
                     </a>
                 </div>
 
@@ -919,24 +929,25 @@ function Profile() {
                             {bids.length === 0 ? (
                                 <div className="empty-state">
                                     <i className="fas fa-gavel"></i>
-                                    <p>You haven't created any bids yet.</p>
+                                    <p>You haven't placed any bids yet.</p>
                                     <button 
                                         className="btn btn-primary"
-                                        onClick={() => window.location.href = '/search'}
+                                        onClick={() => window.location.href = '/market'}
                                     >
-                                        Browse Auctions
+                                        Browse Marketplace
                                     </button>
                                 </div>
                             ) : (
                                 <div className="listings-grid">
-                                    {bids.map((bid) => (
+                                    {/* Active Bids */}
+                                    {bids.filter(bid => bid.Status === 'Active').map((bid) => (
                                         <div key={bid.Id} className="listing-card">
                                             <div className="listing-header">
                                                 <div className="listing-title">
                                                     {bid.Car.Make} {bid.Car.Model} {bid.Car.Year}
                                                 </div>
-                                                <div className={`listing-status status-${bid.Status?.toLowerCase() || 'pending'}`}>
-                                                    {bid.Status || 'Pending'}
+                                                <div className="listing-status status-active">
+                                                    Active Bid
                                                 </div>
                                             </div>
                                             <div className="listing-details">
@@ -948,19 +959,176 @@ function Profile() {
                                                     <span><i className="fas fa-gas-pump"></i> {bid.Car.FuelType || 'N/A'}</span>
                                                     <span><i className="fas fa-cog"></i> {bid.Car.GearboxType || 'N/A'}</span>
                                                 </div>
+                                                <div className="listing-description">
+                                                    {bid.Description}
+                                                </div>
                                             </div>
                                             <div className="listing-actions">
-                                                <button className="btn btn-outline" onClick={() => {
-                                                    if (window.confirm('Are you sure you want to delete this bid?')) {
-                                                        handleDeleteBid(bid.Id);
-                                                    }
-                                                }}>
-                                                    <i className="fas fa-trash"></i> Delete Bid
+                                                <button 
+                                                    className="btn btn-outline"
+                                                    onClick={() => window.location.href = `/market?listing=${bid.ListingId}`}
+                                                >
+                                                    <i className="fas fa-eye"></i> View Listing
                                                 </button>
                                             </div>
                                         </div>
                                     ))}
+
+                                    {/* Completed Bids */}
+                                    {bids.filter(bid => bid.Status === 'Completed').map((bid) => (
+                                        <div key={bid.Id} className="listing-card">
+                                            <div className="listing-header">
+                                                <div className="listing-title">
+                                                    {bid.Car.Make} {bid.Car.Model} {bid.Car.Year}
+                                                </div>
+                                                <div className="listing-status status-sold">
+                                                    {bid.Amount === bid.TopBid ? 'Won Auction' : 'Outbid'}
+                                                </div>
+                                            </div>
+                                            <div className="listing-details">
+                                                <div className="listing-price">
+                                                    {bid.Amount === bid.TopBid ? 
+                                                        `Winning Bid: $${(bid.TopBid || 0).toLocaleString()}` :
+                                                        `Your Bid: $${(bid.Amount || 0).toLocaleString()}`
+                                                    }
+                                                </div>
+                                                <div className="listing-info">
+                                                    <span><i className="fas fa-road"></i> {(bid.Car.Mileage || 0).toLocaleString()} miles</span>
+                                                    <span><i className="fas fa-gas-pump"></i> {bid.Car.FuelType || 'N/A'}</span>
+                                                    <span><i className="fas fa-cog"></i> {bid.Car.GearboxType || 'N/A'}</span>
+                                                </div>
+                                                <div className="listing-description">
+                                                    {bid.Description}
+                                                </div>
+                                            </div>
+                                            <div className="listing-actions">
+                                                {bid.Amount === bid.TopBid && (
+                                                    <button 
+                                                        className="btn btn-outline"
+                                                        onClick={() => {
+                                                            const sellerId = bid.UserId;
+                                                            window.location.href = `/market?seller=${sellerId}`;
+                                                        }}
+                                                    >
+                                                        <i className="fas fa-star"></i> Leave Review
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Purchases Section */}
+                    {activeSection === 'purchases' && (
+                        <div className="account-section active">
+                            <h2 className="section-title">My Purchases</h2>
+                            
+                            {purchases.directPurchases.length === 0 && purchases.auctionWins.length === 0 ? (
+                                <div className="empty-state">
+                                    <i className="fas fa-shopping-cart"></i>
+                                    <p>You haven't made any purchases yet.</p>
+                                    <button 
+                                        className="btn btn-primary"
+                                        onClick={() => window.location.href = '/market'}
+                                    >
+                                        Browse Marketplace
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Direct Purchases */}
+                                    {purchases.directPurchases.length > 0 && (
+                                        <div className="purchases-section">
+                                            <h3 className="subsection-title">Direct Purchases</h3>
+                                            <div className="listings-grid">
+                                                {purchases.directPurchases.map((purchase) => (
+                                                    <div key={purchase.Id} className="listing-card">
+                                                        <div className="listing-header">
+                                                            <div className="listing-title">
+                                                                {purchase.Car.Make} {purchase.Car.Model} {purchase.Car.Year}
+                                                            </div>
+                                                            <div className="listing-status status-sold">
+                                                                Direct Purchase
+                                                            </div>
+                                                        </div>
+                                                        <div className="listing-details">
+                                                            <div className="listing-price">
+                                                                ${(purchase.Price || 0).toLocaleString()}
+                                                            </div>
+                                                            <div className="listing-info">
+                                                                <span><i className="fas fa-road"></i> {(purchase.Car.Mileage || 0).toLocaleString()} miles</span>
+                                                                <span><i className="fas fa-gas-pump"></i> {purchase.Car.FuelType || 'N/A'}</span>
+                                                                <span><i className="fas fa-cog"></i> {purchase.Car.GearboxType || 'N/A'}</span>
+                                                            </div>
+                                                            <div className="listing-description">
+                                                                {purchase.Description}
+                                                            </div>
+                                                        </div>
+                                                        <div className="listing-actions">
+                                                            <button 
+                                                                className="btn btn-outline"
+                                                                onClick={() => {
+                                                                    const sellerId = purchase.UserId;
+                                                                    window.location.href = `/market?seller=${sellerId}`;
+                                                                }}
+                                                            >
+                                                                <i className="fas fa-star"></i> Leave Review
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Auction Wins */}
+                                    {purchases.auctionWins.length > 0 && (
+                                        <div className="purchases-section">
+                                            <h3 className="subsection-title">Auction Wins</h3>
+                                            <div className="listings-grid">
+                                                {purchases.auctionWins.map((purchase) => (
+                                                    <div key={purchase.Id} className="listing-card">
+                                                        <div className="listing-header">
+                                                            <div className="listing-title">
+                                                                {purchase.Car.Make} {purchase.Car.Model} {purchase.Car.Year}
+                                                            </div>
+                                                            <div className="listing-status status-sold">
+                                                                Auction Win
+                                                            </div>
+                                                        </div>
+                                                        <div className="listing-details">
+                                                            <div className="listing-price">
+                                                                ${(purchase.Price || 0).toLocaleString()}
+                                                            </div>
+                                                            <div className="listing-info">
+                                                                <span><i className="fas fa-road"></i> {(purchase.Car.Mileage || 0).toLocaleString()} miles</span>
+                                                                <span><i className="fas fa-gas-pump"></i> {purchase.Car.FuelType || 'N/A'}</span>
+                                                                <span><i className="fas fa-cog"></i> {purchase.Car.GearboxType || 'N/A'}</span>
+                                                            </div>
+                                                            <div className="listing-description">
+                                                                {purchase.Description}
+                                                            </div>
+                                                        </div>
+                                                        <div className="listing-actions">
+                                                            <button 
+                                                                className="btn btn-outline"
+                                                                onClick={() => {
+                                                                    const sellerId = purchase.UserId;
+                                                                    window.location.href = `/market?seller=${sellerId}`;
+                                                                }}
+                                                            >
+                                                                <i className="fas fa-star"></i> Leave Review
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     )}

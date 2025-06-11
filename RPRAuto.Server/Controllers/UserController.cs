@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.Extensions.Logging;
 using RPRAuto.Server.Models.Enums;
+using RPRAuto.Server.Models.Listing;
 
 namespace RPRAuto.Server.Controllers;
 
@@ -277,6 +278,89 @@ public class UserController : ControllerBase
             throw new NotFoundException("User not found");
 
         return Ok(user.PublicData);
+    }
+
+    [HttpGet("{userId}/bids")]
+    public async Task<IActionResult> GetUserBids(string userId)
+    {
+        if (!ObjectId.TryParse(userId, out var objectId))
+            return BadRequest("Invalid user ID format");
+
+        try
+        {
+            var bids = await _userRepository.GetUserBidsAsync(objectId);
+            return Ok(bids);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user bids for user {UserId}", userId);
+            return StatusCode(500, "An error occurred while retrieving user bids");
+        }
+    }
+
+    [HttpGet("{userId}/purchases")]
+    public async Task<IActionResult> GetUserPurchases(string userId)
+    {
+        if (!ObjectId.TryParse(userId, out var objectId))
+            return BadRequest("Invalid user ID format");
+
+        try
+        {
+            // Get the purchase IDs (direct purchases)
+            var purchaseIds = await _userRepository.GetUserPurchasesAsync(objectId);
+            
+            // Get the full listing details for each purchase
+            var directPurchases = new List<Listing>();
+            foreach (var purchaseId in purchaseIds)
+            {
+                var listing = await _listingRepository.GetByIdAsync(purchaseId);
+                if (listing != null)
+                {
+                    directPurchases.Add(listing);
+                }
+            }
+
+            // Get auction wins (bids where user was the highest bidder)
+            var userBids = await _bidRepository.GetByUserIdAsync(objectId);
+            var auctionWins = userBids
+                .Where(b => b.Status == BidStatus.Completed && 
+                           b.Bids.ContainsKey(objectId.ToString()) && 
+                           b.Bids[objectId.ToString()] == b.TopBid)
+                .Select(b => b.Id)
+                .Distinct()
+                .ToList();
+
+            var auctionPurchases = new List<Listing>();
+            foreach (var bidId in auctionWins)
+            {
+                var bid = await _bidRepository.GetByIdAsync(bidId);
+                if (bid != null)
+                {
+                    // Create a listing from the bid information
+                    var listing = new Listing
+                    {
+                        Id = bid.Id,
+                        Car = bid.Car,
+                        Price = bid.TopBid,
+                        Description = bid.Description,
+                        Status = ListingStatus.Sold,
+                        CreatedAt = bid.CreatedAt,
+                    };
+                    auctionPurchases.Add(listing);
+                }
+            }
+
+            return Ok(new
+            {
+                DirectPurchases = directPurchases,
+                AuctionWins = auctionPurchases
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user purchases for user {UserId}", userId);
+            return StatusCode(500, "An error occurred while retrieving user purchases");
+        }
     }
 
     private ObjectId GetUserIdFromToken()

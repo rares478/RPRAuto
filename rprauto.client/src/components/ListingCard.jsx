@@ -174,8 +174,16 @@ const ListingCard = ({ car }) => {
             }
 
             alert('Congratulations! The vehicle has been purchased successfully.');
-            // Refresh the page to update the listing status
-            window.location.reload();
+            // Update the car's status locally instead of reloading
+            car.status = 'Sold';
+            // Refresh seller info to ensure we have the latest data
+            if (car.sellerId) {
+                const sellerResponse = await fetch(`https://rprauto-ajdq.onrender.com/user/${car.sellerId}/public`);
+                if (sellerResponse.ok) {
+                    const sellerData = await sellerResponse.json();
+                    setSellerInfo(sellerData);
+                }
+            }
         } catch (error) {
             alert(error.message);
         } finally {
