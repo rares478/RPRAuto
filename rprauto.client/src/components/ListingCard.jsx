@@ -16,12 +16,12 @@ const ListingCard = ({ car }) => {
     const [isPurchasing, setIsPurchasing] = useState(false);
 
     useEffect(() => {
-        if (!car?.sellerId) {
-            setSellerInfo(null);
-            return;
-        }
-
         const fetchSellerInfo = async () => {
+            if (!car?.sellerId) {
+                setSellerInfo(null);
+                return;
+            }
+
             try {
                 const response = await fetch(`https://rprauto-ajdq.onrender.com/user/${car.sellerId}/public`);
                 if (!response.ok) {
@@ -36,7 +36,7 @@ const ListingCard = ({ car }) => {
         };
 
         fetchSellerInfo();
-    }, [car]);
+    }, [car?.sellerId]);
 
     const handleReviewSubmit = async (rating) => {
         const token = Cookies.get('authToken');

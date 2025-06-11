@@ -5,6 +5,8 @@ import ListingCard from './ListingCard';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useNavigate } from 'react-router-dom';
 import { makes, getModelsForMake } from './data/carOptions';
+import { useAuth } from '../context/AuthContext';
+import Cookies from 'js-cookie';
 
 function MainPage() {
      const [cars, setCars] = useState([]);
@@ -21,6 +23,7 @@ function MainPage() {
      const [selectedModel, setSelectedModel] = useState(null);
      const [selectedYear, setSelectedYear] = useState(null);
      const navigate = useNavigate();
+     const { isAuthenticated } = useAuth();
 
      useEffect(() => {
           loadSiteSettings();
@@ -52,12 +55,16 @@ function MainPage() {
      const fetchCars = async () => {
           try {
                const response = await fetch('https://rprauto-ajdq.onrender.com/listing?page=1&pageSize=3');
+               if (!response.ok) {
+                    throw new Error('Failed to fetch cars');
+               }
                const data = await response.json();
                
                // Get 3 random cars from the listings
                const randomCars = data.Listings
                     .map(listing => ({
                          id: listing.Id,
+                         sellerId: listing.UserId,
                          title: `${listing.Car.Make} ${listing.Car.Model}`,
                          make: listing.Car.Make,
                          model: listing.Car.Model,
