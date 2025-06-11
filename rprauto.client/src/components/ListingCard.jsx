@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import './styles/card.css';
 import ReviewModal from './ReviewModal';
@@ -8,72 +8,13 @@ const ListingCard = ({ car }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
     const [showPhone, setShowPhone] = useState(false);
-    const [sellerInfo, setSellerInfo] = useState(null);
     const [popupOpen, setPopupOpen] = useState(false);
     const [popupSlide, setPopupSlide] = useState(0);
     const [sellerInfoOpen, setSellerInfoOpen] = useState(false);
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [isPurchasing, setIsPurchasing] = useState(false);
 
-    useEffect(() => {
-        const fetchSellerInfo = async () => {
-            if (!car?.sellerId) {
-                setSellerInfo(null);
-                return;
-            }
-
-            try {
-                const response = await fetch(`https://rprauto-ajdq.onrender.com/user/${car.sellerId}/public`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch seller info');
-                }
-                const data = await response.json();
-                setSellerInfo(data);
-            } catch (error) {
-                console.error('Error fetching seller info:', error);
-                setSellerInfo(null);
-            }
-        };
-
-        fetchSellerInfo();
-    }, [car?.sellerId]);
-
-    const handleReviewSubmit = async (rating) => {
-        const token = Cookies.get('authToken');
-        if (!token) {
-            alert('Please log in to leave a review');
-            return;
-        }
-
-        try {
-            const response = await fetch('https://rprauto-ajdq.onrender.com/review', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    transactionId: car.id,
-                    transactionType: 0, // 0 for Listing
-                    rating: rating
-                })
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.message || 'Failed to submit review');
-            }
-
-            alert('Thank you for your review!');
-            // Refresh seller info to update rating
-            fetch(`https://rprauto-ajdq.onrender.com/user/${car.sellerId}/public`)
-                .then(res => res.json())
-                .then(data => setSellerInfo(data))
-                .catch(() => setSellerInfo(null));
-        } catch (error) {
-            alert(error.message);
-        }
-    };
+    const sellerInfo = car.sellerInfo;
 
     const changeSlide = (direction, e) => {
         e.stopPropagation();
@@ -181,13 +122,51 @@ const ListingCard = ({ car }) => {
                 const sellerResponse = await fetch(`https://rprauto-ajdq.onrender.com/user/${car.sellerId}/public`);
                 if (sellerResponse.ok) {
                     const sellerData = await sellerResponse.json();
-                    setSellerInfo(sellerData);
+                    car.sellerInfo = sellerData;
                 }
             }
         } catch (error) {
             alert(error.message);
         } finally {
             setIsPurchasing(false);
+        }
+    };
+
+    const handleReviewSubmit = async (rating) => {
+        const token = Cookies.get('authToken');
+        if (!token) {
+            alert('Please log in to leave a review');
+            return;
+        }
+
+        try {
+            const response = await fetch('https://rprauto-ajdq.onrender.com/review', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    transactionId: car.id,
+                    transactionType: 0, // 0 for Listing
+                    rating: rating
+                })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.message || 'Failed to submit review');
+            }
+
+            alert('Thank you for your review!');
+            // Refresh seller info to update rating
+            const sellerResponse = await fetch(`https://rprauto-ajdq.onrender.com/user/${car.sellerId}/public`);
+            if (sellerResponse.ok) {
+                const sellerData = await sellerResponse.json();
+                car.sellerInfo = sellerData;
+            }
+        } catch (error) {
+            alert(error.message);
         }
     };
 

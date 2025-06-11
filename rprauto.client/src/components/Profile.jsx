@@ -160,6 +160,12 @@ function Profile() {
                 if (bidsResponse.ok) {
                     const bidsData = await bidsResponse.json();
                     setBids(bidsData);
+                    // Update active bids count
+                    const activeBids = bidsData.filter(bid => bid.Status === 'Active').length;
+                    setUserData(prev => ({
+                        ...prev,
+                        activeBids
+                    }));
                 } else {
                     console.error('Failed to fetch bids:', await bidsResponse.text());
                     showNotification('Failed to load bids. Please try again later.', 'warning');
@@ -182,6 +188,12 @@ function Profile() {
                 if (listingsResponse.ok) {
                     const listingsData = await listingsResponse.json();
                     setListings(listingsData);
+                    // Update active listings count
+                    const activeListings = listingsData.filter(listing => listing.Status === 'Active').length;
+                    setUserData(prev => ({
+                        ...prev,
+                        activeListings
+                    }));
                 } else {
                     console.error('Failed to fetch listings:', await listingsResponse.text());
                     showNotification('Failed to load listings. Please try again later.', 'warning');
@@ -204,8 +216,8 @@ function Profile() {
                 if (purchasesResponse.ok) {
                     const purchasesData = await purchasesResponse.json();
                     setPurchases({
-                        directPurchases: purchasesData.directPurchases || [],
-                        auctionWins: purchasesData.auctionWins || []
+                        directPurchases: purchasesData.DirectPurchases || [],
+                        auctionWins: purchasesData.AuctionWins || []
                     });
                 } else {
                     console.error('Failed to fetch purchases:', await purchasesResponse.text());

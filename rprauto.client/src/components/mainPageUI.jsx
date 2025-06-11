@@ -6,19 +6,14 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useNavigate } from 'react-router-dom';
 import { makes, getModelsForMake } from './data/carOptions';
 import { useAuth } from '../context/AuthContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 import Cookies from 'js-cookie';
 
 function MainPage() {
      const [cars, setCars] = useState([]);
-     const [siteSettings, setSiteSettings] = useState({
-          siteTitle: 'RPR Auto',
-          heroTitle: 'Find Your Dream Car',
-          heroSubtitle: 'Buy, sell, and bid on premium vehicles in our trusted marketplace',
-          activeUsers: '0',
-          carsSold: '0',
-          liveAuctions: '0',
-          satisfactionRate: '0'
-     });
+     const [isLoading, setIsLoading] = useState(true);
+     const [isBackendStarting, setIsBackendStarting] = useState(false);
+     const { siteSettings } = useSiteSettings();
      const [selectedMake, setSelectedMake] = useState(null);
      const [selectedModel, setSelectedModel] = useState(null);
      const [selectedYear, setSelectedYear] = useState(null);
@@ -26,43 +21,69 @@ function MainPage() {
      const { isAuthenticated } = useAuth();
 
      useEffect(() => {
-          loadSiteSettings();
           fetchCars();
      }, []);
 
-     const loadSiteSettings = async () => {
-          try {
-               const response = await fetch('https://rprauto-ajdq.onrender.com/api/sitesettings');
-               if (!response.ok) {
-                    throw new Error('Failed to load site settings');
-               }
-               const data = await response.json();
-               setSiteSettings({
-                    siteTitle: data.SiteTitle || 'RPR Auto',
-                    heroTitle: data.HeroTitle || 'Find Your Dream Car',
-                    heroSubtitle: data.HeroSubtitle || 'Buy, sell, and bid on premium vehicles in our trusted marketplace',
-                    activeUsers: data.ActiveUsers || '0',
-                    carsSold: data.CarsSold || '0',
-                    liveAuctions: data.LiveAuctions || '0',
-                    satisfactionRate: data.SatisfactionRate || '0'
-               });
-          } catch (error) {
-               console.error('Error loading site settings:', error);
-          }
+     const showNotification = (message, type = 'info') => {
+          const notification = document.createElement('div');
+          notification.className = `notification ${type}`;
+          notification.textContent = message;
+          
+          const bgColor = type === 'success' ? '#10b981' : 
+                         type === 'error' ? '#ef4444' : 
+                         type === 'warning' ? '#f59e0b' : '#3b82f6';
+          
+          notification.style.cssText = `
+               position: fixed;
+               top: 20px;
+               right: 20px;
+               background-color: ${bgColor};
+               color: white;
+               padding: 12px 20px;
+               border-radius: 6px;
+               z-index: 10000;
+               animation: slideIn 0.3s ease-out;
+               box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          `;
+          
+          document.body.appendChild(notification);
+          
+          setTimeout(() => {
+               notification.style.animation = 'slideOut 0.3s ease-out';
+               setTimeout(() => {
+                    if (notification.parentNode) {
+                         notification.parentNode.removeChild(notification);
+                    }
+               }, 300);
+          }, 5000);
      };
 
      // Fetch cars data from your API
      const fetchCars = async () => {
           try {
+               setIsLoading(true);
+               setIsBackendStarting(true);
+               showNotification('The server is starting up. Please wait a moment...', 'warning');
+
                const response = await fetch('https://rprauto-ajdq.onrender.com/listing?page=1&pageSize=3');
                if (!response.ok) {
                     throw new Error('Failed to fetch cars');
                }
                const data = await response.json();
                
-               // Get 3 random cars from the listings
-               const randomCars = data.Listings
-                    .map(listing => ({
+               // Fetch seller info for each car
+               const carsWithSellerInfo = await Promise.all(data.Listings.map(async listing => {
+                    let sellerInfo = null;
+                    try {
+                         const sellerResponse = await fetch(`https://rprauto-ajdq.onrender.com/user/${listing.UserId}/public`);
+                         if (sellerResponse.ok) {
+                              sellerInfo = await sellerResponse.json();
+                         }
+                    } catch (error) {
+                         console.error('Error fetching seller info:', error);
+                    }
+
+                    return {
                          id: listing.Id,
                          sellerId: listing.UserId,
                          title: `${listing.Car.Make} ${listing.Car.Model}`,
@@ -80,12 +101,20 @@ function MainPage() {
                          power: listing.Car.HorsePower,
                          mileage: listing.Car.Mileage,
                          bodyType: listing.Car.BodyType,
-                         phone: listing.User?.Personal?.PhoneNumber || "N/A"
-                    }));
+                         phone: listing.User?.Personal?.PhoneNumber || "N/A",
+                         sellerInfo: sellerInfo
+                    };
+               }));
                 
-               setCars(randomCars);
+               setCars(carsWithSellerInfo);
+               setIsBackendStarting(false);
+               showNotification('Server is now ready!', 'success');
           } catch (error) {
                console.error('Error fetching cars:', error);
+               setIsBackendStarting(true);
+               showNotification('The server is starting up. Please wait a moment...', 'warning');
+          } finally {
+               setIsLoading(false);
           }
      };
 
@@ -106,6 +135,24 @@ function MainPage() {
 
     return (
           <div className="main-page">
+               {/* Loading Overlay */}
+               {isLoading && (
+                    <div className="loading-overlay">
+                         <div className="loading-spinner"></div>
+                         <p>Loading content...</p>
+                    </div>
+               )}
+
+               {/* Backend Starting Notification */}
+               {isBackendStarting && (
+                    <div className="backend-starting-notification">
+                         <div className="notification-content">
+                              <i className="fas fa-spinner fa-spin"></i>
+                              <p>The server is starting up. This may take a minute...</p>
+                         </div>
+                    </div>
+               )}
+
                {/* Hero Section */}
                <section className="hero">
                     <div className="container">
