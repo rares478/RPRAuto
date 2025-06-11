@@ -143,13 +143,21 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{id}/bids")]
-    public async Task<IActionResult> GetAllBids(string id)
+    public async Task<IActionResult> GetUserBids(string id)
     {
         if (!ObjectId.TryParse(id, out var objectId))
-            throw new ValidationException("Invalid user ID format");
+            return BadRequest("Invalid user ID format");
 
-        var bids = await _bidRepository.GetByUserIdAsync(objectId);
-        return Ok(bids);
+        try
+        {
+            var bids = await _bidRepository.GetByUserIdAsync(objectId);
+            return Ok(bids);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user bids for user {UserId}", id);
+            return StatusCode(500, "An error occurred while retrieving user bids");
+        }
     }
 
     [HttpGet("{id}/login")]
@@ -280,24 +288,6 @@ public class UserController : ControllerBase
         return Ok(user.PublicData);
     }
 
-    [HttpGet("{userId}/bids")]
-    public async Task<IActionResult> GetUserBids(string userId)
-    {
-        if (!ObjectId.TryParse(userId, out var objectId))
-            return BadRequest("Invalid user ID format");
-
-        try
-        {
-            var bids = await _userRepository.GetUserBidsAsync(objectId);
-            return Ok(bids);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting user bids for user {UserId}", userId);
-            return StatusCode(500, "An error occurred while retrieving user bids");
-        }
-    }
-
     [HttpGet("{userId}/purchases")]
     public async Task<IActionResult> GetUserPurchases(string userId)
     {
@@ -344,7 +334,7 @@ public class UserController : ControllerBase
                         Price = bid.TopBid,
                         Description = bid.Description,
                         Status = ListingStatus.Sold,
-                        CreatedAt = bid.CreatedAt,
+                        CreatedAt = bid.CreatedAt
                     };
                     auctionPurchases.Add(listing);
                 }
